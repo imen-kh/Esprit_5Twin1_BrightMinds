@@ -1,0 +1,28 @@
+NutriTrace - Intégration complète des templates (Fruitables + Sneat)
+=====================================================================
+1. Dézipper ce fichier à la racine du projet Laravel (remplacer les fichiers existants).
+2. php artisan view:clear
+3. php artisan serve
+
+FRONT OFFICE (Fruitables) - 8 pages
+  /                 Accueil
+  /produits         Shop
+  /produit-detail   Shop Detail
+  /panier           Cart
+  /commande         Checkout
+  /temoignages      Testimonial
+  /contact          Contact
+  /404              Page 404 (affichée aussi automatiquement pour toute URL inexistante)
+
+BACK OFFICE (Sneat) - 42 pages, toutes accessibles depuis le menu de gauche
+  /admin                       Dashboard
+  /admin/<nom-de-la-page>      ex: /admin/tables-basic, /admin/ui-buttons, /admin/auth-login-basic
+
+Layouts Blade :
+  layouts/front.blade.php        (front office)
+  layouts/back.blade.php         (admin avec menu + navbar)
+  layouts/back-blank.blade.php   (pages login / register / erreur / maintenance)
+
+Liens des templates (à garder dans le README) :
+  Fruitables : https://themewagon.com/themes/fruitables-free/
+  Sneat      : https://github.com/themeselection/sneat-bootstrap-html-admin-template-free
