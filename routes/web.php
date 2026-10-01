@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -12,8 +14,27 @@ Route::view('/temoignages', 'front.temoignages')->name('temoignages');
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
 
-// ===== Back office (Sneat) =====
-Route::prefix('admin')->name('admin.')->group(function () {
+// ===== Authentification =====
+// Pages réservées aux visiteurs non connectés
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// ===== Mon profil (tous les rôles connectés) =====
+Route::middleware('auth')->group(function () {
+    Route::get('/profil', [ProfileController::class, 'edit'])->name('profil.edit');
+    Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
+    Route::put('/profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profil.password');
+    Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profil.destroy');
+});
+
+// ===== Back office (Sneat) : réservé aux administrateurs connectés =====
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::view('/auth-forgot-password-basic', 'back.auth-forgot-password-basic')->name('auth-forgot-password-basic');
     Route::view('/auth-login-basic', 'back.auth-login-basic')->name('auth-login-basic');
     Route::view('/auth-register-basic', 'back.auth-register-basic')->name('auth-register-basic');

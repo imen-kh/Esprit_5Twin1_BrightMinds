@@ -32,21 +32,22 @@
                     href="javascript:void(0);"
                     data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                      <img src="{{ asset('back/assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                      <img src="{{ auth()->user()->avatar_url }}" alt class="w-px-40 h-px-40 rounded-circle" style="object-fit: cover;" />
                     </div>
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                      <a class="dropdown-item" href="#">
+                      <a class="dropdown-item" href="{{ route('profil.edit') }}">
                         <div class="d-flex">
                           <div class="flex-shrink-0 me-3">
                             <div class="avatar avatar-online">
-                              <img src="{{ asset('back/assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                              <img src="{{ auth()->user()->avatar_url }}" alt class="w-px-40 h-px-40 rounded-circle" style="object-fit: cover;" />
                             </div>
                           </div>
                           <div class="flex-grow-1">
-                            <h6 class="mb-0">Admin NutriTrace</h6>
-                            <small class="text-body-secondary">Admin</small>
+                            <h6 class="mb-0">{{ auth()->user()->name }}</h6>
+                            {{-- Rôle, suivi du type d'acteur s'il existe --}}
+                            <small class="text-body-secondary">{{ ucfirst(auth()->user()->role) }}@if (auth()->user()->type_acteur) · {{ ucfirst(auth()->user()->type_acteur) }}@endif</small>
                           </div>
                         </div>
                       </a>
@@ -55,8 +56,8 @@
                       <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="#">
-                        <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
+                      <a class="dropdown-item" href="{{ route('profil.edit') }}">
+                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Mon profil</span>
                       </a>
                     </li>
                     <li>
@@ -77,9 +78,13 @@
                       <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="{{ route('admin.auth-login-basic') }}">
-                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Log Out</span>
-                      </a>
+                      {{-- Déconnexion en POST (protégée par @csrf) --}}
+                      <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="dropdown-item">
+                          <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Déconnexion</span>
+                        </button>
+                      </form>
                     </li>
                   </ul>
                 </li>

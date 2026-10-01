@@ -11,7 +11,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Alias des middlewares de rôle : 'admin' (admin seul) et 'acteur' (acteur ou admin)
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'acteur' => \App\Http\Middleware\ActeurMiddleware::class,
+        ]);
+
+        // Invité sur une page protégée -> connexion ; utilisateur connecté sur une page « guest » -> accueil
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('home'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

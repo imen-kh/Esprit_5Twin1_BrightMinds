@@ -41,9 +41,35 @@
                                 <i class="fa fa-shopping-bag fa-2x"></i>
                                 <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">3</span>
                             </a>
-                            <a href="{{ route('admin.dashboard') }}" class="my-auto" title="Espace admin">
-                                <i class="fas fa-user fa-2x"></i>
-                            </a>
+                            @guest
+                                <a href="{{ route('login') }}" class="my-auto" title="Se connecter">
+                                    <i class="fas fa-user fa-2x"></i>
+                                </a>
+                            @else
+                                {{-- Utilisateur connecté : menu avec son nom --}}
+                                <div class="nav-item dropdown my-auto">
+                                    <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                                        <i class="fas fa-user fa-2x me-2"></i>
+                                        <span class="d-flex flex-column lh-sm">
+                                            <span>{{ auth()->user()->name }}</span>
+                                            {{-- Rôle, suivi du type d'acteur s'il existe --}}
+                                            <small class="text-muted">
+                                                {{ ucfirst(auth()->user()->role) }}@if (auth()->user()->type_acteur) · {{ ucfirst(auth()->user()->type_acteur) }}@endif
+                                            </small>
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu m-0 bg-secondary rounded-0" style="left: auto; right: 0;">
+                                        <a href="{{ route('profil.edit') }}" class="dropdown-item">Mon profil</a>
+                                        @if (auth()->user()->isAdmin())
+                                            <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Back office</a>
+                                        @endif
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item">Déconnexion</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endguest
                         </div>
                     </div>
                 </nav>
