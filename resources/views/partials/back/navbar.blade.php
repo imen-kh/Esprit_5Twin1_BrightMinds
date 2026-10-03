@@ -17,8 +17,8 @@
                   <input
                     type="text"
                     class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
-                    placeholder="Search..."
-                    aria-label="Search..." />
+                    placeholder="Rechercher..."
+                    aria-label="Rechercher..." />
                 </div>
               </div>
               <!-- /Search -->
@@ -62,14 +62,14 @@
                     </li>
                     <li>
                       <a class="dropdown-item" href="#">
-                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Settings</span>
+                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Paramètres</span>
                       </a>
                     </li>
                     <li>
                       <a class="dropdown-item" href="#">
                         <span class="d-flex align-items-center align-middle">
                           <i class="flex-shrink-0 icon-base bx bx-credit-card icon-md me-3"></i
-                          ><span class="flex-grow-1 align-middle">Billing Plan</span>
+                          ><span class="flex-grow-1 align-middle">Facturation</span>
                           <span class="flex-shrink-0 badge rounded-pill bg-danger">4</span>
                         </span>
                       </a>

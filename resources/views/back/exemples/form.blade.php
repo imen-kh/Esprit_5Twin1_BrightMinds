@@ -8,17 +8,17 @@
                 <div class="col-xl">
                   <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                      <h5 class="mb-0">Basic Layout</h5>
-                      <small class="text-body float-end">Default label</small>
+                      <h5 class="mb-0">Formulaire simple</h5>
+                      <small class="text-body float-end">Libellés par défaut</small>
                     </div>
                     <div class="card-body">
                       <form>
                         <div class="mb-6">
-                          <label class="form-label" for="basic-default-fullname">Full Name</label>
+                          <label class="form-label" for="basic-default-fullname">Nom complet</label>
                           <input type="text" class="form-control" id="basic-default-fullname" placeholder="John Doe" />
                         </div>
                         <div class="mb-6">
-                          <label class="form-label" for="basic-default-company">Company</label>
+                          <label class="form-label" for="basic-default-company">Entreprise</label>
                           <input type="text" class="form-control" id="basic-default-company" placeholder="ACME Inc." />
                         </div>
                         <div class="mb-6">
@@ -33,10 +33,10 @@
                               aria-describedby="basic-default-email2" />
                             <span class="input-group-text" id="basic-default-email2">@example.com</span>
                           </div>
-                          <div class="form-text">You can use letters, numbers & periods</div>
+                          <div class="form-text">Lettres, chiffres et points autorisés</div>
                         </div>
                         <div class="mb-6">
-                          <label class="form-label" for="basic-default-phone">Phone No</label>
+                          <label class="form-label" for="basic-default-phone">Téléphone</label>
                           <input
                             type="text"
                             id="basic-default-phone"
@@ -48,9 +48,9 @@
                           <textarea
                             id="basic-default-message"
                             class="form-control"
-                            placeholder="Hi, Do you have a moment to talk Joe?"></textarea>
+                            placeholder="Bonjour, auriez-vous un moment pour échanger ?"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Send</button>
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
                       </form>
                     </div>
                   </div>
@@ -58,13 +58,13 @@
                 <div class="col-xl">
                   <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                      <h5 class="mb-0">Basic with Icons</h5>
-                      <small class="text-body float-end">Merged input group</small>
+                      <h5 class="mb-0">Formulaire avec icônes</h5>
+                      <small class="text-body float-end">Champs avec icônes intégrées</small>
                     </div>
                     <div class="card-body">
                       <form>
                         <div class="mb-6">
-                          <label class="form-label" for="basic-icon-default-fullname">Full Name</label>
+                          <label class="form-label" for="basic-icon-default-fullname">Nom complet</label>
                           <div class="input-group input-group-merge">
                             <span id="basic-icon-default-fullname2" class="input-group-text"
                               ><i class="icon-base bx bx-user"></i
@@ -79,7 +79,7 @@
                           </div>
                         </div>
                         <div class="mb-6">
-                          <label class="form-label" for="basic-icon-default-company">Company</label>
+                          <label class="form-label" for="basic-icon-default-company">Entreprise</label>
                           <div class="input-group input-group-merge">
                             <span id="basic-icon-default-company2" class="input-group-text"
                               ><i class="icon-base bx bx-buildings"></i
@@ -106,10 +106,10 @@
                               aria-describedby="basic-icon-default-email2" />
                             <span id="basic-icon-default-email2" class="input-group-text">@example.com</span>
                           </div>
-                          <div class="form-text">You can use letters, numbers & periods</div>
+                          <div class="form-text">Lettres, chiffres et points autorisés</div>
                         </div>
                         <div class="mb-6">
-                          <label class="form-label" for="basic-icon-default-phone">Phone No</label>
+                          <label class="form-label" for="basic-icon-default-phone">Téléphone</label>
                           <div class="input-group input-group-merge">
                             <span id="basic-icon-default-phone2" class="input-group-text"
                               ><i class="icon-base bx bx-phone"></i
@@ -132,12 +132,12 @@
                             <textarea
                               id="basic-icon-default-message"
                               class="form-control"
-                              placeholder="Hi, Do you have a moment to talk Joe?"
-                              aria-label="Hi, Do you have a moment to talk Joe?"
+                              placeholder="Bonjour, auriez-vous un moment pour échanger ?"
+                              aria-label="Bonjour, auriez-vous un moment pour échanger ?"
                               aria-describedby="basic-icon-default-message2"></textarea>
                           </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Send</button>
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
                       </form>
                     </div>
                   </div>

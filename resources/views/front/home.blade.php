@@ -8,32 +8,32 @@
             <div class="container py-5">
                 <div class="row g-5 align-items-center">
                     <div class="col-md-12 col-lg-7">
-                        <h4 class="mb-3 text-secondary">100% Organic Foods</h4>
+                        <h4 class="mb-3 text-secondary">Des aliments 100 % tracés</h4>
                         <h1 class="mb-5 display-3 text-primary">Du champ à l'assiette, en toute transparence</h1>
                         <div class="position-relative mx-auto">
-                            <input class="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="number" placeholder="Search">
-                            <button type="submit" class="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style="top: 0; right: 25%;">Submit Now</button>
+                            <input class="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="number" placeholder="Rechercher">
+                            <button type="submit" class="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style="top: 0; right: 25%;">Rechercher</button>
                         </div>
                     </div>
                     <div class="col-md-12 col-lg-5">
                         <div id="carouselId" class="carousel slide position-relative" data-bs-ride="carousel">
                             <div class="carousel-inner" role="listbox">
                                 <div class="carousel-item active rounded">
-                                    <img src="{{ asset('front/img/hero-img-1.png') }}" class="img-fluid w-100 h-100 bg-secondary rounded" alt="First slide">
-                                    <a href="#" class="btn px-4 py-2 text-white rounded">Fruites</a>
+                                    <img src="{{ asset('front/img/hero-img-1.png') }}" class="img-fluid w-100 h-100 bg-secondary rounded" alt="Première image">
+                                    <a href="#" class="btn px-4 py-2 text-white rounded">Fruits</a>
                                 </div>
                                 <div class="carousel-item rounded">
-                                    <img src="{{ asset('front/img/hero-img-2.jpg') }}" class="img-fluid w-100 h-100 rounded" alt="Second slide">
-                                    <a href="#" class="btn px-4 py-2 text-white rounded">Vesitables</a>
+                                    <img src="{{ asset('front/img/hero-img-2.jpg') }}" class="img-fluid w-100 h-100 rounded" alt="Deuxième image">
+                                    <a href="#" class="btn px-4 py-2 text-white rounded">Légumes</a>
                                 </div>
                             </div>
                             <button class="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
+                                <span class="visually-hidden">Précédent</span>
                             </button>
                             <button class="carousel-control-next" type="button" data-bs-target="#carouselId" data-bs-slide="next">
                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
+                                <span class="visually-hidden">Suivant</span>
                             </button>
                         </div>
                     </div>
@@ -53,8 +53,8 @@
                                 <i class="fas fa-car-side fa-3x text-white"></i>
                             </div>
                             <div class="featurs-content text-center">
-                                <h5>Free Shipping</h5>
-                                <p class="mb-0">Free on order over $300</p>
+                                <h5>Livraison gratuite</h5>
+                                <p class="mb-0">Gratuite dès 300 DT d'achat</p>
                             </div>
                         </div>
                     </div>
@@ -64,8 +64,8 @@
                                 <i class="fas fa-user-shield fa-3x text-white"></i>
                             </div>
                             <div class="featurs-content text-center">
-                                <h5>Security Payment</h5>
-                                <p class="mb-0">100% security payment</p>
+                                <h5>Paiement sécurisé</h5>
+                                <p class="mb-0">Paiement 100 % sécurisé</p>
                             </div>
                         </div>
                     </div>
@@ -75,8 +75,8 @@
                                 <i class="fas fa-exchange-alt fa-3x text-white"></i>
                             </div>
                             <div class="featurs-content text-center">
-                                <h5>30 Day Return</h5>
-                                <p class="mb-0">30 day money guarantee</p>
+                                <h5>Retour sous 30 jours</h5>
+                                <p class="mb-0">Satisfait ou remboursé 30 jours</p>
                             </div>
                         </div>
                     </div>
@@ -86,8 +86,8 @@
                                 <i class="fa fa-phone-alt fa-3x text-white"></i>
                             </div>
                             <div class="featurs-content text-center">
-                                <h5>24/7 Support</h5>
-                                <p class="mb-0">Support every time fast</p>
+                                <h5>Assistance 24h/24</h5>
+                                <p class="mb-0">Une équipe réactive à votre écoute</p>
                             </div>
                         </div>
                     </div>
@@ -103,18 +103,18 @@
                 <div class="tab-class text-center">
                     <div class="row g-4">
                         <div class="col-lg-4 text-start">
-                            <h1>Our Organic Products</h1>
+                            <h1>Nos produits tracés</h1>
                         </div>
                         <div class="col-lg-8 text-end">
                             <ul class="nav nav-pills d-inline-flex text-center mb-5">
                                 <li class="nav-item">
                                     <a class="d-flex m-2 py-2 bg-light rounded-pill active" data-bs-toggle="pill" href="#tab-1">
-                                        <span class="text-dark" style="width: 130px;">All Products</span>
+                                        <span class="text-dark" style="width: 130px;">Tous les produits</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="d-flex py-2 m-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-2">
-                                        <span class="text-dark" style="width: 130px;">Vegetables</span>
+                                        <span class="text-dark" style="width: 130px;">Légumes</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -124,12 +124,12 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="d-flex m-2 py-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-4">
-                                        <span class="text-dark" style="width: 130px;">Bread</span>
+                                        <span class="text-dark" style="width: 130px;">Pain</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="d-flex m-2 py-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-5">
-                                        <span class="text-dark" style="width: 130px;">Meat</span>
+                                        <span class="text-dark" style="width: 130px;">Viande</span>
                                     </a>
                                 </li>
                             </ul>
@@ -147,11 +147,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Grapes</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Raisin</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -163,11 +163,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Grapes</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Raisin</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -179,11 +179,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Raspberries</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Framboises</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -195,11 +195,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Apricots</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Abricots</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -211,11 +211,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Banana</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Banane</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -228,10 +228,10 @@
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
                                                     <h4>Oranges</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -243,11 +243,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Raspberries</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Framboises</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -259,11 +259,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Grapes</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Raisin</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -283,11 +283,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Grapes</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Raisin</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -299,11 +299,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Raspberries</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Framboises</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -324,10 +324,10 @@
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
                                                     <h4>Oranges</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -339,11 +339,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Apple</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Pomme</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -363,11 +363,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Grapes</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Raisin</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -379,11 +379,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Apricots</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Abricots</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -403,11 +403,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Banana</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Banane</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -419,11 +419,11 @@
                                                 </div>
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Raspberries</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <h4>Framboises</h4>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -436,10 +436,10 @@
                                                 <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Fruits</div>
                                                 <div class="p-4 border border-secondary border-top-0 rounded-bottom">
                                                     <h4>Oranges</h4>
-                                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                                    <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                        <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -465,8 +465,8 @@
                                 <img src="{{ asset('front/img/featur-1.jpg') }}" class="img-fluid rounded-top w-100" alt="">
                                 <div class="px-4 rounded-bottom">
                                     <div class="service-content bg-primary text-center p-4 rounded">
-                                        <h5 class="text-white">Fresh Apples</h5>
-                                        <h3 class="mb-0">20% OFF</h3>
+                                        <h5 class="text-white">Pommes fraîches</h5>
+                                        <h3 class="mb-0">-20 %</h3>
                                     </div>
                                 </div>
                             </div>
@@ -478,8 +478,8 @@
                                 <img src="{{ asset('front/img/featur-2.jpg') }}" class="img-fluid rounded-top w-100" alt="">
                                 <div class="px-4 rounded-bottom">
                                     <div class="service-content bg-light text-center p-4 rounded">
-                                        <h5 class="text-primary">Tasty Fruits</h5>
-                                        <h3 class="mb-0">Free delivery</h3>
+                                        <h5 class="text-primary">Fruits savoureux</h5>
+                                        <h3 class="mb-0">Livraison gratuite</h3>
                                     </div>
                                 </div>
                             </div>
@@ -491,8 +491,8 @@
                                 <img src="{{ asset('front/img/featur-3.jpg') }}" class="img-fluid rounded-top w-100" alt="">
                                 <div class="px-4 rounded-bottom">
                                     <div class="service-content bg-secondary text-center p-4 rounded">
-                                        <h5 class="text-white">Exotic Vegitable</h5>
-                                        <h3 class="mb-0">Discount 30$</h3>
+                                        <h5 class="text-white">Légumes de saison</h5>
+                                        <h3 class="mb-0">Remise de 30 DT</h3>
                                     </div>
                                 </div>
                             </div>
@@ -507,19 +507,19 @@
         <!-- Vesitable Shop Start-->
         <div class="container-fluid vesitable py-5">
             <div class="container py-5">
-                <h1 class="mb-0">Fresh Organic Vegetables</h1>
+                <h1 class="mb-0">Légumes frais et tracés</h1>
                 <div class="owl-carousel vegetable-carousel justify-content-center">
                     <div class="border border-primary rounded position-relative vesitable-item">
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-6.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Persil</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -527,13 +527,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-1.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Persil</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">4,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -541,13 +541,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-3.png') }}" class="img-fluid w-100 rounded-top bg-light" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Banana</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Banane</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">7,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -555,13 +555,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-4.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Bell Papper</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Poivron</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">7,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -569,13 +569,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-5.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Potatoes</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Pommes de terre</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">7,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -583,13 +583,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-6.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Persil</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">7,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -597,13 +597,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-5.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Potatoes</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Pommes de terre</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">7,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -611,13 +611,13 @@
                         <div class="vesitable-img">
                             <img src="{{ asset('front/img/vegetable-item-6.jpg') }}" class="img-fluid w-100 rounded-top" alt="">
                         </div>
-                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                        <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Légume</div>
                         <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                            <h4>Persil</h4>
+                            <p>Produit frais et local, tracé de la ferme jusqu'à votre assiette.</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <p class="text-dark fs-5 fw-bold mb-0">7,99 DT / kg</p>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -633,10 +633,10 @@
                 <div class="row g-4 align-items-center">
                     <div class="col-lg-6">
                         <div class="py-4">
-                            <h1 class="display-3 text-white">Fresh Exotic Fruits</h1>
-                            <p class="fw-normal display-3 text-dark mb-4">in Our Store</p>
-                            <p class="mb-4 text-dark">The generated Lorem Ipsum is therefore always free from repetition injected humour, or non-characteristic words etc.</p>
-                            <a href="#" class="banner-btn btn border-2 border-white rounded-pill text-dark py-3 px-5">BUY</a>
+                            <h1 class="display-3 text-white">Fruits frais de saison</h1>
+                            <p class="fw-normal display-3 text-dark mb-4">dans notre boutique</p>
+                            <p class="mb-4 text-dark">Des produits sélectionnés chez nos producteurs partenaires, récoltés à maturité et suivis à chaque étape.</p>
+                            <a href="#" class="banner-btn btn border-2 border-white rounded-pill text-dark py-3 px-5">ACHETER</a>
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -661,8 +661,8 @@
         <div class="container-fluid py-5">
             <div class="container py-5">
                 <div class="text-center mx-auto mb-5" style="max-width: 700px;">
-                    <h1 class="display-4">Bestseller Products</h1>
-                    <p>Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable.</p>
+                    <h1 class="display-4">Meilleures ventes</h1>
+                    <p>Les produits préférés de nos clients, tous issus de filières tracées et contrôlées.</p>
                 </div>
                 <div class="row g-4">
                     <div class="col-lg-6 col-xl-4">
@@ -672,7 +672,7 @@
                                     <img src="{{ asset('front/img/best-product-1.jpg') }}" class="img-fluid rounded-circle w-100" alt="">
                                 </div>
                                 <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
+                                    <a href="#" class="h5">Tomate bio</a>
                                     <div class="d-flex my-3">
                                         <i class="fas fa-star text-primary"></i>
                                         <i class="fas fa-star text-primary"></i>
@@ -681,7 +681,7 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                 </div>
                             </div>
                         </div>
@@ -693,7 +693,7 @@
                                     <img src="{{ asset('front/img/best-product-2.jpg') }}" class="img-fluid rounded-circle w-100" alt="">
                                 </div>
                                 <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
+                                    <a href="#" class="h5">Tomate bio</a>
                                     <div class="d-flex my-3">
                                         <i class="fas fa-star text-primary"></i>
                                         <i class="fas fa-star text-primary"></i>
@@ -702,7 +702,7 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                 </div>
                             </div>
                         </div>
@@ -714,7 +714,7 @@
                                     <img src="{{ asset('front/img/best-product-3.jpg') }}" class="img-fluid rounded-circle w-100" alt="">
                                 </div>
                                 <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
+                                    <a href="#" class="h5">Tomate bio</a>
                                     <div class="d-flex my-3">
                                         <i class="fas fa-star text-primary"></i>
                                         <i class="fas fa-star text-primary"></i>
@@ -723,7 +723,7 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                 </div>
                             </div>
                         </div>
@@ -735,7 +735,7 @@
                                     <img src="{{ asset('front/img/best-product-4.jpg') }}" class="img-fluid rounded-circle w-100" alt="">
                                 </div>
                                 <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
+                                    <a href="#" class="h5">Tomate bio</a>
                                     <div class="d-flex my-3">
                                         <i class="fas fa-star text-primary"></i>
                                         <i class="fas fa-star text-primary"></i>
@@ -744,7 +744,7 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                 </div>
                             </div>
                         </div>
@@ -756,7 +756,7 @@
                                     <img src="{{ asset('front/img/best-product-5.jpg') }}" class="img-fluid rounded-circle w-100" alt="">
                                 </div>
                                 <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
+                                    <a href="#" class="h5">Tomate bio</a>
                                     <div class="d-flex my-3">
                                         <i class="fas fa-star text-primary"></i>
                                         <i class="fas fa-star text-primary"></i>
@@ -765,7 +765,7 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                 </div>
                             </div>
                         </div>
@@ -777,7 +777,7 @@
                                     <img src="{{ asset('front/img/best-product-6.jpg') }}" class="img-fluid rounded-circle w-100" alt="">
                                 </div>
                                 <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
+                                    <a href="#" class="h5">Tomate bio</a>
                                     <div class="d-flex my-3">
                                         <i class="fas fa-star text-primary"></i>
                                         <i class="fas fa-star text-primary"></i>
@@ -786,7 +786,7 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                                 </div>
                             </div>
                         </div>
@@ -795,7 +795,7 @@
                         <div class="text-center">
                             <img src="{{ asset('front/img/fruite-item-1.jpg') }}" class="img-fluid rounded" alt="">
                             <div class="py-4">
-                                <a href="#" class="h5">Organic Tomato</a>
+                                <a href="#" class="h5">Tomate bio</a>
                                 <div class="d-flex my-3 justify-content-center">
                                     <i class="fas fa-star text-primary"></i>
                                     <i class="fas fa-star text-primary"></i>
@@ -804,7 +804,7 @@
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -812,7 +812,7 @@
                         <div class="text-center">
                             <img src="{{ asset('front/img/fruite-item-2.jpg') }}" class="img-fluid rounded" alt="">
                             <div class="py-4">
-                                <a href="#" class="h5">Organic Tomato</a>
+                                <a href="#" class="h5">Tomate bio</a>
                                 <div class="d-flex my-3 justify-content-center">
                                     <i class="fas fa-star text-primary"></i>
                                     <i class="fas fa-star text-primary"></i>
@@ -821,7 +821,7 @@
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -829,7 +829,7 @@
                         <div class="text-center">
                             <img src="{{ asset('front/img/fruite-item-3.jpg') }}" class="img-fluid rounded" alt="">
                             <div class="py-4">
-                                <a href="#" class="h5">Organic Tomato</a>
+                                <a href="#" class="h5">Tomate bio</a>
                                 <div class="d-flex my-3 justify-content-center">
                                     <i class="fas fa-star text-primary"></i>
                                     <i class="fas fa-star text-primary"></i>
@@ -838,7 +838,7 @@
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -846,7 +846,7 @@
                         <div class="text-center">
                             <img src="{{ asset('front/img/fruite-item-4.jpg') }}" class="img-fluid rounded" alt="">
                             <div class="py-2">
-                                <a href="#" class="h5">Organic Tomato</a>
+                                <a href="#" class="h5">Tomate bio</a>
                                 <div class="d-flex my-3 justify-content-center">
                                     <i class="fas fa-star text-primary"></i>
                                     <i class="fas fa-star text-primary"></i>
@@ -855,7 +855,7 @@
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -873,28 +873,28 @@
                         <div class="col-md-6 col-lg-6 col-xl-3">
                             <div class="counter bg-white rounded p-5">
                                 <i class="fa fa-users text-secondary"></i>
-                                <h4>satisfied customers</h4>
+                                <h4>clients satisfaits</h4>
                                 <h1>1963</h1>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-6 col-xl-3">
                             <div class="counter bg-white rounded p-5">
                                 <i class="fa fa-users text-secondary"></i>
-                                <h4>quality of service</h4>
+                                <h4>qualité de service</h4>
                                 <h1>99%</h1>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-6 col-xl-3">
                             <div class="counter bg-white rounded p-5">
                                 <i class="fa fa-users text-secondary"></i>
-                                <h4>quality certificates</h4>
+                                <h4>certificats de qualité</h4>
                                 <h1>33</h1>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-6 col-xl-3">
                             <div class="counter bg-white rounded p-5">
                                 <i class="fa fa-users text-secondary"></i>
-                                <h4>Available Products</h4>
+                                <h4>produits disponibles</h4>
                                 <h1>789</h1>
                             </div>
                         </div>
@@ -909,15 +909,15 @@
         <div class="container-fluid testimonial py-5">
             <div class="container py-5">
                 <div class="testimonial-header text-center">
-                    <h4 class="text-primary">Our Testimonial</h4>
-                    <h1 class="display-5 mb-5 text-dark">Our Client Saying!</h1>
+                    <h4 class="text-primary">Témoignages</h4>
+                    <h1 class="display-5 mb-5 text-dark">Ce que disent nos clients</h1>
                 </div>
                 <div class="owl-carousel testimonial-carousel">
                     <div class="testimonial-item img-border-radius bg-light rounded p-4">
                         <div class="position-relative">
                             <i class="fa fa-quote-right fa-2x text-secondary position-absolute" style="bottom: 30px; right: 0;"></i>
                             <div class="mb-4 pb-4 border-bottom border-secondary">
-                                <p class="mb-0">Lorem Ipsum is simply dummy text of the printing Ipsum has been the industry's standard dummy text ever since the 1500s,
+                                <p class="mb-0">Grâce à NutriTrace, je sais d'où viennent mes fruits et légumes et qui les a produits. La qualité est toujours au rendez-vous.
                                 </p>
                             </div>
                             <div class="d-flex align-items-center flex-nowrap">
@@ -925,7 +925,7 @@
                                     <img src="{{ asset('front/img/testimonial-1.jpg') }}" class="img-fluid rounded" style="width: 100px; height: 100px;" alt="">
                                 </div>
                                 <div class="ms-4 d-block">
-                                    <h4 class="text-dark">Client Name</h4>
+                                    <h4 class="text-dark">Nom du client</h4>
                                     <p class="m-0 pb-3">Profession</p>
                                     <div class="d-flex pe-5">
                                         <i class="fas fa-star text-primary"></i>
@@ -942,7 +942,7 @@
                         <div class="position-relative">
                             <i class="fa fa-quote-right fa-2x text-secondary position-absolute" style="bottom: 30px; right: 0;"></i>
                             <div class="mb-4 pb-4 border-bottom border-secondary">
-                                <p class="mb-0">Lorem Ipsum is simply dummy text of the printing Ipsum has been the industry's standard dummy text ever since the 1500s,
+                                <p class="mb-0">Grâce à NutriTrace, je sais d'où viennent mes fruits et légumes et qui les a produits. La qualité est toujours au rendez-vous.
                                 </p>
                             </div>
                             <div class="d-flex align-items-center flex-nowrap">
@@ -950,7 +950,7 @@
                                     <img src="{{ asset('front/img/testimonial-1.jpg') }}" class="img-fluid rounded" style="width: 100px; height: 100px;" alt="">
                                 </div>
                                 <div class="ms-4 d-block">
-                                    <h4 class="text-dark">Client Name</h4>
+                                    <h4 class="text-dark">Nom du client</h4>
                                     <p class="m-0 pb-3">Profession</p>
                                     <div class="d-flex pe-5">
                                         <i class="fas fa-star text-primary"></i>
@@ -967,7 +967,7 @@
                         <div class="position-relative">
                             <i class="fa fa-quote-right fa-2x text-secondary position-absolute" style="bottom: 30px; right: 0;"></i>
                             <div class="mb-4 pb-4 border-bottom border-secondary">
-                                <p class="mb-0">Lorem Ipsum is simply dummy text of the printing Ipsum has been the industry's standard dummy text ever since the 1500s,
+                                <p class="mb-0">Grâce à NutriTrace, je sais d'où viennent mes fruits et légumes et qui les a produits. La qualité est toujours au rendez-vous.
                                 </p>
                             </div>
                             <div class="d-flex align-items-center flex-nowrap">
@@ -975,7 +975,7 @@
                                     <img src="{{ asset('front/img/testimonial-1.jpg') }}" class="img-fluid rounded" style="width: 100px; height: 100px;" alt="">
                                 </div>
                                 <div class="ms-4 d-block">
-                                    <h4 class="text-dark">Client Name</h4>
+                                    <h4 class="text-dark">Nom du client</h4>
                                     <p class="m-0 pb-3">Profession</p>
                                     <div class="d-flex pe-5">
                                         <i class="fas fa-star text-primary"></i>

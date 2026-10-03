@@ -14,15 +14,15 @@
                       href="https://themeselection.com/item/category/admin-templates/"
                       target="_blank"
                       class="footer-link me-4"
-                      >Admin Templates</a
+                      >Modèles d'administration</a
                     >
 
-                    <a href="https://themeselection.com/license/" class="footer-link me-4" target="_blank">License</a>
+                    <a href="https://themeselection.com/license/" class="footer-link me-4" target="_blank">Licence</a>
                     <a
                       href="https://themeselection.com/item/category/bootstrap-admin-templates/"
                       target="_blank"
                       class="footer-link me-4"
-                      >Bootstrap Dashboard</a
+                      >Tableau de bord Bootstrap</a
                     >
 
                     <a
@@ -36,7 +36,7 @@
                       href="https://github.com/themeselection/sneat-bootstrap-html-admin-template-free/issues"
                       target="_blank"
                       class="footer-link"
-                      >Support</a
+                      >Assistance</a
                     >
                   </div>
                 </div>
