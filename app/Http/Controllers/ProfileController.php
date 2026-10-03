@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\TwoFactorToggleRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,6 +65,22 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('success', 'Mot de passe mis à jour avec succès.');
+    }
+
+    /**
+     * Active ou désactive la double authentification (mot de passe vérifié par le Form Request).
+     */
+    public function toggleTwoFactor(TwoFactorToggleRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $activer = ! $user->two_factor_enabled;
+
+        $user->forceFill(['two_factor_enabled' => $activer])->save();
+        $user->effacerCodeDoubleAuth();
+
+        return back()->with('success', $activer
+            ? 'Double authentification activée : un code vous sera envoyé par email à chaque connexion.'
+            : 'Double authentification désactivée.');
     }
 
     /**

@@ -26,6 +26,11 @@
               <h4 class="mb-1">Bienvenue sur NutriTrace ! 👋</h4>
               <p class="mb-6">Connectez-vous à votre compte pour continuer.</p>
 
+              {{-- Message affiché après une réinitialisation de mot de passe réussie --}}
+              @if (session('status'))
+                <div class="alert alert-success" role="alert">{{ session('status') }}</div>
+              @endif
+
               {{-- novalidate : on laisse la validation serveur (Form Request) afficher les erreurs --}}
               <form id="formAuthentication" class="mb-6" method="POST" action="{{ route('login.submit') }}" novalidate>
                 @csrf
@@ -60,15 +65,20 @@
                   @enderror
                 </div>
                 <div class="mb-8">
-                  <div class="form-check mb-0">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="remember"
-                      name="remember"
-                      value="1"
-                      @checked(old('remember')) />
-                    <label class="form-check-label" for="remember"> Se souvenir de moi </label>
+                  <div class="d-flex justify-content-between">
+                    <div class="form-check mb-0">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="remember"
+                        name="remember"
+                        value="1"
+                        @checked(old('remember')) />
+                      <label class="form-check-label" for="remember"> Se souvenir de moi </label>
+                    </div>
+                    <a href="{{ route('password.request') }}">
+                      <span>Mot de passe oublié ?</span>
+                    </a>
                   </div>
                 </div>
                 <div class="mb-6">

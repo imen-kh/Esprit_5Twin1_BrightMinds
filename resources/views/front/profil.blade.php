@@ -51,6 +51,9 @@
                                 <a href="#mot-de-passe" class="list-group-item list-group-item-action bg-transparent">
                                     <i class="fas fa-lock text-primary me-2"></i>Changer le mot de passe
                                 </a>
+                                <a href="#double-authentification" class="list-group-item list-group-item-action bg-transparent">
+                                    <i class="fas fa-shield-alt text-primary me-2"></i>Double authentification
+                                </a>
                                 <a href="#suppression" class="list-group-item list-group-item-action bg-transparent">
                                     <i class="fas fa-trash-alt text-primary me-2"></i>Supprimer mon compte
                                 </a>
@@ -382,6 +385,43 @@
                                     </div>
                                 </div>
                                 <button class="btn border-secondary rounded-pill px-5 py-3 text-primary mt-4" type="submit">Mettre à jour le mot de passe</button>
+                            </form>
+                        </div>
+
+                        {{-- ===== Double authentification (erreurs dans le sac « deuxFacteurs ») ===== --}}
+                        <div class="bg-light rounded p-4 mb-4 profil-section" id="double-authentification">
+                            <h4 class="text-primary mb-3">
+                                Double authentification
+                                @if ($user->two_factor_enabled)
+                                    <span class="badge bg-primary rounded-pill fs-6 ms-2">Activée</span>
+                                @else
+                                    <span class="badge bg-secondary rounded-pill fs-6 ms-2">Désactivée</span>
+                                @endif
+                            </h4>
+                            <p class="mb-4">
+                                Lorsqu'elle est activée, un code à 6 chiffres est envoyé à <strong>{{ $user->email }}</strong> à chaque connexion, en plus de votre mot de passe.
+                            </p>
+                            <form method="POST" action="{{ route('profil.two-factor') }}" novalidate>
+                                @csrf
+                                @method('PUT')
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label for="two_factor_password" class="form-label">Confirmez avec votre mot de passe<sup>*</sup></label>
+                                        <input
+                                            type="password"
+                                            class="form-control py-3 @error('password', 'deuxFacteurs') is-invalid @else border-0 @enderror"
+                                            id="two_factor_password"
+                                            name="password">
+                                        @error('password', 'deuxFacteurs')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                @if ($user->two_factor_enabled)
+                                    <button class="btn btn-danger rounded-pill px-5 py-3 mt-4" type="submit">Désactiver la double authentification</button>
+                                @else
+                                    <button class="btn btn-primary rounded-pill text-white px-5 py-3 mt-4" type="submit">Activer la double authentification</button>
+                                @endif
                             </form>
                         </div>
 

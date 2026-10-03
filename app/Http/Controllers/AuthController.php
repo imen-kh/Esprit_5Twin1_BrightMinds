@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -26,12 +27,40 @@ class AuthController extends Controller
     public function login(LoginRequest $request): RedirectResponse
     {
         $credentials = $request->only('email', 'password');
+        $seSouvenir = $request->boolean('remember');
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        // On vérifie d'abord les identifiants SANS connecter l'utilisateur
+        if (! Auth::validate($credentials)) {
             return back()
                 ->withErrors(['email' => 'Email ou mot de passe incorrect.'])
                 ->onlyInput('email');
         }
+
+        $user = User::where('email', $credentials['email'])->firstOrFail();
+
+        // Double authentification activée : on envoie un code par email et on attend sa saisie
+        if ($user->two_factor_enabled) {
+            try {
+                $user->envoyerCodeDoubleAuth();
+            } catch (Throwable $e) {
+                report($e);
+
+                return back()
+                    ->withErrors(['email' => "L'envoi du code de vérification a échoué. Réessayez dans un instant."])
+                    ->onlyInput('email');
+            }
+
+            $request->session()->put('two_factor', [
+                'user_id' => $user->id,
+                'remember' => $seSouvenir,
+                'tentatives' => 0,
+                'envoye_a' => time(),
+            ]);
+
+            return redirect()->route('two-factor.challenge');
+        }
+
+        Auth::login($user, $seSouvenir);
 
         // Protection contre la fixation de session
         $request->session()->regenerate();
