@@ -42,6 +42,10 @@ class User extends Authenticatable
         'allergies',
     ];
 
+    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
     /**
      * Indique si l'utilisateur est un administrateur.
      */
