@@ -1,15 +1,21 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\Acteur\CategorySuggestionController;
+use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
-Route::view('/', 'front.home')->name('home');
-Route::view('/produits', 'front.produits')->name('produits');
-Route::view('/produit-detail', 'front.produit-detail')->name('produit.detail');
+Route::get('/', [CatalogueController::class, 'home'])->name('home');
+Route::get('/produits', [CatalogueController::class, 'index'])->name('produits');
+Route::get('/produits/suggestions', [CatalogueController::class, 'suggest'])->name('produits.suggestions');
+Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
 Route::view('/panier', 'front.panier')->name('panier');
 Route::view('/commande', 'front.commande')->name('commande');
 Route::view('/temoignages', 'front.temoignages')->name('temoignages');
@@ -45,6 +51,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profil.password');
     Route::put('/profil/double-authentification', [ProfileController::class, 'toggleTwoFactor'])->name('profil.two-factor');
     Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profil.destroy');
+});
+
+Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
+    Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
+    Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
 });
 
 // ===== Back office (Sneat) : réservé aux administrateurs connectés =====
@@ -91,4 +102,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/ui-toasts', 'back.ui-toasts')->name('ui-toasts');
     Route::view('/ui-tooltips-popovers', 'back.ui-tooltips-popovers')->name('ui-tooltips-popovers');
     Route::view('/ui-typography', 'back.ui-typography')->name('ui-typography');
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->name('categories.valider');
+    Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->name('categories.refuser');
+    Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
+    Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
 });
