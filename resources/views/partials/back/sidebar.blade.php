@@ -127,8 +127,10 @@
                 <div class="text-truncate">Catalogue</div>
               </a>
               <ul class="menu-sub">
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Catégories</div></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Produits</div></a></li>
+                @if (auth()->user()->isAdmin())
+                  <li class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}"><a href="{{ route('admin.categories.index') }}" class="menu-link"><div class="text-truncate">Catégories</div></a></li>
+                  <li class="menu-item {{ request()->routeIs('admin.produits.*') ? 'active' : '' }}"><a href="{{ route('admin.produits.index') }}" class="menu-link"><div class="text-truncate">Produits</div></a></li>
+                @endif
               </ul>
             </li>
             <li class="menu-item">
