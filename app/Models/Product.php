@@ -33,4 +33,10 @@ class Product extends Model
 
         return str_ends_with($formatted, ',000') ? substr($formatted, 0, -4) : $formatted;
     }
+
+    // ajouté par le module Traçabilité
+    public function lots(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Lot::class, 'produit_id');
+    }
 }
