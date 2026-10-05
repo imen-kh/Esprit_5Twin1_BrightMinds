@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreLabelRequest;
+use App\Http\Requests\UpdateLabelRequest;
+use App\Models\Label;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class LabelController extends Controller
+{
+    public function index(Request $request): mixed
+    {
+        $labels = Label::latest()->paginate(15);
+        return $request->expectsJson() ? response()->json($labels) : view('admin.labels.index', compact('labels'));
+    }
+
+    public function create(): \Illuminate\View\View { return view('admin.labels.create'); }
+
+    public function store(StoreLabelRequest $request): mixed
+    {
+        $data = $request->safe()->except('logo');
+        $data['logo'] = $request->file('logo')->store('labels', 'public');
+        $data['actif'] = $request->boolean('actif', true);
+        $label = Label::create($data);
+        return $request->expectsJson() ? response()->json($label, 201) : redirect()->route('admin.labels.index')->with('success', 'Label créé.');
+    }
+
+    public function show(Request $request, Label $label): mixed
+    {
+        $label->load('certifications');
+        return $request->expectsJson() ? response()->json($label) : view('admin.labels.show', compact('label'));
+    }
+
+    public function edit(Label $label): \Illuminate\View\View { return view('admin.labels.edit', compact('label')); }
+
+    public function update(UpdateLabelRequest $request, Label $label): mixed
+    {
+        $data = $request->safe()->except('logo');
+        if ($request->hasFile('logo')) {
+            if ($label->logo) Storage::disk('public')->delete($label->logo);
+            $data['logo'] = $request->file('logo')->store('labels', 'public');
+        }
+        $label->update($data);
+        $label = $label->fresh();
+        return $request->expectsJson() ? response()->json($label) : redirect()->route('admin.labels.index')->with('success', 'Label mis à jour.');
+    }
+
+    public function destroy(Label $label): JsonResponse
+    {
+        if ($label->certifications()->exists()) {
+            return response()->json(['message' => 'Ce label est utilisé par une certification.'], 409);
+        }
+        if ($label->logo) Storage::disk('public')->delete($label->logo);
+        $label->delete();
+        return response()->json(null, 204);
+    }
+}

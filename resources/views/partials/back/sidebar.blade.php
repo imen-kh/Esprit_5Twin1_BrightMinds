@@ -109,8 +109,8 @@
                 <div class="text-truncate">Certifications</div>
               </a>
               <ul class="menu-sub">
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Labels</div></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Certifications</div></a></li>
+                <li class="menu-item {{ request()->routeIs('admin.labels.*') ? 'active' : '' }}"><a href="{{ route('admin.labels.index') }}" class="menu-link"><div class="text-truncate">Labels</div></a></li>
+                <li class="menu-item {{ request()->routeIs('admin.certifications.*') ? 'active' : '' }}"><a href="{{ route('admin.certifications.index') }}" class="menu-link"><div class="text-truncate">Certifications</div></a></li>
               </ul>
             </li>
             <li class="menu-item">
