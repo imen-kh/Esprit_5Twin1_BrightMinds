@@ -24,8 +24,12 @@
                             <a href="{{ route('home') }}" class="nav-item nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Accueil</a>
                             <a href="{{ route('produits') }}" class="nav-item nav-link {{ request()->routeIs('produits') ? 'active' : '' }}">Produits</a>
                             @auth
-                                @if (auth()->user()->isActeur())
-                                    <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Mes produits</a>
+                                @if (auth()->user()->isProducteur())
+                                    <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Ajouter un produit</a>
+                                @elseif (auth()->user()->isTransformateur())
+                                    <a href="{{ route('acteur.transformation') }}" class="nav-item nav-link {{ request()->routeIs('acteur.transformation') ? 'active' : '' }}">Transformation</a>
+                                @elseif (auth()->user()->isDistributeur())
+                                    <a href="{{ route('acteur.distribution') }}" class="nav-item nav-link {{ request()->routeIs('acteur.distribution') ? 'active' : '' }}">Distribution</a>
                                 @endif
                             @endauth
                             <div class="nav-item dropdown">

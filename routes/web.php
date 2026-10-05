@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\Acteur\CategorySuggestionController;
+use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -13,12 +14,14 @@ use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
 Route::get('/', [CatalogueController::class, 'home'])->name('home');
-Route::get('/produits', [CatalogueController::class, 'index'])->name('produits');
-Route::get('/produits/suggestions', [CatalogueController::class, 'suggest'])->name('produits.suggestions');
-Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
-Route::view('/panier', 'front.panier')->name('panier');
-Route::view('/commande', 'front.commande')->name('commande');
-Route::view('/temoignages', 'front.temoignages')->name('temoignages');
+Route::middleware('compte')->group(function () {
+    Route::get('/produits', [CatalogueController::class, 'index'])->name('produits');
+    Route::get('/produits/suggestions', [CatalogueController::class, 'suggest'])->name('produits.suggestions');
+    Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
+    Route::view('/panier', 'front.panier')->name('panier');
+    Route::view('/commande', 'front.commande')->name('commande');
+    Route::view('/temoignages', 'front.temoignages')->name('temoignages');
+});
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
 
@@ -54,6 +57,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
+    Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
+    Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
 });
