@@ -92,6 +92,19 @@
               </ul>
             </li>
             @endif
+            {{-- Module Commandes : suivi des commandes et des livraisons par l'administrateur --}}
+            @if (auth()->user()->isAdmin())
+            <li class="menu-item {{ request()->routeIs('admin.commandes.*') ? 'active' : '' }}">
+              <a href="{{ route('admin.commandes.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cart"></i><div class="text-truncate">Commandes</div>
+              </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('admin.livraisons.*') ? 'active' : '' }}">
+              <a href="{{ route('admin.livraisons.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-package"></i><div class="text-truncate">Livraisons</div>
+              </a>
+            </li>
+            @endif
             {{-- Module Traçabilité : le menu reste ouvert sur les pages des lots et des étapes --}}
             <li class="menu-item {{ request()->routeIs('gestion.lots.*', 'gestion.etapes.*') ? 'active open' : '' }}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">

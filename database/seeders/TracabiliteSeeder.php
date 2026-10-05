@@ -128,6 +128,8 @@ class TracabiliteSeeder extends Seeder
                     'origin' => $origine,
                     'ingredients' => $ingredients,
                     'status' => 'published',
+                    // Module Commandes : le transformateur vend des produits transformés
+                    'type_produit' => $type === 'transformateur' ? 'transforme' : 'matiere_premiere',
                 ]
             );
         }

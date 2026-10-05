@@ -1,0 +1,5 @@
+<div class="card mb-5"><div class="card-header"><h5 class="mb-0">{{ $titre }}</h5></div><div class="table-responsive"><table class="table mb-0"><thead><tr><th>ID</th><th>Utilisateur</th><th>Date</th><th>Total</th><th>Statut</th><th>Livraison</th><th>Action</th></tr></thead><tbody>
+@forelse($commandes as $commande)
+<tr><td>#{{ $commande->id }}</td><td>{{ $commande->user?->name ?: $commande->email }}</td><td>{{ ($commande->date_commande ?? $commande->created_at)->format('d/m/Y à H:i') }}</td><td>{{ number_format($commande->total, 3, ',', ' ') }} DT</td><td>{{ ucfirst(str_replace('_', ' ', $commande->statut)) }}</td><td>{{ $commande->livraison ? ucfirst(str_replace('_', ' ', $commande->livraison->statut)) : 'En attente' }}</td><td><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.commandes.show', $commande) }}">Voir</a></td></tr>
+@empty<tr><td colspan="7" class="text-center">Aucune commande dans cette catégorie.</td></tr>@endforelse
+</tbody></table></div><div class="card-footer">{{ $commandes->appends(request()->except($pagination))->links() }}</div></div>
