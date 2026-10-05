@@ -9,7 +9,7 @@ class Product extends Model
 {
     protected $fillable = [
         'name', 'description', 'price', 'origin', 'image', 'ingredients',
-        'status', 'category_id', 'user_id',
+        'status', 'type_produit', 'category_id', 'user_id',
     ];
 
     protected function casts(): array
@@ -38,5 +38,15 @@ class Product extends Model
     public function lots(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Lot::class, 'produit_id');
+    }
+
+    public function paniers()
+    {
+        return $this->belongsToMany(Panier::class, 'panier_produit')->withPivot('quantite')->withTimestamps();
+    }
+
+    public function commandes()
+    {
+        return $this->belongsToMany(Commande::class, 'commande_produit')->withPivot('quantite', 'prix_unitaire', 'sous_total')->withTimestamps();
     }
 }

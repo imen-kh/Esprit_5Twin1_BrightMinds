@@ -79,6 +79,17 @@ class DatabaseSeeder extends Seeder
                 'preferences' => ['bio', 'local'],
                 'allergies' => 'Arachides',
             ],
+            // Second consommateur, pour tester le panier et les commandes
+            [
+                'name' => 'Sami Trabelsi',
+                'email' => 'consommateur@nutritrace.tn',
+                'role' => 'consommateur',
+                'type_acteur' => null,
+                'telephone' => '22123456',
+                'ville' => 'Sousse',
+                'preferences' => ['local'],
+                'allergies' => null,
+            ],
         ];
 
         foreach ($comptes as $compte) {

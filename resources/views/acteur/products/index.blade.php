@@ -55,5 +55,25 @@
     </div>
 
     <div class="mt-4">{{ $products->links('pagination::bootstrap-5') }}</div>
+
+    <div class="d-flex justify-content-between align-items-center mt-5 mb-4">
+        <div>
+            <h2 class="h4 mb-1">Produits commandés</h2>
+            <p class="text-muted mb-0">Les produits présents dans vos commandes.</p>
+        </div>
+        <a class="btn btn-outline-primary" href="{{ route('commandes.index') }}">Voir mes commandes</a>
+    </div>
+    <div class="table-responsive border rounded">
+        <table class="table mb-0">
+            <thead><tr><th>Produit</th><th>Catégorie</th><th>Prix actuel</th></tr></thead>
+            <tbody>
+            @forelse ($orderedProducts as $product)
+                <tr><td>{{ $product->name }}</td><td>{{ $product->category?->name ?: '—' }}</td><td>{{ number_format((float) $product->price, 3, ',', ' ') }} DT</td></tr>
+            @empty
+                <tr><td colspan="3" class="text-center">Aucun produit commandé.</td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection

@@ -39,6 +39,26 @@
                     <p class="mb-2"><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ $product->origin ?: 'Origine non renseignée' }}</p>
                     <p class="mb-4"><i class="fas fa-user text-primary me-2"></i>{{ $product->user->type_acteur ? ucfirst($product->user->type_acteur) : 'Acteur' }} : {{ $product->user->name }}</p>
                     <p class="text-dark fs-3 fw-bold mb-0">{{ $product->formattedPrice() }} DT</p>
+
+                    {{-- module Commandes : ajout au panier --}}
+                    <form action="{{ route('panier.add') }}" method="POST" class="mt-4">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <div class="input-group quantity mb-3" style="width: 130px;">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-sm btn-minus rounded-circle bg-light border" onclick="this.parentNode.nextElementSibling.stepDown()">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                            <input type="number" name="quantite" class="form-control form-control-sm text-center border-0" value="1" min="1">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-sm btn-plus rounded-circle bg-light border" onclick="this.parentNode.previousElementSibling.stepUp()">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn border border-secondary rounded-pill px-4 py-2 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter au panier</button>
+                    </form>
                 </div>
             </div>
         </div>

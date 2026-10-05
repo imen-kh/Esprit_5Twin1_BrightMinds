@@ -56,6 +56,29 @@
                 @endforeach
               </div>
 
+              {{-- ===== Module Commandes : commandes et livraisons par statut ===== --}}
+              @php
+                $commandesEnAttente = \App\Models\Commande::where('statut', 'en_attente')->count();
+                $commandesConfirmees = \App\Models\Commande::where('statut', 'confirmee')->count();
+                $commandesPreparees = \App\Models\Commande::where('statut', 'preparee')->count();
+                $commandesExpediees = \App\Models\Commande::whereIn('statut', ['expediee', 'en_transit'])->count();
+                $commandesLivrees = \App\Models\Commande::where('statut', 'livree')->count();
+                $livraisonsTransit = \App\Models\Livraison::where('statut', 'en_transit')->count();
+              @endphp
+              <h5 class="mb-4">Commandes et livraisons</h5>
+              <div class="row g-6 mb-6">
+                @foreach ([
+                  ['En attente', $commandesEnAttente, 'warning'],
+                  ['Confirmées', $commandesConfirmees, 'info'],
+                  ['Préparées', $commandesPreparees, 'primary'],
+                  ['Expédiées', $commandesExpediees, 'secondary'],
+                  ['Livrées', $commandesLivrees, 'success'],
+                  ['Livraisons en transit', $livraisonsTransit, 'danger'],
+                ] as [$label, $count, $color])
+                  <div class="col-xl-2 col-md-4 col-6"><div class="card h-100"><div class="card-body"><span class="text-body-secondary">{{ $label }}</span><h3 class="mb-0 text-{{ $color }}">{{ $count }}</h3></div></div></div>
+                @endforeach
+              </div>
+
               <div class="row g-6 mb-6">
                 {{-- ===== Lots par statut ===== --}}
                 <div class="col-lg-4">
