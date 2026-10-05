@@ -133,14 +133,15 @@
                 @endif
               </ul>
             </li>
-            <li class="menu-item">
+            {{-- Module Traçabilité : le menu reste ouvert sur les pages des lots et des étapes --}}
+            <li class="menu-item {{ request()->routeIs('gestion.lots.*', 'gestion.etapes.*') ? 'active open' : '' }}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-git-branch"></i>
                 <div class="text-truncate">Traçabilité</div>
               </a>
               <ul class="menu-sub">
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Lots</div></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Étapes</div></a></li>
+                <li class="menu-item {{ request()->routeIs('gestion.lots.*') ? 'active' : '' }}"><a href="{{ route('gestion.lots.index') }}" class="menu-link"><div class="text-truncate">Lots</div></a></li>
+                <li class="menu-item {{ request()->routeIs('gestion.etapes.*') ? 'active' : '' }}"><a href="{{ route('gestion.etapes.index') }}" class="menu-link"><div class="text-truncate">Étapes</div></a></li>
               </ul>
             </li>
             <li class="menu-item">
