@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\EtapeTracabiliteController;
+use App\Http\Controllers\LotController;
 use App\Http\Controllers\Acteur\CategorySuggestionController;
 use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TracabiliteController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +27,10 @@ Route::middleware('compte')->group(function () {
 });
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
+
+// Module Traçabilité : pages publiques (sans connexion), accessibles par QR code
+Route::get('/tracabilite', [TracabiliteController::class, 'index'])->name('tracabilite.index');
+Route::get('/tracabilite/{lot:code}', [TracabiliteController::class, 'show'])->name('tracabilite.show');
 
 // ===== Authentification =====
 // Pages réservées aux visiteurs non connectés
@@ -61,6 +68,12 @@ Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(
     Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
+});
+
+// ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
+Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
+    Route::resource('lots', LotController::class);
+    Route::resource('etapes', EtapeTracabiliteController::class);
 });
 
 // ===== Back office (Sneat) : réservé aux administrateurs connectés =====

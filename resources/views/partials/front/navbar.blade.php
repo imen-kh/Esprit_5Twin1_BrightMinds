@@ -23,6 +23,8 @@
                         <div class="navbar-nav mx-auto">
                             <a href="{{ route('home') }}" class="nav-item nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Accueil</a>
                             <a href="{{ route('produits') }}" class="nav-item nav-link {{ request()->routeIs('produits') ? 'active' : '' }}">Produits</a>
+                            {{-- module Traçabilité : page publique de suivi des lots --}}
+                            <a href="{{ route('tracabilite.index') }}" class="nav-item nav-link {{ request()->routeIs('tracabilite.*') ? 'active' : '' }}">Traçabilité</a>
                             @auth
                                 @if (auth()->user()->isProducteur())
                                     <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Ajouter un produit</a>

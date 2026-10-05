@@ -52,6 +52,31 @@
             </div>
         @endif
     </div>
+
+    {{-- module Traçabilité : suivre un lot de ce produit par son code --}}
+    <div class="bg-light rounded p-4 mt-4">
+        <h4 class="text-primary mb-2"><i class="fas fa-route me-2"></i>Suivre la traçabilité</h4>
+        <p>Saisissez le code du lot imprimé sur l'emballage pour découvrir tout son parcours.</p>
+        <form method="GET" action="{{ route('tracabilite.index') }}" class="row g-2">
+            <div class="col-md-8">
+                <input type="text" class="form-control border-0 py-3" name="code" placeholder="Ex. LOT-2026-0001" aria-label="Code du lot">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary text-white w-100 py-3">Suivre ce lot</button>
+            </div>
+        </form>
+        @php
+            $lotsDuProduit = $product->lots()->orderByDesc('date_production')->take(3)->get();
+        @endphp
+        @if ($lotsDuProduit->isNotEmpty())
+            <p class="mb-0 mt-3">
+                Lots récents de ce produit :
+                @foreach ($lotsDuProduit as $lotDuProduit)
+                    <a href="{{ route('tracabilite.show', $lotDuProduit) }}" class="badge bg-secondary rounded-pill px-3 py-2 ms-1">{{ $lotDuProduit->code }}</a>
+                @endforeach
+            </p>
+        @endif
+    </div>
 </div>
 @endsection
 

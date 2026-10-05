@@ -59,10 +59,10 @@
                                 </a>
                             </div>
 
-                            {{-- Accès à l'espace de gestion de l'acteur (route « acteur.dashboard », dès qu'elle existe) --}}
+                            {{-- Accès à l'espace de gestion de l'acteur (module Traçabilité : gestion des lots) --}}
                             @if ($user->isActeur())
-                                @if (Route::has('acteur.dashboard'))
-                                    <a href="{{ route('acteur.dashboard') }}" class="btn btn-primary rounded-pill text-white w-100 py-3">
+                                @if (Route::has('gestion.lots.index'))
+                                    <a href="{{ route('gestion.lots.index') }}" class="btn btn-primary rounded-pill text-white w-100 py-3">
                                         <i class="fas fa-briefcase me-2"></i>Accéder à mon espace acteur
                                     </a>
                                 @else
