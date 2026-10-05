@@ -27,6 +27,7 @@
                                 @if (auth()->user()->isActeur())
                                     <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Mes produits</a>
                                 @endif
+                                <a href="{{ route('reclamations.index') }}" class="nav-item nav-link {{ request()->routeIs('reclamations.*') ? 'active' : '' }}">Réclamations</a>
                             @endauth
                             <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
@@ -65,8 +66,10 @@
                                     </a>
                                     <div class="dropdown-menu m-0 bg-secondary rounded-0" style="left: auto; right: 0;">
                                         <a href="{{ route('profil.edit') }}" class="dropdown-item">Mon profil</a>
+                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations</a>
                                         @if (auth()->user()->isAdmin())
                                             <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Back office</a>
+                                            <a href="{{ route('admin.reclamations.index') }}" class="dropdown-item">Gérer les réclamations</a>
                                         @endif
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf

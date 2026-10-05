@@ -12,6 +12,9 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\Back\FacteurEmissionController;
 use App\Http\Controllers\Back\BilanEnvironnementalController;
 use App\Http\Controllers\Front\EnvironnementController;
+use App\Http\Controllers\Front\ReclamationController as FrontReclamationController;
+use App\Http\Controllers\Back\ReclamationController as BackReclamationController;
+use App\Http\Controllers\ReponseReclamationController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -64,6 +67,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // ===== Mon profil (tous les rôles connectés) =====
 Route::middleware('auth')->group(function () {
+    Route::resource('reclamations', FrontReclamationController::class);
+    Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
+
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profil.password');
@@ -134,4 +140,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('bilans-environnementaux', BilanEnvironnementalController::class)->parameters([
         'bilans-environnementaux' => 'bilan',
     ]);
+
+    Route::resource('reclamations', BackReclamationController::class);
+    Route::patch('reclamations/{reclamation}/statut', [BackReclamationController::class, 'updateStatus'])->name('reclamations.statut');
+    Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
+    Route::put('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'update'])->name('reponses-reclamations.update');
+    Route::delete('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'destroy'])->name('reponses-reclamations.destroy');
 });

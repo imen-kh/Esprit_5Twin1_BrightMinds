@@ -46,6 +46,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class);
     }
+
+    public function reclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reclamation::class);
+    }
+
+    public function reponsesReclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ReponseReclamation::class);
+    }
+
+    public function isConsommateur(): bool
+    {
+        return $this->role === 'consommateur';
+    }
     /**
      * Indique si l'utilisateur est un administrateur.
      */

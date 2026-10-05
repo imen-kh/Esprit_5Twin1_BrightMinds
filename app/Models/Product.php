@@ -35,4 +35,9 @@ class Product extends Model
     {
         return $this->hasMany(BilanEnvironnemental::class, 'produit_id');
     }
+
+    public function reclamations(): HasMany
+    {
+        return $this->hasMany(Reclamation::class, 'produit_id');
+    }
 }

@@ -163,14 +163,13 @@
                 <li class="menu-item {{ request()->routeIs('admin.bilans-environnementaux.*') ? 'active' : '' }}"><a href="{{ route('admin.bilans-environnementaux.index') }}" class="menu-link"><div class="text-truncate">Bilans</div></a></li>
               </ul>
             </li>
-            <li class="menu-item">
+            <li class="menu-item {{ request()->routeIs('admin.reclamations.*') ? 'active open' : '' }}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-message-square-error"></i>
                 <div class="text-truncate">Signalements</div>
               </a>
               <ul class="menu-sub">
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Signalements</div></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><div class="text-truncate">Réponses</div></a></li>
+                <li class="menu-item {{ request()->routeIs('admin.reclamations.*') ? 'active' : '' }}"><a href="{{ route('admin.reclamations.index') }}" class="menu-link"><div class="text-truncate">Réclamations</div></a></li>
               </ul>
             </li>
             <li class="menu-item">

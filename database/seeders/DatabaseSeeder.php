@@ -94,6 +94,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             FacteurEmissionSeeder::class,
             EnvironnementSeeder::class,
+            ReclamationSeeder::class,
         ]);
     }
 }

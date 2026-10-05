@@ -57,7 +57,9 @@
                     </div>
 
                     <h5 class="fw-bold mb-3">Émission CO2 : {{ $bilan->mesure('co2_total') }} kg CO2e</h5>
-                    @php($parts = $bilan->repartitionCo2())
+                    @php
+                        $parts = $bilan->repartitionCo2();
+                    @endphp
                     @if (array_sum($parts) > 0)
                         <div class="progress mb-3" style="height: 25px;">
                             @php
