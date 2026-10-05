@@ -30,7 +30,15 @@
                         <p>{{ $product->description }}</p>
                         <p><strong>Origine :</strong> {{ $product->origin ?: 'Non renseignée' }}</p>
                         <p class="fw-bold">{{ number_format((float) $product->price, 3, ',', ' ') }} DT</p>
-                        <a class="btn btn-outline-primary" href="{{ route('produit.detail', $product) }}">Voir le produit</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a class="btn btn-outline-primary" href="{{ route('produit.detail', $product) }}">Voir le produit</a>
+                            <form action="{{ route('panier.add') }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <input type="hidden" name="quantite" value="1">
+                                <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Ajouter</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             @empty

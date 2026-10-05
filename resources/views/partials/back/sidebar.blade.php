@@ -133,6 +133,16 @@
                 @endif
               </ul>
             </li>
+            <li class="menu-item {{ request()->routeIs('admin.commandes.*') ? 'active' : '' }}">
+              <a href="{{ route('admin.commandes.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cart"></i><div class="text-truncate">Commandes</div>
+              </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('admin.livraisons.*') ? 'active' : '' }}">
+              <a href="{{ route('admin.livraisons.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-package"></i><div class="text-truncate">Livraisons</div>
+              </a>
+            </li>
             <li class="menu-item">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-git-branch"></i>

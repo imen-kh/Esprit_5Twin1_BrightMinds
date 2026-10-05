@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'acteur' => \App\Http\Middleware\ActeurMiddleware::class,
+            'distributeur' => \App\Http\Middleware\DistributeurMiddleware::class,
         ]);
 
         // Invité sur une page protégée -> connexion ; utilisateur connecté sur une page « guest » -> accueil

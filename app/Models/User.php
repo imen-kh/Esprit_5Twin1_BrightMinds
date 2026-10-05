@@ -62,6 +62,16 @@ class User extends Authenticatable
         return $this->role === 'acteur';
     }
 
+    public function isTransformateur(): bool
+    {
+        return $this->role === 'acteur' && $this->type_acteur === 'transformateur';
+    }
+
+    public function isDistributeur(): bool
+    {
+        return $this->role === 'acteur' && $this->type_acteur === 'distributeur';
+    }
+
     /**
      * URL de l'avatar : fichier envoyé par l'utilisateur, sinon image par défaut du template.
      */
@@ -156,5 +166,25 @@ class User extends Authenticatable
             'two_factor_enabled' => 'boolean',
             'two_factor_expires_at' => 'datetime',
         ];
+    }
+
+    public function paniers()
+    {
+        return $this->hasMany(Panier::class);
+    }
+
+    public function commandes()
+    {
+        return $this->hasMany(Commande::class);
+    }
+
+    public function commandesDistribuees()
+    {
+        return $this->hasMany(Commande::class, 'distributeur_id');
+    }
+
+    public function livraisons()
+    {
+        return $this->hasMany(Livraison::class, 'distributeur_id');
     }
 }

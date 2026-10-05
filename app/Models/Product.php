@@ -26,4 +26,14 @@ class Product extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function paniers()
+    {
+        return $this->belongsToMany(Panier::class, 'panier_produit')->withPivot('quantite')->withTimestamps();
+    }
+
+    public function commandes()
+    {
+        return $this->belongsToMany(Commande::class, 'commande_produit')->withPivot('quantite', 'prix_unitaire', 'sous_total')->withTimestamps();
+    }
 }

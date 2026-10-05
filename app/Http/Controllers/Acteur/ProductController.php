@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Acteur;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -19,8 +18,12 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(10);
+        $orderedProducts = Product::with('category')
+            ->whereHas('commandes', fn ($query) => $query->where('commandes.user_id', auth()->id()))
+            ->orderBy('name')
+            ->get();
 
-        return view('acteur.products.index', compact('products'));
+        return view('acteur.products.index', compact('products', 'orderedProducts'));
     }
 
     public function create()
@@ -112,11 +115,7 @@ class ProductController extends Controller
 
     private function denyProductCreation(): void
     {
-        if (auth()->user()->type_acteur === 'transformateur') {
-            throw new HttpResponseException(
-                redirect()->route('acteur.produits.index')->with('error', 'Le transformateur ne peut pas ajouter un produit. Maintenant il n\'a pas de matières premières.')
-            );
-        }
+        // Les transformateurs peuvent publier leurs produits transformés.
     }
 
     private function authorizeOwner(Product $product): void

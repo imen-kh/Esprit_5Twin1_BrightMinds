@@ -13,12 +13,8 @@
         <div class="alert alert-warning">{{ session('error') }}</div>
     @endif
     <div class="d-flex justify-content-between align-items-center mb-4">
-        @if (auth()->user()->type_acteur === 'transformateur')
-            <p class="mb-0">Le transformateur ne peut pas ajouter un produit. Maintenant il n'a pas de matières premières.</p>
-        @else
-            <p class="mb-0">Gérez les produits de votre exploitation.</p>
-            <a class="btn btn-primary" href="{{ route('acteur.produits.create') }}">Ajouter un produit</a>
-        @endif
+        <p class="mb-0">Gérez vos produits transformés.</p>
+        <a class="btn btn-primary" href="{{ route('acteur.produits.create') }}">Ajouter un produit transformé</a>
     </div>
     <div class="table-responsive border rounded">
         <table class="table mb-0">
@@ -46,5 +42,25 @@
         </table>
     </div>
     <div class="mt-4">{{ $products->links('pagination::bootstrap-5') }}</div>
+
+    <div class="d-flex justify-content-between align-items-center mt-5 mb-4">
+        <div>
+            <h2 class="h4 mb-1">Produits commandés</h2>
+            <p class="text-muted mb-0">Les produits présents dans vos commandes.</p>
+        </div>
+        <a class="btn btn-outline-primary" href="{{ route('commandes.index') }}">Voir mes commandes</a>
+    </div>
+    <div class="table-responsive border rounded">
+        <table class="table mb-0">
+            <thead><tr><th>Produit</th><th>Catégorie</th><th>Prix actuel</th></tr></thead>
+            <tbody>
+            @forelse ($orderedProducts as $product)
+                <tr><td>{{ $product->name }}</td><td>{{ $product->category?->name ?: '—' }}</td><td>{{ number_format((float) $product->price, 3, ',', ' ') }} DT</td></tr>
+            @empty
+                <tr><td colspan="3" class="text-center">Aucun produit commandé.</td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection

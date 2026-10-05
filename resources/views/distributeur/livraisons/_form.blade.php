@@ -1,0 +1,7 @@
+<div class="col-md-8"><label class="form-label">Adresse</label><input name="adresse_livraison" class="form-control" value="{{ old('adresse_livraison', $livraison->adresse_livraison ?? $commande->adresse ?? '') }}">@error('adresse_livraison')<div class="text-danger">{{ $message }}</div>@enderror</div>
+<div class="col-md-4"><label class="form-label">Ville</label><input name="ville" class="form-control" value="{{ old('ville', $livraison->ville ?? $commande->ville ?? '') }}"></div>
+<div class="col-md-4"><label class="form-label">Code postal</label><input name="code_postal" class="form-control" value="{{ old('code_postal', $livraison->code_postal ?? $commande->code_postal ?? '') }}"></div>
+<div class="col-md-4"><label class="form-label">Téléphone</label><input name="telephone" class="form-control" value="{{ old('telephone', $livraison->telephone ?? $commande->telephone ?? '') }}"></div>
+<div class="col-md-4"><label class="form-label">N° de suivi</label><input name="numero_suivi" class="form-control" value="{{ old('numero_suivi', $livraison->numero_suivi ?? '') }}"></div>
+<div class="col-md-6"><label class="form-label">Date prévue</label><input type="date" name="date_livraison_prevue" class="form-control" value="{{ old('date_livraison_prevue', isset($livraison->date_livraison_prevue) ? $livraison->date_livraison_prevue->format('Y-m-d') : '') }}"></div>
+<div class="col-12"><label class="form-label">Commentaire</label><textarea name="commentaire" class="form-control">{{ old('commentaire', $livraison->commentaire ?? '') }}</textarea></div>

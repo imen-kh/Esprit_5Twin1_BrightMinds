@@ -3,6 +3,26 @@
 @section('title', 'Dashboard')
 
 @section('content')
+              @php
+                $commandesEnAttente = \App\Models\Commande::where('statut', 'en_attente')->count();
+                $commandesConfirmees = \App\Models\Commande::where('statut', 'confirmee')->count();
+                $commandesPreparees = \App\Models\Commande::where('statut', 'preparee')->count();
+                $commandesExpediees = \App\Models\Commande::whereIn('statut', ['expediee', 'en_transit'])->count();
+                $commandesLivrees = \App\Models\Commande::where('statut', 'livree')->count();
+                $livraisonsTransit = \App\Models\Livraison::where('statut', 'en_transit')->count();
+              @endphp
+              <div class="row g-4 mb-6">
+                @foreach ([
+                  ['En attente', $commandesEnAttente, 'warning'],
+                  ['Confirmées', $commandesConfirmees, 'info'],
+                  ['Préparées', $commandesPreparees, 'primary'],
+                  ['Expédiées', $commandesExpediees, 'secondary'],
+                  ['Livrées', $commandesLivrees, 'success'],
+                  ['En transit', $livraisonsTransit, 'danger'],
+                ] as [$label, $count, $color])
+                  <div class="col-sm-6 col-lg-2"><div class="card h-100"><div class="card-body"><span class="text-muted">{{ $label }}</span><h3 class="mb-0 text-{{ $color }}">{{ $count }}</h3></div></div></div>
+                @endforeach
+              </div>
               <div class="row">
                 <div class="col-xxl-8 mb-6 order-0">
                   <div class="card">
