@@ -25,10 +25,20 @@ Route::view('/temoignages', 'front.temoignages')->name('temoignages');
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
 
-// Module Environnement (Membre 4) - Consultation publique & Simulateur IA
+// Module Environnement — front-office
+// Les segments fixes (simuler, create) sont déclarés avant /{bilan}.
 Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
-Route::get('/environnement/{bilan}', [EnvironnementController::class, 'show'])->name('front.environnement.show');
 Route::post('/environnement/simuler', [EnvironnementController::class, 'simuler'])->name('front.environnement.simuler');
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/environnement/create', [EnvironnementController::class, 'create'])->name('front.environnement.create');
+    Route::post('/environnement', [EnvironnementController::class, 'store'])->name('front.environnement.store');
+    Route::get('/environnement/{bilan}/edit', [EnvironnementController::class, 'edit'])->name('front.environnement.edit');
+    Route::match(['put', 'patch'], '/environnement/{bilan}', [EnvironnementController::class, 'update'])->name('front.environnement.update');
+    Route::delete('/environnement/{bilan}', [EnvironnementController::class, 'destroy'])->name('front.environnement.destroy');
+});
+
+Route::get('/environnement/{bilan}', [EnvironnementController::class, 'show'])->name('front.environnement.show');
 
 // ===== Authentification =====
 // Pages réservées aux visiteurs non connectés

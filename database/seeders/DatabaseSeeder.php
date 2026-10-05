@@ -91,6 +91,8 @@ class DatabaseSeeder extends Seeder
 
         // Chaque membre ajoute ici les seeders de son module, par exemple :
         $this->call([
+            ProductSeeder::class,
+            FacteurEmissionSeeder::class,
             EnvironnementSeeder::class,
         ]);
     }

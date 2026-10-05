@@ -9,7 +9,7 @@
     <p class="text-muted mb-0">Évaluation de l'empreinte carbone produit, attribution de l'Éco-Score et suggestions d'alternatives locales par IA.</p>
   </div>
   <a href="{{ route('admin.bilans-environnementaux.create') }}" class="btn btn-primary">
-    <i class="bx bx-plus me-1"></i> Nouveau bilan
+    <i class="bx bx-plus me-1"></i> Ajouter un bilan environnemental
   </a>
 </div>
 
@@ -133,12 +133,13 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th>Produit évalué</th>
-          <th>Éco-Score</th>
-          <th>CO2 Total</th>
-          <th>Décomposition (Prod / Transp / Emb)</th>
-          <th>Distance</th>
-          <th>Alternative Locale (IA)</th>
+          <th>Produit</th>
+          <th>Facteur d'émission</th>
+          <th>Score</th>
+          <th>Émission CO2</th>
+          <th>Consommation d'eau</th>
+          <th>Impact transport</th>
+          <th>Commentaire</th>
           <th>Statut</th>
           <th class="text-end">Actions</th>
         </tr>
@@ -147,17 +148,23 @@
         @forelse ($bilans as $bilan)
           <tr>
             <td>
-              <strong>{{ $bilan->nom_produit }}</strong>
+              <strong>{{ $bilan->product?->name ?? $bilan->nom_produit }}</strong>
               <div class="small text-muted">
                 {{ $bilan->quantite_produit }} {{ $bilan->unite_mesure }} • {{ $bilan->origine_geographique ?: 'Non précisé' }}
               </div>
+            </td>
+            <td>
+              {{ $bilan->facteurEmission?->nom ?? '—' }}
             </td>
             <td>
               <div class="d-flex align-items-center gap-2">
                 <span class="badge {{ $bilan->ecoScoreBadgeClass() }} fs-6 px-3 py-1 fw-bold">
                   {{ $bilan->eco_score }}
                 </span>
-                <small class="text-muted fw-semibold">{{ $bilan->score_numerique }}/100</small>
+                <div>
+                  <small class="text-muted fw-semibold d-block">{{ $bilan->score_numerique }}/100</small>
+                  <span class="badge {{ $bilan->scoreBadgeClass() }}">{{ $bilan->scoreAppreciation() }}</span>
+                </div>
               </div>
             </td>
             <td>
@@ -165,29 +172,16 @@
               <small class="text-muted d-block">kg CO2e</small>
             </td>
             <td>
-              <div class="small">
-                <span title="Production"><i class="bx bx-leaf text-success"></i> {{ number_format($bilan->co2_production, 2) }}</span> |
-                <span title="Transport"><i class="bx bx-car text-info"></i> {{ number_format($bilan->co2_transport, 2) }}</span> |
-                <span title="Emballage"><i class="bx bx-box text-warning"></i> {{ number_format($bilan->co2_emballage, 2) }}</span>
-              </div>
+              {{ number_format($bilan->consommation_eau_l, 0, ',', ' ') }} L
             </td>
             <td>
-              <span>{{ number_format($bilan->distance_km, 0, ',', ' ') }} km</span>
-              <small class="text-muted d-block">{{ ucfirst($bilan->mode_transport ?: 'camion') }}</small>
+              <strong>{{ number_format($bilan->co2_transport, 3, ',', ' ') }}</strong>
+              <small class="text-muted d-block">kg CO2e • {{ number_format($bilan->distance_km, 0, ',', ' ') }} km</small>
             </td>
             <td>
-              @if ($bilan->alternative_locale)
-                <span class="badge bg-label-success" title="{{ $bilan->alternative_locale }}">
-                  <i class="bx bx-bot me-1"></i>
-                  @if($bilan->reduction_co2_estimee_pourcent)
-                    -{{ $bilan->reduction_co2_estimee_pourcent }}% CO2
-                  @else
-                    Alternative IA
-                  @endif
-                </span>
-              @else
-                <span class="text-muted small">—</span>
-              @endif
+              <span class="d-inline-block text-truncate" style="max-width: 180px;" title="{{ $bilan->commentaires }}">
+                {{ $bilan->commentaires ?: '—' }}
+              </span>
             </td>
             <td>
               @if ($bilan->statut === 'valide')
@@ -199,24 +193,24 @@
               @endif
             </td>
             <td class="text-end">
-              <a href="{{ route('admin.bilans-environnementaux.show', $bilan) }}" class="btn btn-sm btn-outline-info" title="Détails du bilan">
-                <i class="bx bx-show"></i>
+              <a href="{{ route('admin.bilans-environnementaux.show', $bilan) }}" class="btn btn-sm btn-outline-info" title="Voir">
+                <i class="bx bx-show"></i> Voir
               </a>
               <a href="{{ route('admin.bilans-environnementaux.edit', $bilan) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
-                <i class="bx bx-edit-alt"></i>
+                <i class="bx bx-edit-alt"></i> Modifier
               </a>
-              <form action="{{ route('admin.bilans-environnementaux.destroy', $bilan) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer ce bilan environnemental ?');">
+              <form action="{{ route('admin.bilans-environnementaux.destroy', $bilan) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce bilan environnemental ?');">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                  <i class="bx bx-trash"></i>
+                  <i class="bx bx-trash"></i> Supprimer
                 </button>
               </form>
             </td>
           </tr>
         @empty
           <tr>
-            <td colspan="8" class="text-center py-5">
+            <td colspan="9" class="text-center py-5">
               <p class="text-muted mb-0">Aucun bilan environnemental enregistré pour le moment.</p>
             </td>
           </tr>

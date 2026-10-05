@@ -67,6 +67,12 @@ class CatalogueController extends Controller
 
         $product->load(['category', 'user']);
 
-        return view('front.catalogue.show', compact('product'));
+        $bilansPublics = $product->bilansEnvironnementaux()
+            ->valide()
+            ->with('facteurEmission')
+            ->latest()
+            ->get();
+
+        return view('front.catalogue.show', compact('product', 'bilansPublics'));
     }
 }

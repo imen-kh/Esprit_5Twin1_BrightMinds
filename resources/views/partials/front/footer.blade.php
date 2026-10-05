@@ -36,6 +36,7 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="d-flex flex-column text-start footer-item">
                             <h4 class="text-light mb-3">Informations</h4>
+                            <a class="btn-link" href="{{ route('front.environnement.index') }}">Impact environnemental</a>
                             <a class="btn-link" href="">À propos</a>
                             <a class="btn-link" href="">Nous contacter</a>
                             <a class="btn-link" href="">Politique de confidentialité</a>

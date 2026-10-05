@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,9 +16,9 @@ class StoreBilanEnvironnementalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nom_produit' => ['required', 'string', 'max:255'],
-            'produit_id' => ['nullable', 'integer'],
-            'facteur_emission_id' => ['nullable', 'exists:facteurs_emission,id'],
+            'nom_produit' => ['nullable', 'string', 'max:255'],
+            'produit_id' => ['required', 'integer', 'exists:products,id'],
+            'facteur_emission_id' => ['required', 'integer', 'exists:facteurs_emission,id'],
             'facteur_production_id' => ['nullable', 'exists:facteurs_emission,id'],
             'facteur_transport_id' => ['nullable', 'exists:facteurs_emission,id'],
             'facteur_emballage_id' => ['nullable', 'exists:facteurs_emission,id'],
@@ -42,5 +43,29 @@ class StoreBilanEnvironnementalRequest extends FormRequest
             'statut' => ['required', 'string', Rule::in(['valide', 'en_attente', 'archive'])],
             'commentaires' => ['nullable', 'string'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'produit_id.required' => 'Le produit est obligatoire.',
+            'produit_id.exists' => 'Le produit sélectionné n\'existe pas.',
+            'facteur_emission_id.required' => 'Le facteur d\'émission est obligatoire.',
+            'facteur_emission_id.exists' => 'Le facteur d\'émission sélectionné n\'existe pas.',
+            'quantite_produit.required' => 'La quantité est obligatoire.',
+            'quantite_produit.min' => 'La quantité doit être supérieure à 0.',
+            'statut.required' => 'Le statut est obligatoire.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('nom_produit') && $this->filled('produit_id')) {
+            $name = Product::query()->whereKey($this->input('produit_id'))->value('name');
+
+            if (is_string($name) && $name !== '') {
+                $this->merge(['nom_produit' => $name]);
+            }
+        }
     }
 }

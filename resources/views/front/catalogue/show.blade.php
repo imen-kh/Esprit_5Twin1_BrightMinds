@@ -18,5 +18,24 @@
         <p><strong>{{ $product->user->type_acteur ? ucfirst($product->user->type_acteur) : 'Acteur' }} :</strong> {{ $product->user->name }}</p>
         <p class="fs-4 fw-bold">{{ number_format((float) $product->price, 3, ',', ' ') }} DT</p>
     </div>
+
+    @if ($bilansPublics->isNotEmpty())
+        <div class="border rounded p-4 mt-3">
+            <h5 class="fw-bold mb-3">Bilan environnemental</h5>
+            @foreach ($bilansPublics as $bilan)
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 {{ $loop->last ? '' : 'mb-3' }}">
+                    <div>
+                        <span class="badge {{ $bilan->ecoScoreBadgeClass() }} me-2">Éco-Score {{ $bilan->eco_score }}</span>
+                        <strong>{{ $bilan->score_numerique }}/100</strong>
+                        <span class="text-muted">· {{ $bilan->scoreAppreciation() }}</span>
+                        @if ($bilan->facteurEmission)
+                            <div class="small text-muted mt-1">{{ $bilan->facteurEmission->nom }}</div>
+                        @endif
+                    </div>
+                    <a href="{{ route('front.environnement.show', $bilan) }}" class="btn btn-sm btn-outline-primary rounded-pill">Voir l'analyse</a>
+                </div>
+            @endforeach
+        </div>
+    @endif
 </div>
 @endsection

@@ -72,9 +72,36 @@
         </div>
         <div class="card-body">
           <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="produit_id">Produit <span class="text-danger">*</span></label>
+              <select class="form-select @error('produit_id') is-invalid @enderror" id="produit_id" name="produit_id" required>
+                <option value="">Sélectionner un produit</option>
+                @foreach ($products as $product)
+                  <option value="{{ $product->id }}" data-name="{{ $product->name }}" @selected((string) old('produit_id', $bilan->produit_id) === (string) $product->id)>
+                    {{ $product->name }}
+                  </option>
+                @endforeach
+              </select>
+              @error('produit_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+              <div class="form-text">Le bilan est rattaché au produit du catalogue. Son nom n'est pas saisi à part.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="facteur_emission_id">Facteur d'émission <span class="text-danger">*</span></label>
+              <select class="form-select @error('facteur_emission_id') is-invalid @enderror" id="facteur_emission_id" name="facteur_emission_id" required>
+                <option value="">Sélectionner un facteur</option>
+                @foreach ($facteurs as $facteur)
+                  <option value="{{ $facteur->id }}" @selected((string) old('facteur_emission_id', $bilan->facteur_emission_id) === (string) $facteur->id)>
+                    {{ $facteur->nom }} — {{ $facteur->categorie }} ({{ $facteur->valeur }} {{ $facteur->unite }})
+                  </option>
+                @endforeach
+              </select>
+              @error('facteur_emission_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
             <div class="col-md-8">
-              <label class="form-label" for="nom_produit">Nom du produit <span class="text-danger">*</span></label>
-              <input type="text" class="form-control @error('nom_produit') is-invalid @enderror" id="nom_produit" name="nom_produit" value="{{ old('nom_produit', $bilan->nom_produit) }}" required placeholder="Ex: Oranges maltaises, Tomates fraîches, Harissa...">
+              <label class="form-label" for="nom_produit">Nom repris du produit</label>
+              <input type="text" class="form-control @error('nom_produit') is-invalid @enderror" id="nom_produit" name="nom_produit" value="{{ old('nom_produit', $bilan->product?->name ?? $bilan->nom_produit) }}" readonly placeholder="Sélectionnez un produit">
               @error('nom_produit')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
@@ -257,6 +284,22 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const produitSelect = document.getElementById('produit_id');
+  const nomInput = document.getElementById('nom_produit');
+
+  if (produitSelect && nomInput) {
+    const syncNomProduit = function () {
+      const option = produitSelect.options[produitSelect.selectedIndex];
+      nomInput.value = option?.dataset?.name || '';
+    };
+
+    produitSelect.addEventListener('change', syncNomProduit);
+
+    if (produitSelect.value) {
+      syncNomProduit();
+    }
+  }
+
   const btnIa = document.getElementById('btn-ia-estimer');
   const loading = document.getElementById('ia-loading');
   const status = document.getElementById('ia-status');
@@ -265,8 +308,8 @@ document.addEventListener('DOMContentLoaded', function () {
   btnIa.addEventListener('click', async function () {
     const nom = document.getElementById('nom_produit').value.trim();
     if (!nom) {
-      alert('Veuillez renseigner le nom du produit avant de lancer l\'estimation.');
-      document.getElementById('nom_produit').focus();
+      alert('Veuillez sélectionner un produit avant de lancer l\'estimation.');
+      document.getElementById('produit_id').focus();
       return;
     }
 

@@ -37,6 +37,11 @@ class FacteurEmission extends Model
         return $this->hasMany(BilanEnvironnemental::class, 'facteur_emission_id');
     }
 
+    public function bilansEnvironnementaux(): HasMany
+    {
+        return $this->hasMany(BilanEnvironnemental::class, 'facteur_emission_id');
+    }
+
     public function scopeActif(Builder $query): Builder
     {
         return $query->where('actif', true);

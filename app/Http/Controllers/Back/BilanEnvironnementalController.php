@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Back;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBilanEnvironnementalRequest;
+use App\Http\Requests\UpdateBilanEnvironnementalRequest;
 use App\Models\BilanEnvironnemental;
 use App\Models\FacteurEmission;
-use App\Services\EcoScoreIAService;
+use App\Models\Product;
+use App\Services\EnvironmentalScoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +19,8 @@ class BilanEnvironnementalController extends Controller
     public function index(Request $request): View
     {
         $query = BilanEnvironnemental::query()->with([
-            'facteurPrincipal',
+            'product',
+            'facteurEmission',
             'facteurProduction',
             'facteurTransport',
             'facteurEmballage',
@@ -36,7 +39,11 @@ class BilanEnvironnementalController extends Controller
             $query->where(function ($sub) use ($q) {
                 $sub->where('nom_produit', 'like', $q)
                     ->orWhere('origine_geographique', 'like', $q)
-                    ->orWhere('alternative_locale', 'like', $q);
+                    ->orWhere('alternative_locale', 'like', $q)
+                    ->orWhere('commentaires', 'like', $q)
+                    ->orWhereHas('product', function ($product) use ($q) {
+                        $product->where('name', 'like', $q);
+                    });
             });
         }
 
@@ -59,49 +66,34 @@ class BilanEnvironnementalController extends Controller
 
     public function create(): View
     {
-        $facteursProduction = FacteurEmission::actif()->where('categorie', 'production')->orderBy('nom')->get();
-        $facteursTransport = FacteurEmission::actif()->where('categorie', 'transport')->orderBy('nom')->get();
-        $facteursEmballage = FacteurEmission::actif()->where('categorie', 'emballage')->orderBy('nom')->get();
-        $tousFacteurs = FacteurEmission::actif()->orderBy('nom')->get();
-
-        return view('back.environnement.bilans.form', [
-            'bilan' => new BilanEnvironnemental([
-                'quantite_produit' => 1.0,
-                'unite_mesure' => 'kg',
-                'statut' => 'valide',
-                'mode_transport' => 'camion',
-                'mode_culture' => 'plein_champ',
-                'type_emballage' => 'vrac',
-                'distance_km' => 35,
-                'origine_geographique' => 'Cap Bon, Tunisie',
-            ]),
-            'facteursProduction' => $facteursProduction,
-            'facteursTransport' => $facteursTransport,
-            'facteursEmballage' => $facteursEmballage,
-            'tousFacteurs' => $tousFacteurs,
-        ]);
+        return view('back.environnement.bilans.form', $this->donneesFormulaire(new BilanEnvironnemental([
+            'quantite_produit' => 1.0,
+            'unite_mesure' => 'kg',
+            'statut' => 'valide',
+            'mode_transport' => 'camion',
+            'mode_culture' => 'plein_champ',
+            'type_emballage' => 'vrac',
+            'distance_km' => 35,
+            'origine_geographique' => 'Cap Bon, Tunisie',
+        ])));
     }
 
-    public function store(StoreBilanEnvironnementalRequest $request, EcoScoreIAService $service): RedirectResponse
+    public function store(StoreBilanEnvironnementalRequest $request, EnvironmentalScoreService $service): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $this->synchroniserProduit($request->validated());
+        $data = array_merge($data, $service->calculer($data));
 
-        // Si le calcul ou l'IA n'ont pas été remplis manuellement, calculer automatiquement
-        if (empty($data['co2_total']) || empty($data['eco_score']) || empty($data['alternative_locale'])) {
-            $calculs = $service->analyser($data);
-            $data = array_merge($data, $calculs);
-        }
+        BilanEnvironnemental::query()->create($data);
 
-        $bilan = BilanEnvironnemental::query()->create($data);
-
-        return redirect()->route('admin.bilans-environnementaux.show', $bilan)
-            ->with('success', 'Bilan environnemental calculé et enregistré avec succès.');
+        return redirect()->route('admin.bilans-environnementaux.index')
+            ->with('success', 'Bilan environnemental enregistré avec succès.');
     }
 
     public function show(BilanEnvironnemental $bilan): View
     {
         $bilan->load([
-            'facteurPrincipal',
+            'product',
+            'facteurEmission',
             'facteurProduction',
             'facteurTransport',
             'facteurEmballage',
@@ -112,27 +104,15 @@ class BilanEnvironnementalController extends Controller
 
     public function edit(BilanEnvironnemental $bilan): View
     {
-        $facteursProduction = FacteurEmission::actif()->where('categorie', 'production')->orderBy('nom')->get();
-        $facteursTransport = FacteurEmission::actif()->where('categorie', 'transport')->orderBy('nom')->get();
-        $facteursEmballage = FacteurEmission::actif()->where('categorie', 'emballage')->orderBy('nom')->get();
-        $tousFacteurs = FacteurEmission::actif()->orderBy('nom')->get();
-
-        return view('back.environnement.bilans.form', [
-            'bilan' => $bilan,
-            'facteursProduction' => $facteursProduction,
-            'facteursTransport' => $facteursTransport,
-            'facteursEmballage' => $facteursEmballage,
-            'tousFacteurs' => $tousFacteurs,
-        ]);
+        return view('back.environnement.bilans.form', $this->donneesFormulaire($bilan));
     }
 
-    public function update(StoreBilanEnvironnementalRequest $request, BilanEnvironnemental $bilan, EcoScoreIAService $service): RedirectResponse
+    public function update(UpdateBilanEnvironnementalRequest $request, BilanEnvironnemental $bilan, EnvironmentalScoreService $service): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $this->synchroniserProduit($request->validated());
 
-        if ($request->boolean('recalculer_ia')) {
-            $calculs = $service->analyser($data);
-            $data = array_merge($data, $calculs);
+        if ($request->boolean('recalculer_ia') || blank($data['score_numerique'] ?? null) || blank($data['eco_score'] ?? null)) {
+            $data = array_merge($data, $service->calculer($data));
         }
 
         $bilan->update($data);
@@ -153,14 +133,44 @@ class BilanEnvironnementalController extends Controller
      * Endpoint API / AJAX pour la fonctionnalité IA en direct :
      * Estimer l'Éco-Score et générer une alternative plus locale.
      */
-    public function estimerEcoScoreIA(Request $request, EcoScoreIAService $service): JsonResponse
+    public function estimerEcoScoreIA(Request $request, EnvironmentalScoreService $service): JsonResponse
     {
         $params = $request->all();
-        $resultat = $service->analyser($params);
+        $resultat = $service->calculer($params);
 
         return response()->json([
             'success' => true,
             'data' => $resultat,
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function donneesFormulaire(BilanEnvironnemental $bilan): array
+    {
+        return [
+            'bilan' => $bilan,
+            'products' => Product::query()->orderBy('name')->get(['id', 'name']),
+            'facteurs' => FacteurEmission::query()->orderBy('nom')->get(),
+        ];
+    }
+
+    /**
+     * Le nom affiché reprend le produit du catalogue : la colonne nom_produit
+     * reste renseignée parce qu'elle est obligatoire dans la table existante.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function synchroniserProduit(array $data): array
+    {
+        $product = Product::query()->find($data['produit_id']);
+
+        if ($product) {
+            $data['nom_produit'] = $product->name;
+        }
+
+        return $data;
     }
 }

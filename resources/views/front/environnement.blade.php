@@ -15,6 +15,9 @@
 <!-- Section Présentation & Simulateur IA -->
 <div class="container-fluid py-5">
     <div class="container py-4">
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
         <!-- Bandeau introductif -->
         <div class="row g-4 align-items-center mb-5">
             <div class="col-lg-8">
@@ -124,9 +127,19 @@
             <div>
                 <h3 class="fw-bold mb-1">Bilans Environnementaux de nos Produits</h3>
                 <p class="text-muted mb-0">Consultez l'impact écologique certifié des aliments référencés sur NutriTrace.</p>
+                @if (auth()->user()?->isAdmin())
+                    <a href="{{ route('front.environnement.create') }}" class="btn btn-primary mt-2">Ajouter un bilan environnemental</a>
+                @endif
             </div>
             <!-- Filtre par Éco-Score -->
-            <div class="btn-group" role="group">
+            <form method="GET" action="{{ route('front.environnement.index') }}" class="d-flex flex-wrap gap-2">
+                @if (request('eco_score'))
+                    <input type="hidden" name="eco_score" value="{{ request('eco_score') }}">
+                @endif
+                <input type="search" name="q" value="{{ request('q') }}" class="form-control" placeholder="Rechercher un produit" style="min-width: 220px;">
+                <button type="submit" class="btn btn-primary">Rechercher</button>
+            </form>
+            <div class="d-flex flex-wrap gap-2" role="group">
                 <a href="{{ route('front.environnement.index') }}" class="btn btn-outline-secondary {{ !request('eco_score') ? 'active' : '' }}">Tous</a>
                 <a href="{{ route('front.environnement.index', ['eco_score' => 'A']) }}" class="btn btn-outline-success {{ request('eco_score') === 'A' ? 'active' : '' }}">Score A</a>
                 <a href="{{ route('front.environnement.index', ['eco_score' => 'B']) }}" class="btn btn-outline-info {{ request('eco_score') === 'B' ? 'active' : '' }}">Score B</a>
@@ -147,15 +160,25 @@
                             <span class="text-muted small"><strong>{{ $bilan->score_numerique }}</strong>/100</span>
                         </div>
                         <div class="card-body p-4">
-                            <h5 class="card-title fw-bold text-dark mb-2">{{ $bilan->nom_produit }}</h5>
-                            <p class="text-muted small mb-3">
+                            <h5 class="card-title fw-bold text-dark mb-2">{{ $bilan->nomAffiche() }}</h5>
+                            <p class="text-muted small mb-2">
                                 <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $bilan->origine_geographique ?: 'Tunisie' }}
-                                • {{ $bilan->distance_km }} km ({{ ucfirst($bilan->mode_transport ?: 'camion') }})
+                                • {{ $bilan->mesure('distance_km', 0) }} km ({{ ucfirst($bilan->mode_transport ?: 'camion') }})
+                            </p>
+                            <p class="small mb-3">
+                                <span class="badge {{ $bilan->scoreBadgeClass() }}">{{ $bilan->scoreAppreciation() }}</span>
+                                @if ($bilan->facteurEmission)
+                                    <span class="text-muted ms-1">{{ $bilan->facteurEmission->nom }}</span>
+                                @endif
                             </p>
 
+                            <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded mb-2">
+                                <span class="small text-muted">Émission CO2 :</span>
+                                <strong class="text-primary">{{ $bilan->mesure('co2_total') }} kg CO2e</strong>
+                            </div>
                             <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded mb-3">
-                                <span class="small text-muted">Empreinte Carbone :</span>
-                                <strong class="text-primary">{{ number_format($bilan->co2_total, 3, ',', ' ') }} kg CO2e</strong>
+                                <span class="small text-muted">Eau / transport :</span>
+                                <strong>{{ $bilan->mesure('consommation_eau_l', 0) }} L · {{ $bilan->mesure('co2_transport') }} kg</strong>
                             </div>
 
                             @if ($bilan->alternative_locale)
@@ -167,10 +190,18 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="card-footer bg-white border-top p-3 text-end">
+                        <div class="card-footer bg-white border-top p-3 d-flex justify-content-end flex-wrap gap-2">
                             <a href="{{ route('front.environnement.show', $bilan) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                <i class="fas fa-info-circle me-1"></i> Voir l'analyse complète
+                                <i class="fas fa-info-circle me-1"></i> Voir
                             </a>
+                            @if (auth()->user()?->isAdmin())
+                                <a href="{{ route('front.environnement.edit', $bilan) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Modifier</a>
+                                <form action="{{ route('front.environnement.destroy', $bilan) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce bilan environnemental ?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Supprimer</button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </div>
