@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Product extends Model
 {
     protected $fillable = [
-        'name', 'description', 'price', 'origin', 'ingredients',
+        'name', 'description', 'price', 'origin', 'image', 'ingredients',
         'status', 'category_id', 'user_id',
     ];
 
@@ -25,5 +25,12 @@ class Product extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function formattedPrice(): string
+    {
+        $formatted = number_format((float) $this->price, 3, ',', ' ');
+
+        return str_ends_with($formatted, ',000') ? substr($formatted, 0, -4) : $formatted;
     }
 }

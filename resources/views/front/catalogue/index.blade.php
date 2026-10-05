@@ -6,44 +6,72 @@
 <div class="container-fluid page-header py-5">
     <h1 class="text-center text-white display-6">Catalogue des produits</h1>
 </div>
-<div class="container py-5">
-    <form id="catalogue-search" method="GET" action="{{ route('produits') }}" class="row g-2 mb-4">
-        <div class="col-md-7">
-            <input class="form-control" name="q" value="{{ request('q') }}" placeholder="Rechercher un produit" autocomplete="off">
-        </div>
-        <div class="col-md-5">
-            <select class="form-select" name="category_id">
-                <option value="">Toutes les catégories</option>
-                @foreach ($categories as $category)
-                    <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>{{ $category->name }}</option>
-                @endforeach
-            </select>
+<div class="container-fluid vesitable py-5">
+    <div class="container">
+    <form id="catalogue-search" method="GET" action="{{ route('produits') }}" class="bg-light rounded p-3 p-md-4 mb-4">
+        <div class="row g-3">
+            <div class="col-md-7">
+                <input class="form-control border-secondary rounded-pill py-3 px-4" name="q" value="{{ request('q') }}" placeholder="Rechercher un produit" autocomplete="off">
+            </div>
+            <div class="col-md-5">
+                <select class="form-select border-secondary rounded-pill py-3 px-4" name="category_id">
+                    <option value="">Toutes les catégories</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
     </form>
     <div id="catalogue-results">
-        <div class="row g-4">
-            @forelse ($products as $product)
-                <div class="col-md-4">
-                    <div class="border rounded p-4 h-100">
-                        <span class="badge bg-secondary">{{ $product->category->name }}</span>
-                        <h2 class="h5 mt-3">{{ $product->name }}</h2>
-                        <p>{{ $product->description }}</p>
-                        <p><strong>Origine :</strong> {{ $product->origin ?: 'Non renseignée' }}</p>
-                        <p class="fw-bold">{{ number_format((float) $product->price, 3, ',', ' ') }} DT</p>
-                        <a class="btn btn-outline-primary" href="{{ route('produit.detail', $product) }}">Voir le produit</a>
-                    </div>
-                </div>
-            @empty
-                <p>Aucun produit publié ne correspond à votre recherche.</p>
-            @endforelse
-        </div>
+        @if ($products->isNotEmpty())
+            <div class="owl-carousel product-carousel">
+                @foreach ($products as $product)
+                    @include('partials.front.product-card', ['product' => $product])
+                @endforeach
+            </div>
+        @else
+            <div class="rounded border border-primary text-center p-5">
+                <p class="mb-0">Aucun produit publié ne correspond à votre recherche.</p>
+            </div>
+        @endif
         <div class="mt-4">{{ $products->links('pagination::bootstrap-5') }}</div>
+    </div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
+function initProductCarousel(root) {
+    const carousel = (root || document).querySelector('.product-carousel');
+    if (!carousel || carousel.classList.contains('owl-loaded') || typeof $ === 'undefined') {
+        return;
+    }
+    const count = carousel.children.length;
+    $(carousel).owlCarousel({
+        autoplay: count > 1,
+        smartSpeed: 1500,
+        center: false,
+        dots: true,
+        loop: count > 4,
+        margin: 25,
+        nav: true,
+        navText: [
+            '<i class="bi bi-arrow-left"></i>',
+            '<i class="bi bi-arrow-right"></i>'
+        ],
+        responsive: {
+            0: { items: 1 },
+            768: { items: 2 },
+            992: { items: 3 },
+            1200: { items: 4 }
+        }
+    });
+}
+initProductCarousel(document);
+
+
 const catalogueSearch = document.getElementById('catalogue-search');
 const catalogueResults = document.getElementById('catalogue-results');
 let catalogueTimer;
@@ -81,6 +109,7 @@ async function searchCatalogue() {
     const next = doc.getElementById('catalogue-results');
     if (next) {
         catalogueResults.innerHTML = next.innerHTML;
+        initProductCarousel(catalogueResults);
     }
     history.replaceState(null, '', url);
 }

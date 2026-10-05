@@ -27,6 +27,8 @@ class CategorySuggestionController extends Controller
             'name' => $data['category_name'],
             'description' => $data['category_description'],
             'status' => Category::PROPOSED,
+            'origin' => Category::ORIGIN_PRODUCER,
+            'user_id' => $request->user()->id,
         ]);
 
         return back()->with('success', 'Catégorie proposée. Elle apparaîtra dans la liste après validation par un administrateur.');

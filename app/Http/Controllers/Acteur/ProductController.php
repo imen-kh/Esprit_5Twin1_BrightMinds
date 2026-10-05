@@ -7,11 +7,20 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function index()
     {
+        if (auth()->user()->isTransformateur()) {
+            return redirect()->route('acteur.transformation');
+        }
+
+        if (auth()->user()->isDistributeur()) {
+            return redirect()->route('acteur.distribution');
+        }
+
         $query = Product::with('category')->orderByDesc('created_at');
 
         if (! auth()->user()->isAdmin()) {
@@ -35,6 +44,7 @@ class ProductController extends Controller
     {
         $this->denyProductCreation();
         $data = $this->validatedData($request);
+        $data['image'] = $this->storeImage($request);
         $data['user_id'] = $request->user()->id;
         $data['status'] = 'published';
         Product::create($data);
@@ -54,6 +64,7 @@ class ProductController extends Controller
     {
         $this->authorizeOwner($product);
         $data = $this->validatedData($request);
+        $data['image'] = $this->storeImage($request, $product);
         $data['status'] = 'published';
         $product->update($data);
 
@@ -63,6 +74,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $this->authorizeOwner($product);
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
         $product->delete();
 
         return redirect()->route('acteur.produits.index')->with('success', 'Produit supprimé.');
@@ -76,6 +90,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0.1|max:9999',
             'origin' => 'required|string|min:3|max:150',
             'category_id' => 'required|exists:categories,id,status,'.Category::VALIDATED,
+            'image' => ($request->isMethod('post') ? 'required' : 'nullable').'|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
 
         if ($request->user()->type_acteur === 'transformateur') {
@@ -101,20 +116,45 @@ class ProductController extends Controller
             'ingredients.max' => 'Les ingrédients ne peuvent pas dépasser 1000 caractères.',
             'category_id.required' => 'La catégorie est obligatoire.',
             'category_id.exists' => 'La catégorie choisie n\'existe pas.',
+            'image.required' => 'L\'image du produit est obligatoire.',
+            'image.image' => 'Le fichier doit être une image.',
+            'image.mimes' => 'L\'image doit être au format JPG, PNG ou WEBP.',
+            'image.max' => 'L\'image ne peut pas dépasser 2 Mo.',
         ]);
 
         if ($request->user()->type_acteur !== 'transformateur') {
             $data['ingredients'] = null;
         }
 
+        unset($data['image']);
+
         return $data;
+    }
+
+    private function storeImage(Request $request, ?Product $product = null): ?string
+    {
+        if (! $request->hasFile('image')) {
+            return $product?->image;
+        }
+
+        if ($product?->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        return $request->file('image')->store('products', 'public');
     }
 
     private function denyProductCreation(): void
     {
-        if (auth()->user()->type_acteur === 'transformateur') {
+        if (auth()->user()->isTransformateur()) {
             throw new HttpResponseException(
-                redirect()->route('acteur.produits.index')->with('error', 'Le transformateur ne peut pas ajouter un produit. Maintenant il n\'a pas de matières premières.')
+                redirect()->route('acteur.transformation')
+            );
+        }
+
+        if (auth()->user()->isDistributeur()) {
+            throw new HttpResponseException(
+                redirect()->route('acteur.distribution')
             );
         }
     }
