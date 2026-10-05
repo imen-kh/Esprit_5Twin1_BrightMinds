@@ -46,7 +46,10 @@ class CommandeController extends Controller
 
     public function confirmer(Commande $commande)
     {
-        abort_unless($commande->statut === 'en_attente', 422, 'Cette commande ne peut plus être confirmée.');
+        if ($commande->statut !== 'en_attente') {
+            return back()->with('error', 'Cette commande ne peut plus être confirmée : elle a déjà été traitée.');
+        }
+
         $commande->update(['statut' => 'confirmee']);
 
         return back()->with('success', 'Commande confirmée.');
@@ -54,7 +57,10 @@ class CommandeController extends Controller
 
     public function refuser(Commande $commande)
     {
-        abort_unless($commande->statut === 'en_attente', 422, 'Cette commande ne peut plus être refusée.');
+        if ($commande->statut !== 'en_attente') {
+            return back()->with('error', 'Cette commande ne peut plus être refusée : elle a déjà été traitée.');
+        }
+
         $commande->update(['statut' => 'refusee']);
 
         return back()->with('success', 'Commande refusée.');
@@ -62,7 +68,10 @@ class CommandeController extends Controller
 
     public function annuler(Commande $commande)
     {
-        abort_unless(! in_array($commande->statut, ['livree', 'refusee', 'annulee'], true), 422, 'Cette commande ne peut plus être annulée.');
+        if (in_array($commande->statut, ['livree', 'refusee', 'annulee'], true)) {
+            return back()->with('error', 'Cette commande ne peut plus être annulée.');
+        }
+
         $commande->update(['statut' => 'annulee']);
 
         return back()->with('success', 'Commande annulée.');

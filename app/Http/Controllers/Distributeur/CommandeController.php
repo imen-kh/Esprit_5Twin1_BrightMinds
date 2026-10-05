@@ -41,7 +41,11 @@ class CommandeController extends Controller
 
     public function prendreEnCharge(Commande $commande)
     {
-        abort_unless($commande->statut === 'confirmee' && is_null($commande->distributeur_id), 422, 'Cette commande est déjà prise en charge.');
+        // Déjà prise en charge (double clic, ou autre distributeur plus rapide) : message dans la page
+        if ($commande->statut !== 'confirmee' || ! is_null($commande->distributeur_id)) {
+            return back()->with('error', 'Cette commande est déjà prise en charge.');
+        }
+
         $commande->update(['distributeur_id' => Auth::id(), 'statut' => 'preparee']);
 
         return back()->with('success', 'Commande prise en charge avec succès.');
