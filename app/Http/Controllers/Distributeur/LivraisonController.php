@@ -27,12 +27,21 @@ class LivraisonController extends Controller
 
     public function index()
     {
+        $commandesSansLivraison = Commande::with('user')
+            ->where('statut', 'confirmee')
+            ->whereDoesntHave('livraison')
+            ->where(function ($query) {
+                $query->whereNull('distributeur_id')->orWhere('distributeur_id', Auth::id());
+            })
+            ->latest('date_commande')
+            ->get();
+
         $livraisons = Livraison::with('commande')
             ->where('distributeur_id', Auth::id())
             ->latest()
             ->paginate(15);
 
-        return view('distributeur.livraisons.index', compact('livraisons'));
+        return view('distributeur.livraisons.index', compact('livraisons', 'commandesSansLivraison'));
     }
 
     public function create(Commande $commande)

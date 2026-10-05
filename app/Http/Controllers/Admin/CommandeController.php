@@ -10,20 +10,32 @@ class CommandeController extends Controller
 {
     public function index(Request $request)
     {
-        $commandes = Commande::with(['user', 'livraison'])
-            ->when($request->filled('statut'), fn ($query) => $query->where('statut', $request->string('statut')))
-            ->when($request->filled('q'), function ($query) use ($request) {
+        $filtres = function ($query, string $role, ?string $typeActeur = null) use ($request) {
+            $query->with(['user', 'livraison'])
+                ->whereHas('user', function ($userQuery) use ($role, $typeActeur) {
+                    $userQuery->where('role', $role);
+                    if ($typeActeur) {
+                        $userQuery->where('type_acteur', $typeActeur);
+                    }
+                })
+                ->when($request->filled('statut'), fn ($q) => $q->where('statut', $request->string('statut')))
+                ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->string('q').'%';
-                $query->where(function ($subQuery) use ($term) {
+                $q->where(function ($subQuery) use ($term) {
                     $subQuery->where('id', is_numeric(trim($term, '%')) ? (int) trim($term, '%') : 0)->orWhere('email', 'like', $term)
                         ->orWhere('nom', 'like', $term)->orWhere('prenom', 'like', $term);
                 });
-            })
-            ->latest('date_commande')
-            ->paginate(15)
-            ->withQueryString();
+                })
+                ->latest('date_commande');
+            return $query;
+        };
 
-        return view('admin.commandes.index', compact('commandes'));
+        $commandesTransformateurs = $filtres(Commande::query(), 'acteur', 'transformateur')
+            ->paginate(15, ['*'], 'transformateur_page')->withQueryString();
+        $commandesConsommateurs = $filtres(Commande::query(), 'consommateur')
+            ->paginate(15, ['*'], 'consommateur_page')->withQueryString();
+
+        return view('admin.commandes.index', compact('commandesTransformateurs', 'commandesConsommateurs'));
     }
 
     public function show(Commande $commande)

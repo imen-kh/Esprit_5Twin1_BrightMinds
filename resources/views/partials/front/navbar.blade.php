@@ -24,7 +24,7 @@
                             <a href="{{ route('home') }}" class="nav-item nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Accueil</a>
                             <a href="{{ route('produits') }}" class="nav-item nav-link {{ request()->routeIs('produits') ? 'active' : '' }}">Produits</a>
                             @auth
-                                @if (auth()->user()->isActeur())
+                                @if (auth()->user()->isActeur() && ! auth()->user()->isDistributeur())
                                     <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Mes produits</a>
                                 @endif
                             @endauth
@@ -34,8 +34,15 @@
                                     <a href="{{ route('panier') }}" class="dropdown-item">Panier</a>
                                     <a href="{{ route('commande') }}" class="dropdown-item">Commande</a>
                                     @auth
-                                        @if (auth()->user()->role === 'consommateur' || auth()->user()->isTransformateur())
+                                        @if (auth()->user()->isTransformateur())
                                             <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
+                                            <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
+                                        @elseif (auth()->user()->role === 'consommateur')
+                                            <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
+                                        @elseif (auth()->user()->isDistributeur())
+                                            <a href="{{ route('distributeur.dashboard') }}" class="dropdown-item">Dashboard distributeur</a>
+                                            <a href="{{ route('distributeur.commandes.index') }}" class="dropdown-item">Commandes à traiter</a>
+                                            <a href="{{ route('distributeur.livraisons.index') }}" class="dropdown-item">Mes livraisons</a>
                                         @endif
                                     @endauth
                                     <a href="{{ route('temoignages') }}" class="dropdown-item">Témoignages</a>

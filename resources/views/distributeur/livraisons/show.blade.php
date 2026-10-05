@@ -1,7 +1,8 @@
 @extends('layouts.front')
 @section('title', 'Détail livraison')
 @section('content')
-<div class="container py-5"><h1>Livraison #{{ $livraison->id }}</h1>@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+<div class="container-fluid page-header py-5"><h1 class="text-center text-white display-6">Détail de la livraison #{{ $livraison->id }}</h1></div>
+<div class="container py-5">@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 <div class="card mb-4"><div class="card-body"><p>Commande : <a href="{{ route('distributeur.commandes.show', $livraison->commande) }}">#{{ $livraison->commande_id }}</a></p><p>Transformateur : {{ $livraison->commande->user?->name }}</p><p>Total : {{ number_format($livraison->commande->total, 3, ',', ' ') }} DT</p><p>Destination : {{ $livraison->adresse_livraison }}, {{ $livraison->code_postal }} {{ $livraison->ville }}</p><p>Suivi : {{ $livraison->numero_suivi ?: 'Non renseigné' }}</p><p>Statut commande : <strong>{{ ucfirst(str_replace('_', ' ', $livraison->commande->statut)) }}</strong></p><p>Statut livraison : <strong>{{ ucfirst(str_replace('_', ' ', $livraison->statut)) }}</strong></p><p>Expédition : {{ $livraison->date_expedition?->format('d/m/Y H:i') ?: '—' }} | Prévue : {{ $livraison->date_livraison_prevue?->format('d/m/Y') ?: '—' }} | Livrée : {{ $livraison->date_livraison?->format('d/m/Y H:i') ?: '—' }}</p></div></div>
 <div class="d-flex gap-2 mb-3">@if($livraison->statut !== 'livree')<a class="btn btn-outline-primary" href="{{ route('distributeur.livraisons.edit', $livraison) }}">Modifier</a>@endif</div>
 @php($actions = ['en_preparation' => ['expediee' => 'Expédier', 'annulee' => 'Annuler'], 'expediee' => ['en_transit' => 'Passer en transit'], 'en_transit' => ['livree' => 'Marquer comme livrée']])

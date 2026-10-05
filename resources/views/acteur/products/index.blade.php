@@ -19,13 +19,14 @@
     <div class="table-responsive border rounded">
         <table class="table mb-0">
             <thead>
-                <tr><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Actions</th></tr>
+                <tr><th>Produit transformé</th><th>Catégorie</th><th>Type</th><th>Prix</th><th>Actions</th></tr>
             </thead>
             <tbody>
             @forelse ($products as $product)
                 <tr>
                     <td>{{ $product->name }}</td>
-                    <td>{{ $product->category->name }}</td>
+                    <td>{{ $product->category?->name ?: '—' }}</td>
+                    <td><span class="badge bg-success">Transformé</span></td>
                     <td>{{ number_format((float) $product->price, 3, ',', ' ') }} DT</td>
                     <td class="d-flex gap-2">
                         <a class="btn btn-sm btn-outline-primary" href="{{ route('acteur.produits.edit', $product) }}">Modifier</a>
@@ -36,7 +37,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="4">Aucun produit enregistré.</td></tr>
+                <tr><td colspan="5">Aucun produit transformé enregistré.</td></tr>
             @endforelse
             </tbody>
         </table>

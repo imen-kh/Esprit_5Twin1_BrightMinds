@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Commande;
 use App\Models\Livraison;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,15 +14,33 @@ class LivraisonController extends Controller
     public function index(Request $request)
     {
         $distributeurs = User::where('role', 'acteur')->where('type_acteur', 'distributeur')->orderBy('name')->get();
-        $livraisons = Livraison::with(['commande', 'distributeur'])
-            ->when($request->filled('statut'), fn ($query) => $query->where('statut', $request->string('statut')))
-            ->when($request->filled('q'), fn ($query) => $query->where('numero_suivi', 'like', '%'.$request->string('q').'%'))
-            ->when($request->filled('distributeur_id'), fn ($query) => $query->where('distributeur_id', $request->integer('distributeur_id')))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        $commandesSansLivraison = Commande::with('user')
+            ->where('statut', 'confirmee')
+            ->whereDoesntHave('livraison')
+            ->latest('date_commande')
+            ->get();
+        $filtres = function ($query, string $role, ?string $typeActeur = null) use ($request) {
+            $query->with(['commande.user', 'distributeur'])
+                ->whereHas('commande.user', function ($userQuery) use ($role, $typeActeur) {
+                    $userQuery->where('role', $role);
+                    if ($typeActeur) {
+                        $userQuery->where('type_acteur', $typeActeur);
+                    }
+                })
+                ->when($request->filled('statut'), fn ($q) => $q->where('statut', $request->string('statut')))
+                ->when($request->filled('q'), fn ($q) => $q->where('numero_suivi', 'like', '%'.$request->string('q').'%'))
+                ->when($request->filled('distributeur_id'), fn ($q) => $q->where('distributeur_id', $request->integer('distributeur_id')))
+                ->latest();
 
-        return view('admin.livraisons.index', compact('livraisons', 'distributeurs'));
+            return $query;
+        };
+
+        $livraisonsTransformateurs = $filtres(Livraison::query(), 'acteur', 'transformateur')
+            ->paginate(10, ['*'], 'transformateur_page')->withQueryString();
+        $livraisonsConsommateurs = $filtres(Livraison::query(), 'consommateur')
+            ->paginate(10, ['*'], 'consommateur_page')->withQueryString();
+
+        return view('admin.livraisons.index', compact('livraisonsTransformateurs', 'livraisonsConsommateurs', 'commandesSansLivraison', 'distributeurs'));
     }
 
     public function show(Livraison $livraison)
