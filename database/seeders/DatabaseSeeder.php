@@ -93,5 +93,6 @@ class DatabaseSeeder extends Seeder
         // $this->call([
         //     ProduitSeeder::class,
         // ]);
+        $this->call(TracabiliteSeeder::class); // module Traçabilité : lots et étapes (après le Catalogue)
     }
 }
