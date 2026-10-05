@@ -8,6 +8,7 @@ use App\Http\Controllers\Acteur\CategorySuggestionController;
 use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
@@ -89,7 +90,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/forms-basic-inputs', 'back.forms-basic-inputs')->name('forms-basic-inputs');
     Route::view('/forms-input-groups', 'back.forms-input-groups')->name('forms-input-groups');
     Route::view('/icons-boxicons', 'back.icons-boxicons')->name('icons-boxicons');
-    Route::view('/', 'back.dashboard')->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::view('/layouts-blank', 'back.layouts-blank')->name('layouts-blank');
     Route::view('/layouts-container', 'back.layouts-container')->name('layouts-container');
     Route::view('/layouts-fluid', 'back.layouts-fluid')->name('layouts-fluid');

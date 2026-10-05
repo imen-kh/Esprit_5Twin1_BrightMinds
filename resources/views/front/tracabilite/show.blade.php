@@ -45,9 +45,12 @@
                                 @if ($lot->produit->origin)
                                     <p class="mb-0"><i class="fas fa-map-marker-alt text-primary me-2"></i>Origine : {{ $lot->produit->origin }}</p>
                                 @endif
-                                <a href="{{ route('produit.detail', $lot->produit) }}" class="btn border-secondary rounded-pill px-4 py-2 text-primary mt-3">
-                                    Voir la fiche produit
-                                </a>
+                                {{-- La fiche produit du Catalogue demande un compte : bouton réservé aux visiteurs connectés --}}
+                                @auth
+                                    <a href="{{ route('produit.detail', $lot->produit) }}" class="btn border-secondary rounded-pill px-4 py-2 text-primary mt-3">
+                                        Voir la fiche produit
+                                    </a>
+                                @endauth
                             </div>
                         </div>
 

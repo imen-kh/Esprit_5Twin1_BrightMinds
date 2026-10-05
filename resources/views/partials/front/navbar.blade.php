@@ -33,6 +33,10 @@
                                 @elseif (auth()->user()->isDistributeur())
                                     <a href="{{ route('acteur.distribution') }}" class="nav-item nav-link {{ request()->routeIs('acteur.distribution') ? 'active' : '' }}">Distribution</a>
                                 @endif
+                                {{-- module Traçabilité : gestion des lots et des étapes, pour tous les acteurs --}}
+                                @if (auth()->user()->isActeur())
+                                    <a href="{{ route('gestion.lots.index') }}" class="nav-item nav-link">Mes lots</a>
+                                @endif
                             @endauth
                             <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>

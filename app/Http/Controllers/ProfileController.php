@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\TwoFactorToggleRequest;
+use App\Models\EtapeTracabilite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,6 +101,14 @@ class ProfileController extends Controller
             'password.required' => 'Le mot de passe est obligatoire pour supprimer le compte.',
             'password.current_password' => 'Le mot de passe est incorrect.',
         ]);
+
+        // Un acteur lié à des produits ou à des étapes de traçabilité ne peut pas être supprimé :
+        // l'historique de la chaîne doit rester complet (clés étrangères en « restrict »)
+        if ($user->products()->exists() || EtapeTracabilite::where('user_id', $user->id)->exists()) {
+            return back()->withErrors([
+                'password' => 'Votre compte est lié à des produits ou à des étapes de traçabilité : il ne peut pas être supprimé. Contactez un administrateur.',
+            ], 'suppression');
+        }
 
         Auth::logout();
 
