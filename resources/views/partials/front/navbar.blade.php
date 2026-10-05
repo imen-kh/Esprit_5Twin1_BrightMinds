@@ -23,7 +23,11 @@
                         <div class="navbar-nav mx-auto">
                             <a href="{{ route('home') }}" class="nav-item nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Accueil</a>
                             <a href="{{ route('produits') }}" class="nav-item nav-link {{ request()->routeIs('produits') ? 'active' : '' }}">Produits</a>
-                            <a href="{{ route('produit.detail') }}" class="nav-item nav-link {{ request()->routeIs('produit.detail') ? 'active' : '' }}">Détail produit</a>
+                            @auth
+                                @if (auth()->user()->isActeur())
+                                    <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Mes produits</a>
+                                @endif
+                            @endauth
                             <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
                                 <div class="dropdown-menu m-0 bg-secondary rounded-0">
