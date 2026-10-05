@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Distributeur;
 
 use App\Http\Controllers\Controller;
 use App\Models\Commande;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CommandeController extends Controller
@@ -19,6 +20,27 @@ class CommandeController extends Controller
             ->paginate(15);
 
         return view('distributeur.commandes.index', compact('commandes'));
+    }
+
+    /**
+     * Commandes passées par les consommateurs : celles qui attendent un distributeur
+     * (confirmées par l'admin) et celles que le distributeur connecté a prises en charge.
+     */
+    public function consommateurs(Request $request)
+    {
+        $statut = $request->query('statut');
+
+        $commandes = Commande::with(['user', 'products', 'livraison'])
+            ->whereHas('user', fn ($query) => $query->where('role', 'consommateur'))
+            ->where(function ($query) {
+                $query->where('statut', 'confirmee')->orWhere('distributeur_id', Auth::id());
+            })
+            ->when(in_array($statut, Commande::STATUTS, true), fn ($query) => $query->where('statut', $statut))
+            ->latest('date_commande')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('distributeur.commandes.consommateurs', compact('commandes', 'statut'));
     }
 
     public function show(Commande $commande)

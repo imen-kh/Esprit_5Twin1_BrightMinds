@@ -95,6 +95,7 @@ Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->grou
 Route::middleware(['auth', 'distributeur'])->prefix('distributeur')->name('distributeur.')->group(function () {
     Route::get('/', [DistributeurLivraisonController::class, 'dashboard'])->name('dashboard');
     Route::get('/commandes', [DistributeurCommandeController::class, 'index'])->name('commandes.index');
+    Route::get('/commandes/consommateurs', [DistributeurCommandeController::class, 'consommateurs'])->name('commandes.consommateurs');
     Route::get('/commandes/{commande}', [DistributeurCommandeController::class, 'show'])->name('commandes.show');
     Route::patch('/commandes/{commande}/prendre-en-charge', [DistributeurCommandeController::class, 'prendreEnCharge'])->name('commandes.prendre-en-charge');
     Route::patch('/commandes/{commande}/preparer', [DistributeurCommandeController::class, 'preparer'])->name('commandes.preparer');
