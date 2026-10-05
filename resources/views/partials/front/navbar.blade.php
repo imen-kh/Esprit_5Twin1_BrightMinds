@@ -25,6 +25,7 @@
                             <a href="{{ route('produits') }}" class="nav-item nav-link {{ request()->routeIs('produits') ? 'active' : '' }}">Produits</a>
                             {{-- module Traçabilité : page publique de suivi des lots --}}
                             <a href="{{ route('tracabilite.index') }}" class="nav-item nav-link {{ request()->routeIs('tracabilite.*') ? 'active' : '' }}">Traçabilité</a>
+                            <a href="{{ route('labels.index') }}" class="nav-item nav-link {{ request()->routeIs('labels.*') ? 'active' : '' }}">Labels</a>
                             @auth
                                 @if (auth()->user()->isProducteur())
                                     <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Ajouter un produit</a>
@@ -36,6 +37,7 @@
                                 {{-- module Traçabilité : gestion des lots et des étapes, pour tous les acteurs --}}
                                 @if (auth()->user()->isActeur())
                                     <a href="{{ route('gestion.lots.index') }}" class="nav-item nav-link">Mes lots</a>
+                                    <a href="{{ route('acteur.certifications.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.certifications.*') ? 'active' : '' }}">Mes certifications</a>
                                 @endif
                             @endauth
                             <div class="nav-item dropdown">

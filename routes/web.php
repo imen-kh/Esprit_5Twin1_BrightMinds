@@ -20,6 +20,10 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TracabiliteController;
 use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\Admin\CertificationController as AdminCertificationController;
+use App\Http\Controllers\Admin\LabelController as AdminLabelController;
+use App\Http\Controllers\Acteur\CertificationController as ActeurCertificationController;
+use App\Http\Controllers\PublicLabelController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -89,6 +93,30 @@ Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(
 Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
     Route::resource('lots', LotController::class);
     Route::resource('etapes', EtapeTracabiliteController::class);
+});
+
+// ===== Labels et certifications =====
+Route::get('/labels', [PublicLabelController::class, 'index'])->name('labels.index');
+Route::get('/labels/{label}', [PublicLabelController::class, 'show'])->name('labels.show');
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('labels/create', [AdminLabelController::class, 'create'])->name('labels.create');
+    Route::get('labels/{label}/edit', [AdminLabelController::class, 'edit'])->name('labels.edit');
+    Route::apiResource('labels', AdminLabelController::class)->except(['create', 'edit']);
+    Route::get('certifications/create', [AdminCertificationController::class, 'create'])->name('certifications.create');
+    Route::post('certifications', [AdminCertificationController::class, 'store'])->name('certifications.store');
+    Route::get('certifications', [AdminCertificationController::class, 'index'])->name('certifications.index');
+    Route::get('certifications/{certification}', [AdminCertificationController::class, 'show'])->name('certifications.show');
+    Route::get('certifications-expiring', [AdminCertificationController::class, 'expiring'])->name('certifications.expiring');
+    Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->name('certifications.validate');
+    Route::delete('certifications/{certification}', [AdminCertificationController::class, 'destroy'])->name('certifications.destroy');
+});
+
+Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'acteur'])->group(function () {
+    Route::get('certifications/create', [ActeurCertificationController::class, 'create'])->name('certifications.create');
+    Route::get('certifications-expiring', [ActeurCertificationController::class, 'expiring'])->name('certifications.expiring');
+    Route::apiResource('certifications', ActeurCertificationController::class)->except(['create', 'edit']);
+    Route::get('certifications/{certification}/edit', [ActeurCertificationController::class, 'edit'])->name('certifications.edit');
 });
 
 // ===== Module Commandes : espace du distributeur (commandes et livraisons) =====
