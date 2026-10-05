@@ -89,6 +89,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('labels/create', [AdminLabelController::class, 'create'])->name('labels.create');
     Route::get('labels/{label}/edit', [AdminLabelController::class, 'edit'])->name('labels.edit');
     Route::apiResource('labels', AdminLabelController::class)->except(['create', 'edit']);
+    Route::get('certifications/create', [AdminCertificationController::class, 'create'])->name('certifications.create');
+    Route::post('certifications', [AdminCertificationController::class, 'store'])->name('certifications.store');
     Route::get('certifications', [AdminCertificationController::class, 'index'])->name('certifications.index');
     Route::get('certifications/{certification}', [AdminCertificationController::class, 'show'])->name('certifications.show');
     Route::get('certifications-expiring', [AdminCertificationController::class, 'expiring'])->name('certifications.expiring');

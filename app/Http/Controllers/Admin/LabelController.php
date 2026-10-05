@@ -49,13 +49,20 @@ class LabelController extends Controller
         return $request->expectsJson() ? response()->json($label) : redirect()->route('admin.labels.index')->with('success', 'Label mis à jour.');
     }
 
-    public function destroy(Label $label): JsonResponse
+    public function destroy(Request $request, Label $label): mixed
     {
         if ($label->certifications()->exists()) {
-            return response()->json(['message' => 'Ce label est utilisé par une certification.'], 409);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Ce label est utilisé par une certification.'], 409);
+            }
+
+            return back()->with('error', 'Ce label est utilisé par une certification et ne peut pas être supprimé.');
         }
         if ($label->logo) Storage::disk('public')->delete($label->logo);
         $label->delete();
-        return response()->json(null, 204);
+
+        return $request->expectsJson()
+            ? response()->json(null, 204)
+            : redirect()->route('admin.labels.index')->with('success', 'Label supprimé.');
     }
 }

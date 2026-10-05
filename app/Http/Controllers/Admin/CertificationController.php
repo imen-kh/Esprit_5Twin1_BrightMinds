@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCertificationRequest;
 use App\Http\Requests\ValidateCertificationRequest;
 use App\Models\Certification;
+use App\Models\Label;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
@@ -12,6 +16,30 @@ use Illuminate\Support\Facades\Storage;
 
 class CertificationController extends Controller
 {
+    public function create(): View
+    {
+        return view('admin.certifications.create', [
+            'labels' => Label::active()->orderBy('nom')->get(),
+            'products' => Product::orderBy('name')->get(),
+            'acteurs' => User::where('role', 'acteur')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(StoreCertificationRequest $request): mixed
+    {
+        $data = $request->validated();
+        $data['fichier_pdf'] = $request->file('fichier_pdf')->store('certifications', 'public');
+        if ($data['statut'] !== 'refusee') {
+            $data['motif_refus'] = null;
+        }
+
+        $certification = Certification::create($data);
+
+        return $request->expectsJson()
+            ? response()->json($certification, 201)
+            : redirect()->route('admin.certifications.index')->with('success', 'Certification créée.');
+    }
+
     public function index(Request $request): mixed
     {
         $query = Certification::with(['label', 'product', 'acteur']);
@@ -48,10 +76,13 @@ class CertificationController extends Controller
         return $request->expectsJson() ? response()->json($certification) : back()->with('success', 'Certification traitée.');
     }
 
-    public function destroy(Certification $certification): JsonResponse
+    public function destroy(Request $request, Certification $certification): mixed
     {
         if ($certification->fichier_pdf) Storage::disk('public')->delete($certification->fichier_pdf);
         $certification->delete();
-        return response()->json(null, 204);
+
+        return $request->expectsJson()
+            ? response()->json(null, 204)
+            : redirect()->route('admin.certifications.index')->with('success', 'Certification supprimée.');
     }
 }
