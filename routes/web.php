@@ -9,6 +9,9 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\Back\FacteurEmissionController;
+use App\Http\Controllers\Back\BilanEnvironnementalController;
+use App\Http\Controllers\Front\EnvironnementController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -21,6 +24,11 @@ Route::view('/commande', 'front.commande')->name('commande');
 Route::view('/temoignages', 'front.temoignages')->name('temoignages');
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
+
+// Module Environnement (Membre 4) - Consultation publique & Simulateur IA
+Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
+Route::get('/environnement/{bilan}', [EnvironnementController::class, 'show'])->name('front.environnement.show');
+Route::post('/environnement/simuler', [EnvironnementController::class, 'simuler'])->name('front.environnement.simuler');
 
 // ===== Authentification =====
 // Pages réservées aux visiteurs non connectés
@@ -107,4 +115,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->name('categories.refuser');
     Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
     Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
+
+    // Module Environnement (Membre 4) - CRUD & IA
+    Route::resource('facteurs-emission', FacteurEmissionController::class)->parameters([
+        'facteurs-emission' => 'facteurEmission',
+    ]);
+    Route::post('bilans-environnementaux/estimer-ia', [BilanEnvironnementalController::class, 'estimerEcoScoreIA'])->name('bilans-environnementaux.estimer-ia');
+    Route::resource('bilans-environnementaux', BilanEnvironnementalController::class)->parameters([
+        'bilans-environnementaux' => 'bilan',
+    ]);
 });

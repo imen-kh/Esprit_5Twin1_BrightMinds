@@ -1,0 +1,251 @@
+@extends('layouts.front')
+
+@section('title', 'Impact Environnemental & Éco-Score')
+
+@section('content')
+<!-- Header Page -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Impact Environnemental & Éco-Score</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="{{ route('home') }}">Accueil</a></li>
+        <li class="breadcrumb-item active text-white">Environnement</li>
+    </ol>
+</div>
+
+<!-- Section Présentation & Simulateur IA -->
+<div class="container-fluid py-5">
+    <div class="container py-4">
+        <!-- Bandeau introductif -->
+        <div class="row g-4 align-items-center mb-5">
+            <div class="col-lg-8">
+                <span class="text-primary text-uppercase fw-bold">Transparence Écologique NutriTrace</span>
+                <h2 class="display-6 fw-bold mb-3">Mesurez l'empreinte carbone et privilégiez les circuits courts</h2>
+                <p class="text-muted">
+                    Grâce à nos facteurs d'émission standardisés et à notre intelligence environnementale, nous évaluons l'impact de chaque aliment du champ à l'assiette et vous recommandons les meilleures alternatives locales de saison en Tunisie.
+                </p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="bg-light p-4 rounded border shadow-sm">
+                    <h5 class="fw-bold mb-3">Échelle Éco-Score</h5>
+                    <div class="d-flex justify-content-center gap-1 mb-2">
+                        <span class="badge bg-success fs-5 px-3 py-2">A</span>
+                        <span class="badge bg-info fs-5 px-3 py-2">B</span>
+                        <span class="badge bg-warning text-dark fs-5 px-3 py-2">C</span>
+                        <span class="badge bg-danger fs-5 px-3 py-2">D</span>
+                        <span class="badge bg-dark fs-5 px-3 py-2">E</span>
+                    </div>
+                    <small class="text-muted">De très faible impact (A) à impact critique (E)</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulateur IA interactif pour le consommateur -->
+        <div class="card border-primary shadow-sm mb-5">
+            <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h4 class="mb-0 text-white"><i class="fas fa-robot me-2"></i> Simulateur Éco-Score IA & Alternative Locale</h4>
+                <span class="badge bg-light text-primary">Algorithme prédictif en temps réel</span>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small mb-4">
+                    Saisissez un produit alimentaire pour simuler son empreinte carbone et découvrir immédiatement une alternative locale tunisienne plus écologique.
+                </p>
+                <form id="front-simu-form" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Produit alimentaire</label>
+                        <input type="text" id="simu_nom" class="form-control" placeholder="Ex: Tomates cerises, Oranges, Harissa..." value="Tomates importées" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Origine géographique</label>
+                        <input type="text" id="simu_origine" class="form-control" placeholder="Ex: Espagne, Cap Bon, Sousse..." value="Importé Espagne">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Distance de transport (km)</label>
+                        <input type="number" id="simu_distance" class="form-control" value="1200" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Mode de culture</label>
+                        <select id="simu_culture" class="form-select">
+                            <option value="plein_champ">Plein champ conventionnel</option>
+                            <option value="bio">Agriculture biologique</option>
+                            <option value="serre_chauffee" selected>Serre chauffée</option>
+                            <option value="hydroponique">Hydroponique</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Emballage</label>
+                        <select id="simu_emballage" class="form-select">
+                            <option value="plastique" selected>Barquette plastique</option>
+                            <option value="carton">Carton recyclé</option>
+                            <option value="verre">Bocal en verre</option>
+                            <option value="vrac">Vrac (0 déchet)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Transport</label>
+                        <select id="simu_transport" class="form-select">
+                            <option value="camion" selected>Camion routier</option>
+                            <option value="bateau">Bateau / Maritime</option>
+                            <option value="avion">Avion / Fret</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 py-2" id="simu_btn">
+                            <i class="fas fa-leaf me-1"></i> Calculer l'Éco-Score
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Résultat Simulateur IA -->
+                <div id="simu-resultat" class="mt-4 p-4 bg-light rounded border d-none">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-3 text-center border-end">
+                            <small class="text-muted d-block mb-1">Éco-Score calculé</small>
+                            <span id="simu-badge" class="badge px-4 py-3 fs-3"></span>
+                            <div class="mt-2 fw-bold" id="simu-note"></div>
+                        </div>
+                        <div class="col-md-3 text-center border-end">
+                            <small class="text-muted d-block mb-1">Empreinte Carbone</small>
+                            <h3 class="fw-bold text-primary mb-0" id="simu-co2"></h3>
+                            <small class="text-muted">kg CO2e / kg</small>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white rounded border border-success">
+                                <h6 class="text-success fw-bold mb-1"><i class="fas fa-lightbulb me-1"></i> Alternative locale suggérée par l'IA :</h6>
+                                <p class="mb-0 text-dark small" id="simu-alternative"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catalogue des Bilans Environnementaux Validés -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Bilans Environnementaux de nos Produits</h3>
+                <p class="text-muted mb-0">Consultez l'impact écologique certifié des aliments référencés sur NutriTrace.</p>
+            </div>
+            <!-- Filtre par Éco-Score -->
+            <div class="btn-group" role="group">
+                <a href="{{ route('front.environnement.index') }}" class="btn btn-outline-secondary {{ !request('eco_score') ? 'active' : '' }}">Tous</a>
+                <a href="{{ route('front.environnement.index', ['eco_score' => 'A']) }}" class="btn btn-outline-success {{ request('eco_score') === 'A' ? 'active' : '' }}">Score A</a>
+                <a href="{{ route('front.environnement.index', ['eco_score' => 'B']) }}" class="btn btn-outline-info {{ request('eco_score') === 'B' ? 'active' : '' }}">Score B</a>
+                <a href="{{ route('front.environnement.index', ['eco_score' => 'C']) }}" class="btn btn-outline-warning {{ request('eco_score') === 'C' ? 'active' : '' }}">Score C</a>
+                <a href="{{ route('front.environnement.index', ['eco_score' => 'D']) }}" class="btn btn-outline-danger {{ request('eco_score') === 'D' ? 'active' : '' }}">Score D/E</a>
+            </div>
+        </div>
+
+        <!-- Grille des Bilans -->
+        <div class="row g-4">
+            @forelse ($bilans as $bilan)
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border rounded-3 overflow-hidden">
+                        <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center border-bottom">
+                            <span class="badge {{ $bilan->ecoScoreBadgeClass() }} fs-6 px-3 py-1">
+                                Éco-Score {{ $bilan->eco_score }}
+                            </span>
+                            <span class="text-muted small"><strong>{{ $bilan->score_numerique }}</strong>/100</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-dark mb-2">{{ $bilan->nom_produit }}</h5>
+                            <p class="text-muted small mb-3">
+                                <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $bilan->origine_geographique ?: 'Tunisie' }}
+                                • {{ $bilan->distance_km }} km ({{ ucfirst($bilan->mode_transport ?: 'camion') }})
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded mb-3">
+                                <span class="small text-muted">Empreinte Carbone :</span>
+                                <strong class="text-primary">{{ number_format($bilan->co2_total, 3, ',', ' ') }} kg CO2e</strong>
+                            </div>
+
+                            @if ($bilan->alternative_locale)
+                                <div class="p-2 bg-white rounded border border-success small mb-3">
+                                    <strong class="text-success d-block mb-1"><i class="fas fa-seedling me-1"></i> Alternative locale :</strong>
+                                    <p class="mb-0 text-muted" style="font-size: 0.85rem;">
+                                        {{ \Illuminate\Support\Str::limit($bilan->alternative_locale, 120) }}
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="card-footer bg-white border-top p-3 text-end">
+                            <a href="{{ route('front.environnement.show', $bilan) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-info-circle me-1"></i> Voir l'analyse complète
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Aucun bilan environnemental ne correspond à ce filtre.</p>
+                </div>
+            @endforelse
+        </div>
+
+        @if ($bilans->hasPages())
+            <div class="d-flex justify-content-center mt-5">
+                {{ $bilans->links() }}
+            </div>
+        @endif
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('front-simu-form');
+    const btn = document.getElementById('simu_btn');
+    const resultBox = document.getElementById('simu-resultat');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Calcul en cours...';
+
+        const payload = {
+            nom_produit: document.getElementById('simu_nom').value,
+            origine_geographique: document.getElementById('simu_origine').value,
+            distance_km: document.getElementById('simu_distance').value,
+            mode_culture: document.getElementById('simu_culture').value,
+            type_emballage: document.getElementById('simu_emballage').value,
+            mode_transport: document.getElementById('simu_transport').value,
+            poids_emballage_g: 30,
+            quantite_produit: 1.0,
+        };
+
+        try {
+            const resp = await fetch("{{ route('front.environnement.simuler') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-leaf me-1"></i> Calculer l\'Éco-Score';
+
+            if (data.success && data.data) {
+                const res = data.data;
+                resultBox.classList.remove('d-none');
+                const badgeColors = { 'A': 'bg-success', 'B': 'bg-info', 'C': 'bg-warning text-dark', 'D': 'bg-danger', 'E': 'bg-dark' };
+                const badge = document.getElementById('simu-badge');
+                badge.className = `badge px-4 py-3 fs-3 ${badgeColors[res.eco_score] || 'bg-primary'}`;
+                badge.textContent = `Grade ${res.eco_score}`;
+
+                document.getElementById('simu-note').textContent = `Score : ${res.score_numerique} / 100`;
+                document.getElementById('simu-co2').textContent = res.co2_total;
+                document.getElementById('simu-alternative').textContent = res.alternative_locale;
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-leaf me-1"></i> Calculer l\'Éco-Score';
+            alert('Erreur lors de la simulation.');
+            console.error(err);
+        }
+    });
+});
+</script>
+@endpush
