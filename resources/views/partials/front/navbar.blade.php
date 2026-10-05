@@ -52,7 +52,6 @@
                                         @elseif (auth()->user()->isDistributeur())
                                             <a href="{{ route('distributeur.dashboard') }}" class="dropdown-item">Dashboard distributeur</a>
                                             <a href="{{ route('distributeur.commandes.index') }}" class="dropdown-item">Commandes à traiter</a>
-                                            <a href="{{ route('distributeur.commandes.consommateurs') }}" class="dropdown-item">Commandes des consommateurs</a>
                                             <a href="{{ route('distributeur.livraisons.index') }}" class="dropdown-item">Mes livraisons</a>
                                         @endif
                                     @endauth
@@ -104,7 +103,6 @@
                                             <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
                                         @elseif (auth()->user()->isDistributeur())
                                             <a href="{{ route('distributeur.commandes.index') }}" class="dropdown-item">Commandes à traiter</a>
-                                            <a href="{{ route('distributeur.commandes.consommateurs') }}" class="dropdown-item">Commandes des consommateurs</a>
                                             <a href="{{ route('distributeur.livraisons.index') }}" class="dropdown-item">Mes livraisons</a>
                                         @endif
                                         @if (auth()->user()->isAdmin())

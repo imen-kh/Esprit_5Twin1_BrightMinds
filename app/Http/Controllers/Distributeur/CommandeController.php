@@ -9,38 +9,26 @@ use Illuminate\Support\Facades\Auth;
 
 class CommandeController extends Controller
 {
-    public function index()
+    /**
+     * Commandes à traiter : celles des consommateurs et des transformateurs, confirmées par
+     * l'admin ou déjà prises en charge par le distributeur connecté. Filtre possible par type de client.
+     */
+    public function index(Request $request)
     {
+        $client = $request->query('client');
+
         $commandes = Commande::with(['user', 'products', 'livraison'])
             ->where(function ($query) {
                 $query->where('distributeur_id', Auth::id())->orWhere('statut', 'confirmee');
             })
             ->whereIn('statut', ['confirmee', 'preparee'])
+            ->when($client === 'consommateur', fn ($query) => $query->whereHas('user', fn ($user) => $user->where('role', 'consommateur')))
+            ->when($client === 'transformateur', fn ($query) => $query->whereHas('user', fn ($user) => $user->where('type_acteur', 'transformateur')))
             ->latest('date_commande')
-            ->paginate(15);
-
-        return view('distributeur.commandes.index', compact('commandes'));
-    }
-
-    /**
-     * Commandes passées par les consommateurs : celles qui attendent un distributeur
-     * (confirmées par l'admin) et celles que le distributeur connecté a prises en charge.
-     */
-    public function consommateurs(Request $request)
-    {
-        $statut = $request->query('statut');
-
-        $commandes = Commande::with(['user', 'products', 'livraison'])
-            ->whereHas('user', fn ($query) => $query->where('role', 'consommateur'))
-            ->where(function ($query) {
-                $query->where('statut', 'confirmee')->orWhere('distributeur_id', Auth::id());
-            })
-            ->when(in_array($statut, Commande::STATUTS, true), fn ($query) => $query->where('statut', $statut))
-            ->latest('date_commande')
-            ->paginate(10)
+            ->paginate(15)
             ->withQueryString();
 
-        return view('distributeur.commandes.consommateurs', compact('commandes', 'statut'));
+        return view('distributeur.commandes.index', compact('commandes', 'client'));
     }
 
     public function show(Commande $commande)
