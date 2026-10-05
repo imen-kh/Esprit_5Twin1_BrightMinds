@@ -42,6 +42,10 @@ class User extends Authenticatable
         'allergies',
     ];
 
+    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
     /**
      * Indique si l'utilisateur est un administrateur.
      */
@@ -56,6 +60,42 @@ class User extends Authenticatable
     public function isActeur(): bool
     {
         return $this->role === 'acteur';
+    }
+
+    public function isProducteur(): bool
+    {
+        return $this->type_acteur === 'producteur';
+    }
+
+    public function isTransformateur(): bool
+    {
+        return $this->type_acteur === 'transformateur';
+    }
+
+    public function isDistributeur(): bool
+    {
+        return $this->type_acteur === 'distributeur';
+    }
+
+    public function espaceRoute(): string
+    {
+        if ($this->isAdmin()) {
+            return 'admin.dashboard';
+        }
+
+        if ($this->isProducteur()) {
+            return 'acteur.produits.index';
+        }
+
+        if ($this->isTransformateur()) {
+            return 'acteur.transformation';
+        }
+
+        if ($this->isDistributeur()) {
+            return 'acteur.distribution';
+        }
+
+        return 'produits';
     }
 
     /**

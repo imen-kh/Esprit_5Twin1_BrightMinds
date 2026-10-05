@@ -1,20 +1,37 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\EtapeTracabiliteController;
+use App\Http\Controllers\LotController;
+use App\Http\Controllers\Acteur\CategorySuggestionController;
+use App\Http\Controllers\Acteur\EspaceController;
+use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TracabiliteController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
-Route::view('/', 'front.home')->name('home');
-Route::view('/produits', 'front.produits')->name('produits');
-Route::view('/produit-detail', 'front.produit-detail')->name('produit.detail');
-Route::view('/panier', 'front.panier')->name('panier');
-Route::view('/commande', 'front.commande')->name('commande');
-Route::view('/temoignages', 'front.temoignages')->name('temoignages');
+Route::get('/', [CatalogueController::class, 'home'])->name('home');
+Route::middleware('compte')->group(function () {
+    Route::get('/produits', [CatalogueController::class, 'index'])->name('produits');
+    Route::get('/produits/suggestions', [CatalogueController::class, 'suggest'])->name('produits.suggestions');
+    Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
+    Route::view('/panier', 'front.panier')->name('panier');
+    Route::view('/commande', 'front.commande')->name('commande');
+    Route::view('/temoignages', 'front.temoignages')->name('temoignages');
+});
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
+
+// Module Traçabilité : pages publiques (sans connexion), accessibles par QR code
+Route::get('/tracabilite', [TracabiliteController::class, 'index'])->name('tracabilite.index');
+Route::get('/tracabilite/{lot:code}', [TracabiliteController::class, 'show'])->name('tracabilite.show');
 
 // ===== Authentification =====
 // Pages réservées aux visiteurs non connectés
@@ -47,6 +64,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profil.destroy');
 });
 
+Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
+    Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
+    Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
+    Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
+    Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
+});
+
+// ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
+Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
+    Route::resource('lots', LotController::class);
+    Route::resource('etapes', EtapeTracabiliteController::class);
+});
+
 // ===== Back office (Sneat) : réservé aux administrateurs connectés =====
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::view('/auth-forgot-password-basic', 'back.auth-forgot-password-basic')->name('auth-forgot-password-basic');
@@ -60,7 +90,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/forms-basic-inputs', 'back.forms-basic-inputs')->name('forms-basic-inputs');
     Route::view('/forms-input-groups', 'back.forms-input-groups')->name('forms-input-groups');
     Route::view('/icons-boxicons', 'back.icons-boxicons')->name('icons-boxicons');
-    Route::view('/', 'back.dashboard')->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::view('/layouts-blank', 'back.layouts-blank')->name('layouts-blank');
     Route::view('/layouts-container', 'back.layouts-container')->name('layouts-container');
     Route::view('/layouts-fluid', 'back.layouts-fluid')->name('layouts-fluid');
@@ -91,4 +121,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/ui-toasts', 'back.ui-toasts')->name('ui-toasts');
     Route::view('/ui-tooltips-popovers', 'back.ui-tooltips-popovers')->name('ui-tooltips-popovers');
     Route::view('/ui-typography', 'back.ui-typography')->name('ui-typography');
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->name('categories.valider');
+    Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->name('categories.refuser');
+    Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
+    Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
 });
