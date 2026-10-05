@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Distributeur;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreLivraisonRequest;
+use App\Http\Requests\UpdateLivraisonRequest;
 use App\Models\Commande;
 use App\Models\HistoriqueLivraison;
 use App\Models\Livraison;
@@ -50,19 +52,12 @@ class LivraisonController extends Controller
         return view('distributeur.livraisons.create', compact('commande'));
     }
 
-    public function store(Request $request, Commande $commande)
+    public function store(StoreLivraisonRequest $request, Commande $commande)
     {
         abort_unless($commande->distributeur_id === Auth::id() && $commande->statut === 'preparee' && ! $commande->livraison, 403);
 
-        $data = $request->validate([
-            'adresse_livraison' => ['required', 'string', 'min:5', 'max:255'],
-            'ville' => ['required', 'string', 'max:100'],
-            'code_postal' => ['required', 'string', 'max:20'],
-            'telephone' => ['required', 'digits:8'],
-            'numero_suivi' => ['required', 'string', 'max:100', 'unique:livraisons,numero_suivi'],
-            'date_livraison_prevue' => ['required', 'date', 'after_or_equal:today'],
-            'commentaire' => ['nullable', 'string', 'max:2000'],
-        ]);
+        // Saisie contrôlée par StoreLivraisonRequest (règles et messages en français)
+        $data = $request->validated();
 
         $livraison = DB::transaction(function () use ($data, $commande) {
             $livraison = Livraison::create($data + [
@@ -97,19 +92,12 @@ class LivraisonController extends Controller
         return view('distributeur.livraisons.edit', compact('livraison'));
     }
 
-    public function update(Request $request, Livraison $livraison)
+    public function update(UpdateLivraisonRequest $request, Livraison $livraison)
     {
         abort_unless($livraison->distributeur_id === Auth::id() && $livraison->statut !== 'livree', 403);
 
-        $data = $request->validate([
-            'adresse_livraison' => ['required', 'string', 'min:5', 'max:255'],
-            'ville' => ['required', 'string', 'max:100'],
-            'code_postal' => ['required', 'string', 'max:20'],
-            'telephone' => ['required', 'digits:8'],
-            'numero_suivi' => ['required', 'string', 'max:100', 'unique:livraisons,numero_suivi,'.$livraison->id],
-            'date_livraison_prevue' => ['required', 'date'],
-            'commentaire' => ['nullable', 'string', 'max:2000'],
-        ]);
+        // Saisie contrôlée par UpdateLivraisonRequest (règles et messages en français)
+        $data = $request->validated();
         $livraison->update($data);
 
         return redirect()->route('distributeur.livraisons.show', $livraison)->with('success', 'Livraison mise à jour.');
