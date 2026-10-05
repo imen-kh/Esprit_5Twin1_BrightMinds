@@ -26,10 +26,17 @@ class ProductController extends Controller
         if (! auth()->user()->isAdmin()) {
             $query->where('user_id', auth()->id());
         }
+        if (auth()->user()->isTransformateur()) {
+            $query->where('type_produit', 'transforme');
+        }
 
         $products = $query->paginate(10);
+        $orderedProducts = Product::with('category')
+            ->whereHas('commandes', fn ($query) => $query->where('commandes.user_id', auth()->id()))
+            ->orderBy('name')
+            ->get();
 
-        return view('acteur.products.index', compact('products'));
+        return view('acteur.products.index', compact('products', 'orderedProducts'));
     }
 
     public function create()
@@ -47,6 +54,7 @@ class ProductController extends Controller
         $data['image'] = $this->storeImage($request);
         $data['user_id'] = $request->user()->id;
         $data['status'] = 'published';
+        $data['type_produit'] = $request->user()->isTransformateur() ? 'transforme' : 'matiere_premiere';
         Product::create($data);
 
         return redirect()->route('acteur.produits.index')->with('success', 'Produit ajouté. Il est visible dans le catalogue.');
@@ -54,6 +62,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        $this->denyDistributor();
         $this->authorizeOwner($product);
         $categories = Category::validated()->orderBy('name')->get();
 
@@ -62,10 +71,12 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        $this->denyDistributor();
         $this->authorizeOwner($product);
         $data = $this->validatedData($request);
         $data['image'] = $this->storeImage($request, $product);
         $data['status'] = 'published';
+        $data['type_produit'] = $request->user()->isTransformateur() ? 'transforme' : 'matiere_premiere';
         $product->update($data);
 
         return redirect()->route('acteur.produits.index')->with('success', 'Produit modifié.');
@@ -73,6 +84,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $this->denyDistributor();
         $this->authorizeOwner($product);
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
@@ -157,6 +169,11 @@ class ProductController extends Controller
                 redirect()->route('acteur.distribution')
             );
         }
+    }
+
+    private function denyDistributor(): void
+    {
+        abort_unless(! auth()->user()->isDistributeur(), 403, 'Les distributeurs ne peuvent pas gérer les produits.');
     }
 
     private function authorizeOwner(Product $product): void
