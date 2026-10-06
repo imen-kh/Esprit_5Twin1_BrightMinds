@@ -2,13 +2,28 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\EtapeTracabiliteController;
+use App\Http\Controllers\LotController;
 use App\Http\Controllers\Acteur\CategorySuggestionController;
+use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
+use App\Http\Controllers\PanierController;
+use App\Http\Controllers\CommandeController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\CommandeController as AdminCommandeController;
+use App\Http\Controllers\Admin\LivraisonController as AdminLivraisonController;
+use App\Http\Controllers\Distributeur\CommandeController as DistributeurCommandeController;
+use App\Http\Controllers\Distributeur\LivraisonController as DistributeurLivraisonController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TracabiliteController;
 use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\Admin\CertificationController as AdminCertificationController;
+use App\Http\Controllers\Admin\LabelController as AdminLabelController;
+use App\Http\Controllers\Acteur\CertificationController as ActeurCertificationController;
+use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\Back\FacteurEmissionController;
 use App\Http\Controllers\Back\BilanEnvironnementalController;
 use App\Http\Controllers\Front\EnvironnementController;
@@ -19,15 +34,25 @@ use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
 Route::get('/', [CatalogueController::class, 'home'])->name('home');
-Route::get('/produits', [CatalogueController::class, 'index'])->name('produits');
-Route::get('/produits/suggestions', [CatalogueController::class, 'suggest'])->name('produits.suggestions');
-Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
-Route::view('/panier', 'front.panier')->name('panier');
-Route::view('/commande', 'front.commande')->name('commande');
-Route::view('/temoignages', 'front.temoignages')->name('temoignages');
+Route::middleware('compte')->group(function () {
+    Route::get('/produits', [CatalogueController::class, 'index'])->name('produits');
+    Route::get('/produits/suggestions', [CatalogueController::class, 'suggest'])->name('produits.suggestions');
+    Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
+    // Module Commandes : panier et passage de commande
+    Route::get('/panier', [PanierController::class, 'index'])->name('panier');
+    Route::post('/panier/add', [PanierController::class, 'add'])->name('panier.add');
+    Route::put('/panier/{product_id}', [PanierController::class, 'update'])->name('panier.update');
+    Route::delete('/panier/{product_id}', [PanierController::class, 'remove'])->name('panier.remove');
+    Route::get('/commande', [CommandeController::class, 'create'])->middleware('auth')->name('commande');
+    Route::post('/commande', [CommandeController::class, 'store'])->middleware('auth')->name('commande.store');
+    Route::view('/temoignages', 'front.temoignages')->name('temoignages');
+});
 Route::view('/contact', 'front.contact')->name('contact');
 Route::view('/404', 'errors.404')->name('page404');
 
+// Module Traçabilité : pages publiques (sans connexion), accessibles par QR code
+Route::get('/tracabilite', [TracabiliteController::class, 'index'])->name('tracabilite.index');
+Route::get('/tracabilite/{lot:code}', [TracabiliteController::class, 'show'])->name('tracabilite.show');
 // Module Environnement — front-office
 // Les segments fixes (simuler, create) sont déclarés avant /{bilan}.
 Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
@@ -75,11 +100,65 @@ Route::middleware('auth')->group(function () {
     Route::put('/profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profil.password');
     Route::put('/profil/double-authentification', [ProfileController::class, 'toggleTwoFactor'])->name('profil.two-factor');
     Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profil.destroy');
+    Route::get('/mes-commandes', [CommandeController::class, 'index'])->name('commandes.index');
+    Route::get('/mes-commandes/create', [CommandeController::class, 'create'])->name('commandes.create');
+    Route::get('/mes-commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
 });
 
 Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
+    Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
+    Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
+});
+
+// ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
+Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
+    Route::resource('lots', LotController::class);
+    Route::resource('etapes', EtapeTracabiliteController::class);
+});
+
+// ===== Labels et certifications =====
+Route::get('/labels', [PublicLabelController::class, 'index'])->name('labels.index');
+Route::get('/labels/{label}', [PublicLabelController::class, 'show'])->name('labels.show');
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('labels/create', [AdminLabelController::class, 'create'])->name('labels.create');
+    Route::get('labels/{label}/edit', [AdminLabelController::class, 'edit'])->name('labels.edit');
+    Route::apiResource('labels', AdminLabelController::class)->except(['create', 'edit']);
+    Route::get('certifications/create', [AdminCertificationController::class, 'create'])->name('certifications.create');
+    Route::post('certifications', [AdminCertificationController::class, 'store'])->name('certifications.store');
+    Route::get('certifications', [AdminCertificationController::class, 'index'])->name('certifications.index');
+    Route::get('certifications/{certification}', [AdminCertificationController::class, 'show'])->name('certifications.show');
+    Route::get('certifications-expiring', [AdminCertificationController::class, 'expiring'])->name('certifications.expiring');
+    Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->name('certifications.validate');
+    Route::delete('certifications/{certification}', [AdminCertificationController::class, 'destroy'])->name('certifications.destroy');
+});
+
+Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'acteur'])->group(function () {
+    Route::get('certifications/create', [ActeurCertificationController::class, 'create'])->name('certifications.create');
+    Route::get('certifications-expiring', [ActeurCertificationController::class, 'expiring'])->name('certifications.expiring');
+    Route::apiResource('certifications', ActeurCertificationController::class)->except(['create', 'edit']);
+    Route::get('certifications/{certification}/edit', [ActeurCertificationController::class, 'edit'])->name('certifications.edit');
+});
+
+// ===== Module Commandes : espace du distributeur (commandes et livraisons) =====
+Route::middleware(['auth', 'distributeur'])->prefix('distributeur')->name('distributeur.')->group(function () {
+    Route::get('/', [DistributeurLivraisonController::class, 'dashboard'])->name('dashboard');
+    Route::get('/commandes', [DistributeurCommandeController::class, 'index'])->name('commandes.index');
+    Route::get('/commandes/{commande}', [DistributeurCommandeController::class, 'show'])->name('commandes.show');
+    Route::patch('/commandes/{commande}/prendre-en-charge', [DistributeurCommandeController::class, 'prendreEnCharge'])->name('commandes.prendre-en-charge');
+    Route::patch('/commandes/{commande}/preparer', [DistributeurCommandeController::class, 'preparer'])->name('commandes.preparer');
+    Route::get('/commandes/{commande}/livraison/create', [DistributeurLivraisonController::class, 'create'])->name('livraisons.create');
+    Route::post('/commandes/{commande}/livraison', [DistributeurLivraisonController::class, 'store'])->name('livraisons.store');
+    Route::get('/livraisons', [DistributeurLivraisonController::class, 'index'])->name('livraisons.index');
+    Route::get('/livraisons/{livraison}', [DistributeurLivraisonController::class, 'show'])->name('livraisons.show');
+    Route::get('/livraisons/{livraison}/edit', [DistributeurLivraisonController::class, 'edit'])->name('livraisons.edit');
+    Route::put('/livraisons/{livraison}', [DistributeurLivraisonController::class, 'update'])->name('livraisons.update');
+    Route::patch('/livraisons/{livraison}/statut', [DistributeurLivraisonController::class, 'updateStatus'])->name('livraisons.statut');
+    Route::patch('/livraisons/{livraison}/expedier', [DistributeurLivraisonController::class, 'expedier'])->name('livraisons.expedier');
+    Route::patch('/livraisons/{livraison}/transit', [DistributeurLivraisonController::class, 'mettreEnTransit'])->name('livraisons.transit');
+    Route::patch('/livraisons/{livraison}/livrer', [DistributeurLivraisonController::class, 'livrer'])->name('livraisons.livrer');
 });
 
 // ===== Back office (Sneat) : réservé aux administrateurs connectés =====
@@ -95,7 +174,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/forms-basic-inputs', 'back.forms-basic-inputs')->name('forms-basic-inputs');
     Route::view('/forms-input-groups', 'back.forms-input-groups')->name('forms-input-groups');
     Route::view('/icons-boxicons', 'back.icons-boxicons')->name('icons-boxicons');
-    Route::view('/', 'back.dashboard')->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::view('/layouts-blank', 'back.layouts-blank')->name('layouts-blank');
     Route::view('/layouts-container', 'back.layouts-container')->name('layouts-container');
     Route::view('/layouts-fluid', 'back.layouts-fluid')->name('layouts-fluid');
@@ -131,9 +210,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->name('categories.refuser');
     Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
     Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
+    Route::get('/commandes', [AdminCommandeController::class, 'index'])->name('commandes.index');
+    Route::get('/commandes/{commande}', [AdminCommandeController::class, 'show'])->name('commandes.show');
+    Route::patch('/commandes/{commande}/confirmer', [AdminCommandeController::class, 'confirmer'])->name('commandes.confirmer');
+    Route::patch('/commandes/{commande}/refuser', [AdminCommandeController::class, 'refuser'])->name('commandes.refuser');
+    Route::patch('/commandes/{commande}/annuler', [AdminCommandeController::class, 'annuler'])->name('commandes.annuler');
+    Route::get('/livraisons', [AdminLivraisonController::class, 'index'])->name('livraisons.index');
+    Route::get('/livraisons/{livraison}', [AdminLivraisonController::class, 'show'])->name('livraisons.show');
+    Route::patch('/livraisons/{livraison}/affecter', [AdminLivraisonController::class, 'affecter'])->name('livraisons.affecter');
 
     // Module Environnement (Membre 4) - CRUD & IA
-    Route::resource('facteurs-emission', FacteurEmissionController::class)->parameters([
+    Route::resource('facteurs-emission', FacteurEmissionController::class)->except(['show'])->parameters([
         'facteurs-emission' => 'facteurEmission',
     ]);
     Route::post('bilans-environnementaux/estimer-ia', [BilanEnvironnementalController::class, 'estimerEcoScoreIA'])->name('bilans-environnementaux.estimer-ia');

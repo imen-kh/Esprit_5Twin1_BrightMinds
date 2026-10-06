@@ -7,16 +7,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
-            DB::statement('ALTER TABLE `products` MODIFY `ingredients` TEXT NULL');
-        }
+        DB::statement('ALTER TABLE `products` MODIFY `ingredients` TEXT NULL');
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
-            DB::statement("UPDATE `products` SET `ingredients` = '' WHERE `ingredients` IS NULL");
-            DB::statement('ALTER TABLE `products` MODIFY `ingredients` TEXT NOT NULL');
-        }
+        DB::statement("UPDATE `products` SET `ingredients` = '' WHERE `ingredients` IS NULL");
+        DB::statement('ALTER TABLE `products` MODIFY `ingredients` TEXT NOT NULL');
     }
 };

@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCertificationRequest;
 use App\Http\Requests\UpdateCertificationRequest;
 use App\Models\Certification;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CertificationController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index(Request $request): mixed
     {
         $query = Certification::where('acteur_id', $request->user()->id)->with(['label', 'product']);
@@ -23,7 +26,7 @@ class CertificationController extends Controller
 
     public function create(): mixed
     {
-        return view('acteur.certifications.create', ['labels' => \App\Models\Label::active()->get(), 'products' => \App\Models\Product::orderBy('nom')->get()]);
+        return view('acteur.certifications.create', ['labels' => \App\Models\Label::active()->get(), 'products' => \App\Models\Product::orderBy('name')->get()]);
     }
 
     public function expiring(Request $request): mixed
@@ -54,7 +57,7 @@ class CertificationController extends Controller
     public function edit(Certification $certification): mixed
     {
         $this->authorize('update', $certification);
-        return view('acteur.certifications.edit', ['certification' => $certification, 'labels' => \App\Models\Label::active()->get(), 'products' => \App\Models\Product::orderBy('nom')->get()]);
+        return view('acteur.certifications.edit', ['certification' => $certification, 'labels' => \App\Models\Label::active()->get(), 'products' => \App\Models\Product::orderBy('name')->get()]);
     }
 
     public function update(UpdateCertificationRequest $request, Certification $certification): mixed

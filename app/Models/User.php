@@ -77,6 +77,42 @@ class User extends Authenticatable
         return $this->role === 'acteur';
     }
 
+    public function isProducteur(): bool
+    {
+        return $this->type_acteur === 'producteur';
+    }
+
+    public function isTransformateur(): bool
+    {
+        return $this->type_acteur === 'transformateur';
+    }
+
+    public function isDistributeur(): bool
+    {
+        return $this->type_acteur === 'distributeur';
+    }
+
+    public function espaceRoute(): string
+    {
+        if ($this->isAdmin()) {
+            return 'admin.dashboard';
+        }
+
+        if ($this->isProducteur()) {
+            return 'acteur.produits.index';
+        }
+
+        if ($this->isTransformateur()) {
+            return 'acteur.transformation';
+        }
+
+        if ($this->isDistributeur()) {
+            return 'acteur.distribution';
+        }
+
+        return 'produits';
+    }
+
     /**
      * URL de l'avatar : fichier envoyé par l'utilisateur, sinon image par défaut du template.
      */
@@ -171,5 +207,25 @@ class User extends Authenticatable
             'two_factor_enabled' => 'boolean',
             'two_factor_expires_at' => 'datetime',
         ];
+    }
+
+    public function paniers()
+    {
+        return $this->hasMany(Panier::class);
+    }
+
+    public function commandes()
+    {
+        return $this->hasMany(Commande::class);
+    }
+
+    public function commandesDistribuees()
+    {
+        return $this->hasMany(Commande::class, 'distributeur_id');
+    }
+
+    public function livraisons()
+    {
+        return $this->hasMany(Livraison::class, 'distributeur_id');
     }
 }

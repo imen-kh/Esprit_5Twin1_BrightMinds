@@ -79,6 +79,17 @@ class DatabaseSeeder extends Seeder
                 'preferences' => ['bio', 'local'],
                 'allergies' => 'Arachides',
             ],
+            // Second consommateur, pour tester le panier et les commandes
+            [
+                'name' => 'Sami Trabelsi',
+                'email' => 'consommateur@nutritrace.tn',
+                'role' => 'consommateur',
+                'type_acteur' => null,
+                'telephone' => '22123456',
+                'ville' => 'Sousse',
+                'preferences' => ['local'],
+                'allergies' => null,
+            ],
         ];
 
         foreach ($comptes as $compte) {
@@ -91,10 +102,12 @@ class DatabaseSeeder extends Seeder
 
         // Chaque membre ajoute ici les seeders de son module, par exemple :
         $this->call([
-            ProductSeeder::class,
-            FacteurEmissionSeeder::class,
+            ProductSeeder::class,        // module Catalogue : produits de démonstration
+            TracabiliteSeeder::class,    // module Traçabilité : lots et étapes (après le Catalogue)
+            LabelCertificationSeeder::class, // module Certifications : labels et certifications
+            FacteurEmissionSeeder::class, // module Environnement
             EnvironnementSeeder::class,
-            ReclamationSeeder::class,
+            ReclamationSeeder::class,    // module Réclamations
         ]);
     }
 }

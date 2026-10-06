@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 7, 3);
             $table->string('origin', 150)->nullable();
-            $table->text('ingredients')->nullable();
+            $table->text('ingredients');
             $table->string('status')->default('draft');
             $table->timestamps();
         });

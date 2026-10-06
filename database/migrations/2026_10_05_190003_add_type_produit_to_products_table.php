@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('type_produit', 30)->default('matiere_premiere')->after('status')->index();
         });
 
-        DB::statement("UPDATE products SET type_produit = 'transforme' WHERE user_id IN (SELECT id FROM users WHERE type_acteur = 'transformateur')");
+        DB::statement("UPDATE products p INNER JOIN users u ON u.id = p.user_id SET p.type_produit = 'transforme' WHERE u.type_acteur = 'transformateur'");
     }
 
     public function down(): void
