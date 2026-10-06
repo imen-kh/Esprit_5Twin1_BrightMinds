@@ -10,25 +10,12 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $pending = Category::with('proposer')
-            ->withCount('products')
-            ->where('status', Category::PROPOSED)
-            ->latest()
-            ->get();
-
-        $categories = Category::with('proposer')
-            ->withCount('products')
-            ->where('status', Category::VALIDATED)
+        $categories = Category::withCount('products')
+            ->orderByRaw("CASE WHEN status = 'proposee' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->paginate(10);
 
-        $counts = [
-            'total' => Category::count(),
-            'pending' => $pending->count(),
-            'validated' => Category::where('status', Category::VALIDATED)->count(),
-        ];
-
-        return view('admin.categories.index', compact('pending', 'categories', 'counts'));
+        return view('admin.categories.index', compact('categories'));
     }
 
     public function create()
@@ -52,8 +39,6 @@ class CategoryController extends Controller
         ]);
 
         $data['status'] = Category::VALIDATED;
-        $data['origin'] = Category::ORIGIN_ADMIN;
-        $data['user_id'] = $request->user()->id;
         Category::create($data);
 
         return redirect()->route('admin.categories.index')->with('success', 'Catégorie créée.');

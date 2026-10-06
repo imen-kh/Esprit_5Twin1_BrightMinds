@@ -65,7 +65,10 @@ class AuthController extends Controller
         // Protection contre la fixation de session
         $request->session()->regenerate();
 
-        return redirect()->route($request->user()->espaceRoute());
+        // L'admin arrive sur le back office, les autres rôles sur le front office
+        return $request->user()->isAdmin()
+            ? redirect()->route('admin.dashboard')
+            : redirect()->route('home');
     }
 
     /**

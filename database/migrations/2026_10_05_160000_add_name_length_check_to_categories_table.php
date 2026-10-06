@@ -7,8 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        $function = DB::getDriverName() === 'sqlite' ? 'LENGTH' : 'CHAR_LENGTH';
         DB::statement(
-            'ALTER TABLE `categories` ADD CONSTRAINT `categories_name_min_length` CHECK (CHAR_LENGTH(TRIM(`name`)) >= 3)'
+            "ALTER TABLE `categories` ADD CONSTRAINT `categories_name_min_length` CHECK ({$function}(TRIM(`name`)) >= 3)"
         );
     }
 

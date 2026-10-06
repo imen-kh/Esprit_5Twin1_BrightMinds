@@ -10,10 +10,6 @@ class CatalogueController extends Controller
 {
     public function home()
     {
-        if ($user = auth()->user()) {
-            return redirect()->route($user->espaceRoute());
-        }
-
         $products = Product::with(['category', 'user'])
             ->where('status', 'published')
             ->orderByDesc('created_at')
@@ -59,7 +55,7 @@ class CatalogueController extends Controller
                 $query->where('name', 'like', '%'.$request->input('q').'%');
             })
             ->orderByDesc('created_at')
-            ->paginate(12)
+            ->paginate(9)
             ->withQueryString();
 
         return view('front.catalogue.index', compact('categories', 'products'));
@@ -71,14 +67,12 @@ class CatalogueController extends Controller
 
         $product->load(['category', 'user']);
 
-        $related = Product::with('category')
-            ->where('status', 'published')
-            ->whereKeyNot($product->id)
-            ->orderByRaw('case when category_id = ? then 0 else 1 end', [$product->category_id])
-            ->orderByDesc('created_at')
-            ->take(3)
+        $bilansPublics = $product->bilansEnvironnementaux()
+            ->valide()
+            ->with('facteurEmission')
+            ->latest()
             ->get();
 
-        return view('front.catalogue.show', compact('product', 'related'));
+        return view('front.catalogue.show', compact('product', 'bilansPublics'));
     }
 }
