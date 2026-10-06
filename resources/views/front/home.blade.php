@@ -110,7 +110,7 @@
                         <div class="col-md-6 col-lg-4 col-xl-3">
                             <div class="rounded border border-secondary h-100 overflow-hidden">
                                 @if ($product->image)
-                                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="img-fluid w-100" style="height: 180px; object-fit: cover;">
+                                    <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="img-fluid w-100" style="height: 180px; object-fit: cover;">
                                 @endif
                                 <div class="p-4">
                                 <span class="badge bg-secondary">{{ $product->category->name }}</span>
@@ -118,7 +118,7 @@
                                 <p>{{ \Illuminate\Support\Str::limit($product->description, 90) }}</p>
                                 <p class="mb-2"><strong>Origine :</strong> {{ $product->origin }}</p>
                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <p class="text-dark fs-5 fw-bold mb-0">{{ number_format((float) $product->price, 3, ',', ' ') }} DT</p>
+                                    <p class="text-dark fs-5 fw-bold mb-0">{{ $product->formattedPrice() }} DT</p>
                                     <a href="{{ route('produit.detail', $product) }}" class="btn border border-secondary rounded-pill px-3 text-primary">Voir le produit</a>
                                 </div>
                                 </div>

@@ -128,9 +128,9 @@
                                             </div>
                                         </th>
                                         <td class="py-5">{{ $product->name }}</td>
-                                        <td class="py-5">{{ number_format($product->price, 3, ',', ' ') }} DT</td>
+                                        <td class="py-5">{{ $product->formattedPrice() }} DT</td>
                                         <td class="py-5">{{ $product->pivot->quantite }}</td>
-                                        <td class="py-5">{{ number_format($total_produit, 3, ',', ' ') }} DT</td>
+                                        <td class="py-5">{{ \App\Models\Product::formatAmount($total_produit) }} DT</td>
                                     </tr>
                                 @endforeach
                                 <tr>
@@ -142,7 +142,7 @@
                                     </td>
                                     <td class="py-5">
                                         <div class="py-3 border-bottom border-top">
-                                            <p class="mb-0 text-dark">{{ number_format($sous_total, 3, ',', ' ') }} DT</p>
+                                            <p class="mb-0 text-dark">{{ \App\Models\Product::formatAmount($sous_total) }} DT</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -170,7 +170,7 @@
                                     <td class="py-5"></td>
                                     <td class="py-5">
                                         <div class="py-3 border-bottom border-top">
-                                            <p class="mb-0 text-dark">{{ number_format($sous_total + 3, 3, ',', ' ') }} DT</p>
+                                            <p class="mb-0 text-dark">{{ \App\Models\Product::formatAmount($sous_total + 3) }} DT</p>
                                         </div>
                                     </td>
                                 </tr>

@@ -33,9 +33,30 @@ class Product extends Model
 
     public function formattedPrice(): string
     {
-        $formatted = number_format((float) $this->price, 3, ',', ' ');
+        return self::formatAmount($this->price);
+    }
+
+    /**
+     * Montant en dinars : espace pour les milliers, virgule pour les millimes,
+     * et pas de « ,000 » quand le montant est rond (24 et non 24,000).
+     */
+    public static function formatAmount(float|int|string|null $amount): string
+    {
+        $formatted = number_format((float) $amount, 3, ',', ' ');
 
         return str_ends_with($formatted, ',000') ? substr($formatted, 0, -4) : $formatted;
+    }
+
+    /**
+     * URL de la photo : URL Cloudinary telle quelle, ou ancien fichier du stockage local.
+     */
+    public function imageUrl(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        return str_starts_with($this->image, 'http') ? $this->image : asset('storage/'.$this->image);
     }
 
     // ajouté par le module Traçabilité

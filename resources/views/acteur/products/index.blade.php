@@ -23,12 +23,12 @@
             <div class="col-md-6 col-xl-4">
                 <div class="rounded bg-light h-100 overflow-hidden d-flex flex-column">
                     @if ($product->image)
-                        <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="w-100" style="height: 180px; object-fit: cover;">
+                        <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="w-100" style="height: 180px; object-fit: cover;">
                     @endif
                     <div class="p-4 d-flex flex-column flex-grow-1">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-primary">{{ $product->category->name }}</span>
-                        <span class="fs-5 fw-bold text-primary">{{ number_format((float) $product->price, 3, ',', ' ') }} DT</span>
+                        <span class="fs-5 fw-bold text-primary">{{ $product->formattedPrice() }} DT</span>
                     </div>
                     <h3 class="h4">{{ $product->name }}</h3>
                     <p class="mb-2">{{ \Illuminate\Support\Str::limit($product->description, 140) }}</p>
@@ -68,7 +68,7 @@
             <thead><tr><th>Produit</th><th>Catégorie</th><th>Prix actuel</th></tr></thead>
             <tbody>
             @forelse ($orderedProducts as $product)
-                <tr><td>{{ $product->name }}</td><td>{{ $product->category?->name ?: '—' }}</td><td>{{ number_format((float) $product->price, 3, ',', ' ') }} DT</td></tr>
+                <tr><td>{{ $product->name }}</td><td>{{ $product->category?->name ?: '—' }}</td><td>{{ $product->formattedPrice() }} DT</td></tr>
             @empty
                 <tr><td colspan="3" class="text-center">Aucun produit commandé.</td></tr>
             @endforelse

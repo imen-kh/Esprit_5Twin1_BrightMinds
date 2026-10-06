@@ -63,7 +63,7 @@
                             <div class="invalid-feedback" data-error-for="image">@error('image'){{ $message }}@enderror</div>
                             <img id="image-preview" class="d-none rounded mt-2" alt="Aperçu de l’image" style="max-height: 120px;">
                             @if ($product->image)
-                                <img id="current-image" class="rounded mt-2" src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" style="max-height: 120px;">
+                                <img id="current-image" class="rounded mt-2" src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" style="max-height: 120px;">
                             @endif
                         </div>
                         @if (auth()->user()->type_acteur === 'transformateur')

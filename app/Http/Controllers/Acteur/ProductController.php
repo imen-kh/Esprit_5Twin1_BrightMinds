@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Acteur;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ProductImageService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -86,10 +86,9 @@ class ProductController extends Controller
     {
         $this->denyDistributor();
         $this->authorizeOwner($product);
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+        $image = $product->image;
         $product->delete();
+        app(ProductImageService::class)->supprimer($image);
 
         return redirect()->route('acteur.produits.index')->with('success', 'Produit supprimé.');
     }
@@ -149,11 +148,13 @@ class ProductController extends Controller
             return $product?->image;
         }
 
-        if ($product?->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+        // Photo envoyée sur Cloudinary (dossier nutritrace/products) : on garde son URL https,
+        // puis on supprime l'ancienne photo (Cloudinary ou ancien fichier local)
+        $images = app(ProductImageService::class);
+        $url = $images->envoyer($request->file('image'));
+        $images->supprimer($product?->image);
 
-        return $request->file('image')->store('products', 'public');
+        return $url;
     }
 
     private function denyProductCreation(): void

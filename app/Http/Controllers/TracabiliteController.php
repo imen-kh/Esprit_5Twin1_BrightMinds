@@ -102,7 +102,7 @@ class TracabiliteController extends Controller
     private function imagePour(Product $produit): string
     {
         if ($produit->image) {
-            return asset('storage/'.$produit->image);
+            return $produit->imageUrl();
         }
 
         $nom = mb_strtolower($produit->name);

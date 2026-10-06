@@ -21,7 +21,7 @@
                 <div class="col-lg-6 position-relative">
                     <div class="vesitable-img bg-light">
                         @if ($product->image)
-                            <img src="{{ asset('storage/'.$product->image) }}" class="img-fluid w-100 rounded-top" alt="{{ $product->name }}" style="height: 420px; object-fit: contain;">
+                            <img src="{{ $product->imageUrl() }}" class="img-fluid w-100 rounded-top" alt="{{ $product->name }}" style="height: 420px; object-fit: contain;">
                         @else
                             <div class="d-flex align-items-center justify-content-center" style="height: 420px;">
                                 <i class="fas fa-leaf fa-4x text-primary"></i>
