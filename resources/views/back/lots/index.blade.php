@@ -25,7 +25,16 @@
               <div class="card">
                 {{-- Recherche et filtre : formulaire GET, les critères restent dans l'URL et la pagination --}}
                 <div class="card-header">
+                  @if ($produitFiltre ?? null)
+                    <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+                      <span>Lots du produit <strong>{{ $produitFiltre->name }}</strong></span>
+                      <a href="{{ route('gestion.lots.index') }}" class="btn btn-sm btn-outline-secondary">Voir tous les lots</a>
+                    </div>
+                  @endif
                   <form method="GET" action="{{ route('gestion.lots.index') }}" class="row g-4 align-items-end">
+                    @if ($produitFiltre ?? null)
+                      <input type="hidden" name="produit_id" value="{{ $produitFiltre->id }}" />
+                    @endif
                     <div class="col-md-5">
                       <label for="q" class="form-label">Rechercher</label>
                       <input

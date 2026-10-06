@@ -61,7 +61,7 @@
                                 <tr><th>Code</th><td class="fw-bold">{{ $lot->code }}</td></tr>
                                 <tr><th>Statut</th><td><span class="badge bg-{{ $lot->statut_badge }} rounded-pill px-3 py-2">{{ $lot->statut_label }}</span></td></tr>
                                 <tr><th>Production</th><td>{{ $lot->date_production->format('d/m/Y') }}</td></tr>
-                                <tr><th>Péremption</th><td>{{ $lot->date_peremption?->format('d/m/Y') ?? 'Non renseignée' }}</td></tr>
+                                <tr><th>Péremption</th><td>{{ $lot->date_peremption?->format('d/m/Y') ?? 'Non renseignée' }}@if ($lot->estPerime()) <span class="badge bg-danger ms-1">Périmé</span>@endif</td></tr>
                                 <tr><th>Quantité</th><td>{{ number_format($lot->quantite, 0, ',', ' ') }} {{ $lot->unite }}</td></tr>
                             </table>
                         </div>

@@ -1,6 +1,7 @@
 {{--
   Champs du formulaire d'un lot, partagés par la création et la modification.
-  Variables : $lot (nouveau ou existant), $produits, $lotsOrigine.
+  Variables : $lot (nouveau ou existant), $produits, $lotsOrigine,
+  $origineFixe (lot à transformer transmis par « Transformer ce lot », sinon null).
 --}}
 <div class="row g-6">
   <div class="col-md-6">
@@ -35,21 +36,49 @@
   </div>
 
   {{-- Lot d'origine : proposé seulement au transformateur et à l'admin (un lot de matière première n'en a pas) --}}
-  @if (\App\Models\Lot::origineAutoriseePour(auth()->user()))
+  @if ($origineFixe ?? null)
+  {{-- Lot à transformer : affiché en lecture seule, transmis par un champ caché --}}
+  <div class="col-12">
+    <label class="form-label">Lot d'origine (matière première)</label>
+    <input type="hidden" name="lot_origine_id" value="{{ $origineFixe->id }}" />
+    <div class="border rounded p-4 bg-lighter @error('lot_origine_id') border-danger @enderror">
+      <div class="d-flex flex-wrap align-items-center gap-4">
+        <span class="badge bg-label-primary fs-6">{{ $origineFixe->code }}</span>
+        <div>
+          <strong>{{ $origineFixe->produit->name }}</strong>
+          <small class="d-block text-body-secondary">
+            Producteur : {{ $origineFixe->produit->user?->nom_entreprise ?: $origineFixe->produit->user?->name ?: '—' }}
+            · produit le {{ $origineFixe->date_production->format('d/m/Y') }}
+            · {{ number_format($origineFixe->quantite, 0, ',', ' ') }} {{ $origineFixe->unite }}
+          </small>
+        </div>
+        <a href="{{ route('tracabilite.show', $origineFixe) }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-auto">Voir sa traçabilité</a>
+      </div>
+    </div>
+    @error('lot_origine_id')
+      <div class="text-danger small mt-1">{{ $message }}</div>
+    @else
+      <div class="form-text">Le nouveau lot sera rattaché à ce lot de matière première.</div>
+    @enderror
+  </div>
+  @elseif (\App\Models\Lot::origineAutoriseePour(auth()->user()))
   <div class="col-12">
     <label for="lot_origine_id" class="form-label">Lot d'origine (matière première)</label>
     <select class="form-select @error('lot_origine_id') is-invalid @enderror" id="lot_origine_id" name="lot_origine_id">
       <option value="">Aucun : ce lot n'est pas issu d'un autre lot</option>
       @foreach ($lotsOrigine as $origine)
         <option value="{{ $origine->id }}" @selected((string) old('lot_origine_id', $lot->lot_origine_id ?? null) === (string) $origine->id)>
-          {{ $origine->code }} — {{ $origine->produit->name }} (produit le {{ $origine->date_production->format('d/m/Y') }})
+          {{ $origine->code }} — {{ $origine->produit->name }}, {{ $origine->produit->user?->nom_entreprise ?: $origine->produit->user?->name }} (produit le {{ $origine->date_production->format('d/m/Y') }})
         </option>
       @endforeach
     </select>
     @error('lot_origine_id')
       <div class="invalid-feedback">{{ $message }}</div>
     @else
-      <div class="form-text">Facultatif. À renseigner pour un lot transformé, par exemple une confiture issue d'un lot de fraises.</div>
+      <div class="form-text">
+        Facultatif. À renseigner pour un lot transformé, par exemple une confiture issue d'un lot de fraises.
+        @unless (auth()->user()->isAdmin()) Seuls les lots des matières premières que vous avez commandées sont proposés. @endunless
+      </div>
     @enderror
   </div>
   @endif

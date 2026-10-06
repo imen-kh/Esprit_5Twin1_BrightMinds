@@ -186,6 +186,44 @@ class Lot extends Model
     }
 
     /**
+     * Statut correspondant à un type d'étape : en production tant que le lot est fabriqué,
+     * en transit pendant le transport, disponible une fois stocké ou mis en vente.
+     */
+    public static function statutPourEtape(string $type): string
+    {
+        return match ($type) {
+            'transport' => 'en_transit',
+            'stockage', 'distribution' => 'disponible',
+            default => 'en_production',
+        };
+    }
+
+    /**
+     * Aligne le statut du lot sur sa dernière étape. Un lot rappelé le reste :
+     * seul un changement manuel du statut lève un rappel.
+     */
+    public function synchroniserStatut(): void
+    {
+        if ($this->statut === 'rappele') {
+            return;
+        }
+
+        $derniere = $this->etapes()->reorder()->orderByDesc('date_etape')->orderByDesc('id')->first();
+
+        if ($derniere) {
+            $this->update(['statut' => self::statutPourEtape($derniere->type_etape)]);
+        }
+    }
+
+    /**
+     * Le lot a-t-il dépassé sa date de péremption ?
+     */
+    public function estPerime(): bool
+    {
+        return $this->date_peremption !== null && $this->date_peremption->isPast() && ! $this->date_peremption->isToday();
+    }
+
+    /**
      * Libellé français du statut (accessor « statut_label »).
      */
     protected function statutLabel(): Attribute

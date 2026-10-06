@@ -3,6 +3,13 @@
 @section('title', 'Lot '.$lot->code)
 
 @section('content')
+              @if (session('error'))
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                  {{ session('error') }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+              @endif
+
               <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                   <li class="breadcrumb-item"><a href="{{ route('gestion.lots.index') }}">Lots</a></li>
@@ -62,7 +69,7 @@
                         <dd class="col-7">{{ $lot->date_production->format('d/m/Y') }}</dd>
 
                         <dt class="col-5 text-body-secondary fw-normal">Date de péremption</dt>
-                        <dd class="col-7">{{ $lot->date_peremption?->format('d/m/Y') ?? 'Non renseignée' }}</dd>
+                        <dd class="col-7">{{ $lot->date_peremption?->format('d/m/Y') ?? 'Non renseignée' }}@if ($lot->estPerime()) <span class="badge bg-label-danger ms-1">Périmé</span>@endif</dd>
 
                         <dt class="col-5 text-body-secondary fw-normal">Quantité</dt>
                         <dd class="col-7">{{ number_format($lot->quantite, 0, ',', ' ') }} {{ $lot->unite }}</dd>
