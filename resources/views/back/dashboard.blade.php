@@ -79,6 +79,67 @@
                 @endforeach
               </div>
 
+              {{-- ===== Module Réclamations : chiffres par statut et dernières réclamations ===== --}}
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Réclamations</h5>
+                <a href="{{ route('admin.reclamations.index') }}" class="btn btn-sm btn-outline-primary">Gérer les réclamations</a>
+              </div>
+              <div class="row g-6 mb-6">
+                <div class="col-lg-4">
+                  <div class="row g-6">
+                    @foreach ([
+                      'en_attente' => ['En attente', 'warning'],
+                      'en_cours' => ['En cours', 'info'],
+                      'resolue' => ['Résolues', 'success'],
+                      'rejetee' => ['Rejetées', 'danger'],
+                    ] as $statut => [$libelle, $couleur])
+                      <div class="col-6">
+                        <a href="{{ route('admin.reclamations.index', ['statut' => $statut]) }}" class="card h-100 text-decoration-none">
+                          <div class="card-body">
+                            <span class="text-body-secondary">{{ $libelle }}</span>
+                            <h3 class="mb-0 text-{{ $couleur }}">{{ $reclamationsParStatut[$statut] ?? 0 }}</h3>
+                          </div>
+                        </a>
+                      </div>
+                    @endforeach
+                  </div>
+                </div>
+                <div class="col-lg-8">
+                  <div class="card h-100">
+                    <h5 class="card-header">Dernières réclamations</h5>
+                    <div class="table-responsive">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th>Sujet</th>
+                            <th>Client</th>
+                            <th>Produit</th>
+                            <th>Priorité</th>
+                            <th>Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                          @forelse ($dernieresReclamations as $reclamation)
+                            <tr>
+                              <td>
+                                <a href="{{ route('admin.reclamations.show', $reclamation) }}">{{ \Illuminate\Support\Str::limit($reclamation->sujet, 40) }}</a>
+                                <small class="d-block text-body-secondary">{{ $reclamation->created_at?->format('d/m/Y H:i') }}</small>
+                              </td>
+                              <td>{{ $reclamation->user?->name ?? '—' }}</td>
+                              <td>{{ $reclamation->produit?->name ?? '—' }}</td>
+                              <td><span class="badge {{ $reclamation->prioriteBadge() }}">{{ $reclamation->prioriteLibelle() }}</span></td>
+                              <td><span class="badge {{ $reclamation->statutBadge() }}">{{ $reclamation->statutLibelle() }}</span></td>
+                            </tr>
+                          @empty
+                            <tr><td colspan="5" class="text-center py-6">Aucune réclamation pour le moment.</td></tr>
+                          @endforelse
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="row g-6 mb-6">
                 {{-- ===== Lots par statut ===== --}}
                 <div class="col-lg-4">
