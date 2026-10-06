@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'distributeur' => \App\Http\Middleware\DistributeurMiddleware::class,
         ]);
 
+        // Déconnexion sans vérification du jeton CSRF : une page restée ouverte longtemps
+        // (jeton expiré) déconnecte quand même au lieu d'afficher « 419 Page expirée »
+        $middleware->validateCsrfTokens(except: ['logout']);
+
         // Invité sur une page protégée -> connexion ; utilisateur connecté sur une page « guest » -> accueil
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('home'));

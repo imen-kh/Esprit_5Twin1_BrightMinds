@@ -88,7 +88,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/verification-connexion/renvoyer', [TwoFactorController::class, 'resend'])->name('two-factor.resend');
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+// Déconnexion : le bouton envoie un POST ; le GET évite l'erreur 405 quand on saisit /logout
+// dans la barre d'adresse. Sans le middleware 'auth' : une session déjà expirée renvoie
+// simplement vers la page de connexion.
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ===== Mon profil (tous les rôles connectés) =====
 Route::middleware('auth')->group(function () {
