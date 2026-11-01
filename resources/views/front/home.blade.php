@@ -109,9 +109,7 @@
                     @forelse ($products as $product)
                         <div class="col-md-6 col-lg-4 col-xl-3">
                             <div class="rounded border border-secondary h-100 overflow-hidden">
-                                @if ($product->image)
-                                    <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="img-fluid w-100" style="height: 180px; object-fit: cover;">
-                                @endif
+                                <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="img-fluid w-100" style="height: 180px; object-fit: cover;">
                                 <div class="p-4">
                                 <span class="badge bg-secondary">{{ $product->category->name }}</span>
                                 <h4 class="mt-3">{{ $product->name }}</h4>

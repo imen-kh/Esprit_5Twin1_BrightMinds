@@ -39,7 +39,6 @@
                                         @if ($utilisateur->isProducteur())
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits</a>
                                         @elseif ($utilisateur->isTransformateur())
-                                            <a href="{{ route('acteur.transformation') }}" class="dropdown-item">Transformation</a>
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
                                         @elseif ($utilisateur->isDistributeur())
                                             <a href="{{ route('acteur.distribution') }}" class="dropdown-item">Distribution</a>
