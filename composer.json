@@ -57,7 +57,9 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
-        ]
+        ],
+        "lint": "pint --test tests app/Services/TracabiliteIAService.php app/Services/DoubleAuthentificationService.php app/Http/Controllers/LotController.php app/Http/Controllers/TracabiliteController.php app/Http/Controllers/DoubleAuthentificationController.php app/Http/Controllers/EmailVerificationController.php app/Http/Controllers/TwoFactorController.php app/Http/Requests/TwoFactorCodeRequest.php app/Http/Requests/TwoFactorConfirmRequest.php app/Notifications/VerificationAdresseEmail.php app/Console/Commands/GenererHistoiresTracabilite.php app/Providers/AppServiceProvider.php config/tracabilite.php database/seeders/RolePermissionSeeder.php",
+        "lint:fix": "pint tests app/Services/TracabiliteIAService.php app/Services/DoubleAuthentificationService.php app/Http/Controllers/LotController.php app/Http/Controllers/TracabiliteController.php app/Http/Controllers/DoubleAuthentificationController.php app/Http/Controllers/EmailVerificationController.php app/Http/Controllers/TwoFactorController.php app/Http/Requests/TwoFactorCodeRequest.php app/Http/Requests/TwoFactorConfirmRequest.php app/Notifications/VerificationAdresseEmail.php app/Console/Commands/GenererHistoiresTracabilite.php app/Providers/AppServiceProvider.php config/tracabilite.php database/seeders/RolePermissionSeeder.php"
     },
     "extra": {
         "branch-alias": {

@@ -8,12 +8,12 @@ use App\Models\Reclamation;
 use App\Models\ReponseReclamation;
 use App\Models\User;
 use App\Services\AiReclamationService;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ReclamationTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     private User $consommateur;
 

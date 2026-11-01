@@ -1,0 +1,115 @@
+# Intégration continue NutriTrace : qualité du code -> tests automatisés -> construction de l'image Docker.
+# Chaque job ne démarre que si le précédent a réussi (needs).
+name: CI
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main]
+
+# Un nouveau push annule l'exécution en cours sur la même branche
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Qualité (Pint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, gd, zip, bcmath, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Dépendances PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Liste de fichiers maîtrisés : voir le script « lint » de composer.json et docs/DEVOPS.md
+      - name: Style du code (pint --test)
+        run: composer lint
+
+  tests:
+    name: Tests (PHPUnit, SQLite en mémoire)
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, gd, zip, bcmath, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Dépendances PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Assets (Vite)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      # .env de la CI construit depuis .env.example (aucun secret) ; phpunit.xml impose SQLite :memory:
+      - name: Préparer l'application
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lancer les tests
+        run: php artisan test --log-junit storage/logs/junit.xml
+
+      - name: Rapport des tests (artefact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-tests-junit
+          path: storage/logs/junit.xml
+          if-no-files-found: warn
+
+  docker-build:
+    name: Construction de l'image Docker
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Vérifie seulement que l'image se construit : la publication est faite par le workflow CD sur main
+      - name: Build (sans push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: nutritrace:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

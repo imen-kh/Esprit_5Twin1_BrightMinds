@@ -7,12 +7,12 @@ use App\Models\Category;
 use App\Models\FacteurEmission;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BilanEnvironnementalTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     private User $admin;
 
@@ -210,7 +210,7 @@ class BilanEnvironnementalTest extends TestCase
 
     public function test_appreciation_du_score(): void
     {
-        $bilan = new BilanEnvironnemental();
+        $bilan = new BilanEnvironnemental;
 
         $bilan->score_numerique = 95;
         $this->assertSame('Excellent', $bilan->scoreAppreciation());
@@ -248,7 +248,9 @@ class BilanEnvironnementalTest extends TestCase
             'quantite_produit' => 1,
         ])->assertOk()->assertJsonPath('success', true);
 
-        $this->get(route('produit.detail', $this->product))
+        // La fiche produit est réservée aux visiteurs connectés (middleware « compte »)
+        $this->actingAs(User::factory()->create(['role' => 'consommateur']))
+            ->get(route('produit.detail', $this->product))
             ->assertOk()
             ->assertSee('Bilan environnemental')
             ->assertSee(route('front.environnement.show', $bilan), false);

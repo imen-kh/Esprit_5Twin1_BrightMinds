@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EtapeTracabilite;
 use App\Models\Lot;
 use App\Services\TracabiliteIAService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -118,11 +119,11 @@ class TracabiliteController extends Controller
             'genereLe' => now()->format('d/m/Y à H:i'),
         ];
 
-        if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+        if (! class_exists(Pdf::class)) {
             return view('front.tracabilite.pdf', [...$donnees, 'impression' => true]);
         }
 
-        return \Barryvdh\DomPDF\Facade\Pdf::loadView('front.tracabilite.pdf', [...$donnees, 'impression' => false])
+        return Pdf::loadView('front.tracabilite.pdf', [...$donnees, 'impression' => false])
             ->setPaper('a4')
             ->download("fiche-tracabilite-{$lot->code}.pdf");
     }
@@ -156,7 +157,7 @@ class TracabiliteController extends Controller
     /**
      * Données communes à la page publique et au PDF : chaîne, statistiques, contrôles et alertes.
      *
-     * @param  \Illuminate\Support\Collection<int, \App\Models\EtapeTracabilite>  $chaine
+     * @param  Collection<int, EtapeTracabilite>  $chaine
      * @return array<string, mixed>
      */
     private function donneesFiche(Lot $lot, Collection $chaine): array
