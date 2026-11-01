@@ -152,6 +152,22 @@
     @enderror
   </div>
 
+  {{-- Motif du rappel : visible et obligatoire seulement quand le statut « Rappelé » est choisi --}}
+  <div class="col-12" id="bloc-motif-rappel" @if (old('statut', $lot->statut ?? null) !== 'rappele') hidden @endif>
+    <label for="motif_rappel" class="form-label text-danger">Motif du rappel <span class="text-danger">*</span></label>
+    <textarea
+      class="form-control @error('motif_rappel') is-invalid @enderror"
+      id="motif_rappel"
+      name="motif_rappel"
+      rows="2"
+      maxlength="500"
+      placeholder="Ex. : présence d'un corps étranger détectée lors d'un contrôle qualité">{{ old('motif_rappel', $lot->motif_rappel ?? null) }}</textarea>
+    <div class="form-text">Affiché aux consommateurs dans la bannière d'alerte de la page publique du lot.</div>
+    @error('motif_rappel')
+      <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+  </div>
+
   <div class="col-12">
     <label for="notes" class="form-label">Notes</label>
     <textarea
@@ -170,3 +186,17 @@
   <button type="submit" class="btn btn-primary me-3">Enregistrer</button>
   <a href="{{ $lot->exists ? route('gestion.lots.show', $lot) : route('gestion.lots.index') }}" class="btn btn-outline-secondary">Annuler</a>
 </div>
+
+@push('scripts')
+  <script>
+    // Le champ « Motif du rappel » n'apparaît que pour le statut « Rappelé »
+    document.addEventListener('DOMContentLoaded', function () {
+      const statut = document.getElementById('statut');
+      const bloc = document.getElementById('bloc-motif-rappel');
+
+      if (statut && bloc) {
+        statut.addEventListener('change', () => { bloc.hidden = statut.value !== 'rappele'; });
+      }
+    });
+  </script>
+@endpush
