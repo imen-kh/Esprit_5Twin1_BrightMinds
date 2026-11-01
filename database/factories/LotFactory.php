@@ -45,6 +45,7 @@ class LotFactory extends Factory
     {
         return $this->state(fn () => [
             'statut' => 'rappele',
+            'motif_rappel' => 'Taux d\'aflatoxines supérieur à la limite réglementaire détecté lors d\'un contrôle qualité des piments.',
             'notes' => 'Lot rappelé par précaution à la suite d\'un contrôle qualité non conforme.',
         ]);
     }
