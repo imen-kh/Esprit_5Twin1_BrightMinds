@@ -34,6 +34,15 @@ return [
         'api_secret' => env('CLOUDINARY_API_SECRET'),
     ],
 
+    // Module Traçabilité : histoire du produit et analyse des anomalies par IA (API Google Gemini)
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.8-flash'),
+        // Modèles essayés ensuite si le principal est saturé, au-dessus du quota ou retiré
+        'secours' => array_filter(array_map('trim', explode(',', (string) env('GEMINI_MODELES_SECOURS', 'gemini-3.7-flash,gemini-flash-lite-latest')))),
+        'timeout' => 20, // secondes
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
