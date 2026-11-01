@@ -124,7 +124,7 @@
                                     <tr>
                                         <th scope="row">
                                             <div class="d-flex align-items-center mt-2">
-                                                <img src="{{ asset('front/img/vegetable-item-2.jpg') }}" class="img-fluid rounded-circle" style="width: 90px; height: 90px;" alt="">
+                                                <img src="{{ $product->imageUrl() }}" class="img-fluid rounded-circle" style="width: 90px; height: 90px; object-fit: cover;" alt="{{ $product->name }}">
                                             </div>
                                         </th>
                                         <td class="py-5">{{ $product->name }}</td>
