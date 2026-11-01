@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Acteur;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\MatieresPremieresService;
 use App\Services\ProductImageService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
@@ -13,15 +14,12 @@ class ProductController extends Controller
 {
     public function index()
     {
-        if (auth()->user()->isTransformateur()) {
-            return redirect()->route('acteur.transformation');
-        }
-
         if (auth()->user()->isDistributeur()) {
             return redirect()->route('acteur.distribution');
         }
 
-        $query = Product::with('category')->orderByDesc('created_at');
+        // withCount('lots') : colonne « Lots » du transformateur (module Traçabilité)
+        $query = Product::with('category')->withCount('lots')->orderByDesc('created_at');
 
         if (! auth()->user()->isAdmin()) {
             $query->where('user_id', auth()->id());
@@ -36,7 +34,20 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('acteur.products.index', compact('products', 'orderedProducts'));
+        // Espace du transformateur : matières premières commandées, chiffres et dernières
+        // transformations, fournis par le module Traçabilité
+        $matieres = collect();
+        $chiffres = null;
+        $dernieresTransformations = collect();
+
+        if (auth()->user()->isTransformateur()) {
+            $service = app(MatieresPremieresService::class);
+            $matieres = $service->pour(auth()->user());
+            $chiffres = $service->chiffres(auth()->user(), $matieres);
+            $dernieresTransformations = $service->dernieresTransformations(auth()->user());
+        }
+
+        return view('acteur.products.index', compact('products', 'orderedProducts', 'matieres', 'chiffres', 'dernieresTransformations'));
     }
 
     public function create()
@@ -157,14 +168,12 @@ class ProductController extends Controller
         return $url;
     }
 
+    /**
+     * Le producteur ajoute des matières premières, le transformateur des produits transformés ;
+     * le distributeur ne crée pas de produit.
+     */
     private function denyProductCreation(): void
     {
-        if (auth()->user()->isTransformateur()) {
-            throw new HttpResponseException(
-                redirect()->route('acteur.transformation')
-            );
-        }
-
         if (auth()->user()->isDistributeur()) {
             throw new HttpResponseException(
                 redirect()->route('acteur.distribution')
