@@ -85,6 +85,13 @@
                         <tr>
                           <td>
                             <a href="{{ route('gestion.lots.show', $lot) }}" class="fw-medium">{{ $lot->code }}</a>
+                            {{-- Anomalies détectées par les contrôles automatiques (Lot::anomalies) --}}
+                            @if ($alertes[$lot->id]['nombre'] ?? 0)
+                              <i
+                                class="icon-base bx bx-error text-{{ \App\Models\Lot::GRAVITES[$alertes[$lot->id]['gravite']]['badge'] }} ms-1"
+                                title="{{ $alertes[$lot->id]['nombre'] }} anomalie(s) détectée(s)"
+                                aria-label="{{ $alertes[$lot->id]['nombre'] }} anomalie(s) détectée(s)"></i>
+                            @endif
                           </td>
                           <td>{{ $lot->produit->name }}</td>
                           <td>{{ $lot->date_production->format('d/m/Y') }}</td>
@@ -92,7 +99,13 @@
                           <td class="text-center">
                             <span class="badge rounded-pill bg-label-secondary">{{ $lot->etapes_count }}</span>
                           </td>
-                          <td><span class="badge bg-label-{{ $lot->statut_badge }}">{{ $lot->statut_label }}</span></td>
+                          <td>
+                            <span class="badge bg-label-{{ $lot->statut_badge }}">{{ $lot->statut_label }}</span>
+                            {{-- Péremption dépassée ou proche --}}
+                            @if ($alerte = $lot->alertePeremption())
+                              <span class="badge bg-{{ $alerte['niveau'] }} ms-1" title="{{ $alerte['message'] }}">{{ $alerte['niveau'] === 'danger' ? 'Périmé' : 'J-'.$lot->joursAvantPeremption() }}</span>
+                            @endif
+                          </td>
                           <td class="text-end">
                             <a href="{{ route('gestion.lots.show', $lot) }}" class="btn btn-sm btn-icon btn-text-secondary" title="Voir">
                               <i class="icon-base bx bx-show"></i>

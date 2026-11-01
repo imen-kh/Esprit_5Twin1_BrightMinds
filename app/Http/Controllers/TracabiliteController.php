@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\EtapeTracabilite;
 use App\Models\Lot;
-use App\Models\Product;
+use App\Services\TracabiliteIAService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -47,9 +50,10 @@ class TracabiliteController extends Controller
     }
 
     /**
-     * Fiche publique d'un lot, trouvé par son code : chaîne complète, carte, statistiques et QR code.
+     * Fiche publique d'un lot, trouvé par son code : chaîne complète, carte, statistiques, QR code,
+     * histoire rédigée par IA, score de transparence et alerte de chaîne du froid.
      */
-    public function show(Lot $lot): View
+    public function show(Lot $lot, TracabiliteIAService $ia): View
     {
         $lot->load(['produit.category', 'produit.user', 'lotOrigine.produit.user']);
 
@@ -84,49 +88,89 @@ class TracabiliteController extends Controller
             ]);
 
         return view('front.tracabilite.show', [
-            'lot' => $lot,
-            'chaine' => $chaine,
+            ...$this->donneesFiche($lot, $chaine),
+            // Histoire en cache, régénérée seulement si la chaîne a changé ; null si l'IA est indisponible
+            'histoire' => $chaine->isNotEmpty() ? $ia->histoire($lot) : null,
             'segments' => $segments,
             'points' => $points,
-            'stats' => $lot->statistiquesChaine($chaine),
-            'image' => $this->imagePour($lot->produit),
+            'image' => $lot->produit->imageUrl(),
             // QR code en SVG pointant vers cette page
             'qrCode' => (string) QrCode::size(190)->margin(1)->generate(route('tracabilite.show', $lot)),
+            'iaConfiguree' => $ia->estConfigure(),
         ]);
     }
 
     /**
-     * Image du produit : celle enregistrée dans le Catalogue si elle existe, sinon une photo
-     * du template choisie selon le nom du produit, sinon une image générique.
+     * Fiche de traçabilité en PDF (dompdf). Sans le paquet barryvdh/laravel-dompdf,
+     * la même fiche s'ouvre en version imprimable (Ctrl+P > Enregistrer en PDF).
      */
-    private function imagePour(Product $produit): string
+    public function pdf(Lot $lot): Response|View
     {
-        if ($produit->image) {
-            return $produit->imageUrl();
-        }
+        $lot->load(['produit.category', 'produit.user', 'lotOrigine.produit.user']);
+        $chaine = $lot->chaineComplete();
 
-        $nom = mb_strtolower($produit->name);
-
-        $images = [
-            'fraise' => 'fruite-item-2.jpg',
-            'confiture' => 'fruite-item-2.jpg',
-            'orange' => 'fruite-item-1.jpg',
-            'banane' => 'fruite-item-3.jpg',
-            'abricot' => 'fruite-item-4.jpg',
-            'raisin' => 'fruite-item-5.jpg',
-            'pomme de terre' => 'vegetable-item-5.jpg',
-            'pomme' => 'fruite-item-6.jpg',
-            'harissa' => 'vegetable-item-4.jpg',
-            'piment' => 'vegetable-item-4.jpg',
-            'poivron' => 'vegetable-item-4.jpg',
+        $donnees = [
+            ...$this->donneesFiche($lot, $chaine),
+            // L'histoire n'est reprise que si elle est déjà en cache : le PDF n'attend pas l'API
+            'histoire' => $lot->histoireAJour() ? $lot->histoire_ia : null,
+            // dompdf affiche le SVG via une image en base64
+            'qrCode' => base64_encode((string) QrCode::format('svg')->size(130)->margin(0)->generate(route('tracabilite.show', $lot))),
+            'genereLe' => now()->format('d/m/Y à H:i'),
         ];
 
-        foreach ($images as $motCle => $fichier) {
-            if (str_contains($nom, $motCle)) {
-                return asset('front/img/'.$fichier);
-            }
+        if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            return view('front.tracabilite.pdf', [...$donnees, 'impression' => true]);
         }
 
-        return asset('front/img/banner-fruits.jpg');
+        return \Barryvdh\DomPDF\Facade\Pdf::loadView('front.tracabilite.pdf', [...$donnees, 'impression' => false])
+            ->setPaper('a4')
+            ->download("fiche-tracabilite-{$lot->code}.pdf");
+    }
+
+    /**
+     * Assistant traçabilité : répond en JSON à la question d'un consommateur, uniquement à partir
+     * des données du lot. Route limitée à 10 questions par minute (throttle:10,1).
+     */
+    public function assistant(Request $request, Lot $lot, TracabiliteIAService $ia): JsonResponse
+    {
+        $donnees = $request->validate(
+            ['question' => ['required', 'string', 'max:300']],
+            [
+                'question.required' => 'Posez votre question.',
+                'question.max' => 'Votre question ne peut pas dépasser 300 caractères.',
+            ]
+        );
+
+        $reponse = $ia->repondreQuestion($lot, trim($donnees['question']));
+
+        if ($reponse === null) {
+            return response()->json([
+                'reponse' => 'L\'assistant est momentanément indisponible. Les informations du lot restent consultables sur cette page.',
+                'ia' => false,
+            ], 503);
+        }
+
+        return response()->json(['reponse' => $reponse, 'ia' => true]);
+    }
+
+    /**
+     * Données communes à la page publique et au PDF : chaîne, statistiques, contrôles et alertes.
+     *
+     * @param  \Illuminate\Support\Collection<int, \App\Models\EtapeTracabilite>  $chaine
+     * @return array<string, mixed>
+     */
+    private function donneesFiche(Lot $lot, Collection $chaine): array
+    {
+        $anomalies = $lot->anomalies($chaine);
+
+        return [
+            'lot' => $lot,
+            'chaine' => $chaine,
+            'stats' => $lot->statistiquesChaine($chaine),
+            'anomalies' => $anomalies,
+            'score' => $lot->scoreTransparence($chaine, $anomalies),
+            'alertesFroid' => array_values(array_filter($anomalies, fn (array $a) => $a['type'] === 'temperature')),
+            'alertePeremption' => $lot->alertePeremption(),
+        ];
     }
 }

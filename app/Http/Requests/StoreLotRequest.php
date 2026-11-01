@@ -42,6 +42,11 @@ class StoreLotRequest extends FormRequest
         if (! Lot::origineAutoriseePour($this->user())) {
             $this->merge(['lot_origine_id' => null]);
         }
+
+        // Le motif n'a de sens que pour un lot rappelé : il est effacé quand le rappel est levé
+        if ($this->input('statut') !== 'rappele') {
+            $this->merge(['motif_rappel' => null]);
+        }
     }
 
     /**
@@ -71,6 +76,8 @@ class StoreLotRequest extends FormRequest
             'quantite' => ['required', 'integer', 'min:1', 'max:1000000'],
             'unite' => ['required', Rule::in(Lot::UNITES)],
             'statut' => ['required', Rule::in(array_keys(Lot::STATUTS))],
+            // Rappel : le motif est affiché aux consommateurs sur la page publique
+            'motif_rappel' => ['nullable', 'required_if:statut,rappele', 'string', 'min:10', 'max:500'],
             'notes' => ['nullable', 'max:1000'],
         ];
     }
@@ -198,6 +205,9 @@ class StoreLotRequest extends FormRequest
             'unite.required' => 'L\'unité est obligatoire.',
             'unite.in' => 'L\'unité choisie n\'est pas valide.',
             'statut.required' => 'Le statut est obligatoire.',
+            'motif_rappel.required_if' => 'Indiquez le motif du rappel : il sera affiché aux consommateurs.',
+            'motif_rappel.min' => 'Le motif du rappel doit contenir au moins :min caractères.',
+            'motif_rappel.max' => 'Le motif du rappel ne peut pas dépasser :max caractères.',
             'statut.in' => 'Le statut choisi n\'est pas valide.',
             'notes.max' => 'Les notes ne doivent pas dépasser :max caractères.',
         ];

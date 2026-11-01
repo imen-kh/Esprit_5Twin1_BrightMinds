@@ -30,6 +30,9 @@
                   <a href="{{ route('tracabilite.show', $lot) }}" class="btn btn-primary" target="_blank" rel="noopener">
                     <i class="icon-base bx bx-link-external me-1"></i> Voir la page publique
                   </a>
+                  <a href="{{ route('tracabilite.pdf', $lot) }}" class="btn btn-outline-secondary">
+                    <i class="icon-base bx bxs-file-pdf me-1"></i> Fiche PDF
+                  </a>
                 {{-- Modifier et supprimer : propriétaire du produit ou admin --}}
                 @if ($peutModifier)
                     <a href="{{ route('gestion.lots.edit', $lot) }}" class="btn btn-outline-primary">
@@ -51,7 +54,20 @@
               @if ($lot->statut === 'rappele')
                 <div class="alert alert-danger d-flex align-items-center" role="alert">
                   <i class="icon-base bx bx-error-circle icon-md me-2"></i>
-                  <div>Ce lot fait l'objet d'un rappel : il ne doit plus être commercialisé.</div>
+                  <div>
+                    Ce lot fait l'objet d'un rappel : il ne doit plus être commercialisé.
+                    @if ($lot->motif_rappel)
+                      <br><strong>Motif :</strong> {{ $lot->motif_rappel }}
+                    @endif
+                  </div>
+                </div>
+              @endif
+
+              {{-- Péremption dépassée ou proche --}}
+              @if ($alerte = $lot->alertePeremption())
+                <div class="alert alert-{{ $alerte['niveau'] }} d-flex align-items-center" role="alert">
+                  <i class="icon-base bx bx-time-five icon-md me-2"></i>
+                  <div><strong>{{ $alerte['titre'] }} :</strong> {{ $alerte['message'] }}</div>
                 </div>
               @endif
 
@@ -160,8 +176,113 @@
                   </div>
                 </div>
 
-                {{-- ===== Colonne droite : timeline des étapes (relation 1-N) ===== --}}
+                {{-- ===== Colonne droite : analyse IA, score, histoire, puis timeline des étapes (relation 1-N) ===== --}}
                 <div class="col-lg-7">
+                  {{-- Analyse du lot : contrôles automatiques (toujours affichés) enrichis par l'IA à la demande --}}
+                  <div class="card mb-6">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h5 class="mb-0">🔍 Analyse IA du lot</h5>
+                      <form method="POST" action="{{ route('gestion.lots.analyser', $lot) }}" class="form-ia">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-primary" data-chargement="Analyse en cours…">
+                          <i class="icon-base bx bx-brain me-1"></i> Analyser
+                        </button>
+                      </form>
+                    </div>
+                    <div class="card-body">
+                      @if ($analyseIA)
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                          <span class="badge bg-{{ \App\Services\TracabiliteIAService::NIVEAUX_RISQUE[$analyseIA['niveau_risque']] ?? 'secondary' }} fs-6 px-3 py-2">
+                            Risque {{ $analyseIA['niveau_risque'] }}
+                          </span>
+                          <span class="badge bg-label-primary"><i class="icon-base bx bx-bot icon-sm me-1"></i>Généré par IA</span>
+                          <small class="text-body-secondary ms-auto">Analysé le {{ $analyseIA['analyse_le'] }}</small>
+                        </div>
+                        <p class="mb-4">{{ $analyseIA['resume'] }}</p>
+                      @elseif (! $iaConfiguree)
+                        <p class="text-body-secondary small mb-4">IA non configurée (clé GEMINI_API_KEY absente) : seuls les contrôles automatiques sont affichés.</p>
+                      @else
+                        <p class="text-body-secondary small mb-4">Cliquez sur « Analyser » pour obtenir le niveau de risque et des recommandations de l'IA.</p>
+                      @endif
+
+                      <h6 class="mb-2">
+                        Contrôles automatiques
+                        <span class="badge rounded-pill bg-label-{{ $anomalies ? 'danger' : 'success' }} ms-1">{{ count($anomalies) }}</span>
+                      </h6>
+                      @forelse ($anomalies as $anomalie)
+                        <div class="d-flex align-items-start gap-2 mb-2">
+                          <span class="badge bg-label-{{ \App\Models\Lot::GRAVITES[$anomalie['gravite']]['badge'] }} flex-shrink-0">{{ \App\Models\Lot::GRAVITES[$anomalie['gravite']]['label'] }}</span>
+                          <span>{{ $anomalie['message'] }}</span>
+                        </div>
+                      @empty
+                        <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+                          <i class="icon-base bx bx-check-shield icon-md me-2"></i>
+                          Aucune anomalie : chaîne du froid respectée, trajets cohérents, étapes complètes.
+                        </div>
+                      @endforelse
+
+                      @if ($analyseIA && $analyseIA['recommandations'])
+                        <h6 class="mt-4 mb-2">Recommandations de l'IA</h6>
+                        <ul class="mb-0 ps-4">
+                          @foreach ($analyseIA['recommandations'] as $recommandation)
+                            <li class="mb-1">{{ $recommandation }}</li>
+                          @endforeach
+                        </ul>
+                      @endif
+                    </div>
+                  </div>
+
+                  {{-- Score de transparence (sans IA) : détail des critères --}}
+                  @php($couleurScore = \App\Models\Lot::couleurScore($score))
+                  <div class="card mb-6">
+                    <h5 class="card-header">Score de transparence</h5>
+                    <div class="card-body">
+                      <div class="d-flex align-items-center gap-4 mb-4">
+                        <div class="text-nowrap">
+                          <span class="display-6 fw-bold text-{{ $couleurScore }}">{{ $score }}</span><span class="text-body-secondary">/100</span>
+                        </div>
+                        <div class="progress flex-grow-1" style="height: 12px;">
+                          <div class="progress-bar bg-{{ $couleurScore }}" role="progressbar" style="width: {{ $score }}%" aria-valuenow="{{ $score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                      </div>
+                      @foreach ($criteres as $critere)
+                        <div class="d-flex justify-content-between small mb-1">
+                          <span>
+                            <i class="icon-base bx {{ $critere['points'] === $critere['max'] ? 'bx-check text-success' : 'bx-x text-danger' }} icon-sm me-1"></i>{{ $critere['libelle'] }}
+                          </span>
+                          <span class="fw-medium">{{ $critere['points'] }}/{{ $critere['max'] }}</span>
+                        </div>
+                      @endforeach
+                    </div>
+                  </div>
+
+                  {{-- Histoire du produit affichée sur la page publique, en cache sur le lot --}}
+                  <div class="card mb-6">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h5 class="mb-0">📖 L'histoire du produit</h5>
+                      <form method="POST" action="{{ route('gestion.lots.histoire', $lot) }}" class="form-ia">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-primary" data-chargement="Rédaction en cours…">
+                          <i class="icon-base bx bx-refresh me-1"></i> Régénérer l'histoire (IA)
+                        </button>
+                      </form>
+                    </div>
+                    <div class="card-body">
+                      @if ($lot->histoire_ia)
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                          <span class="badge bg-label-primary"><i class="icon-base bx bx-bot icon-sm me-1"></i>Généré par IA</span>
+                          @unless ($histoireAJour)
+                            <span class="badge bg-label-warning">Le lot a changé depuis : l'histoire sera régénérée</span>
+                          @endunless
+                          <small class="text-body-secondary ms-auto">Le {{ $lot->histoire_ia_generee_le?->format('d/m/Y à H:i') }}</small>
+                        </div>
+                        <p class="mb-0 fst-italic">{{ $lot->histoire_ia }}</p>
+                      @else
+                        <p class="mb-0 text-body-secondary">Aucune histoire générée pour le moment. Elle est rédigée automatiquement à la première visite de la page publique, ou avec le bouton ci-dessus.</p>
+                      @endif
+                    </div>
+                  </div>
+
                   <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                       <h5 class="mb-0">
@@ -237,3 +358,16 @@
               @include('back.partials.modal-suppression')
               @include('back.partials.timeline-styles')
 @endsection
+
+@push('scripts')
+  <script>
+    // Appels IA (quelques secondes) : bouton désactivé avec un indicateur, pour éviter un double envoi
+    document.querySelectorAll('.form-ia').forEach(function (formulaire) {
+      formulaire.addEventListener('submit', function () {
+        const bouton = formulaire.querySelector('button[type="submit"]');
+        bouton.disabled = true;
+        bouton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + bouton.dataset.chargement;
+      });
+    });
+  </script>
+@endpush
