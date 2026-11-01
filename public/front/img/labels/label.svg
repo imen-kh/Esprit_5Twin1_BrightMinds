@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="LABEL certifié">
+  <circle cx="100" cy="100" r="94" fill="#ffffff" stroke="#81c408" stroke-width="8"/>
+  <circle cx="100" cy="100" r="78" fill="#81c408"/>
+  <path d="M100 46l10 22 24 3-18 17 5 24-21-12-21 12 5-24-18-17 24-3z" fill="#ffffff"/>
+  <text x="100" y="128" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#ffffff">LABEL</text>
+  <text x="100" y="152" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff">certifié</text>
+</svg>

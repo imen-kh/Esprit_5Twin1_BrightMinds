@@ -5,7 +5,7 @@
 <div class="container py-5"><div class="row g-4">
 @forelse($labels as $label)
 <div class="col-md-6 col-lg-4"><div class="card h-100 shadow-sm">
-    @if($label->logo)<img src="{{ asset('storage/'.$label->logo) }}" class="card-img-top p-4" style="height:180px;object-fit:contain" alt="{{ $label->nom }}">@endif
+    <img src="{{ $label->logo_url }}" class="card-img-top p-4" style="height:180px;object-fit:contain" alt="{{ $label->nom }}">
     <div class="card-body"><h4>{{ $label->nom }}</h4><p class="text-muted">{{ $label->organisme }}</p><p>{{ Str::limit($label->description, 120) }}</p>
     <a class="btn btn-primary" href="{{ route('labels.show', $label) }}">Voir les certifications</a></div>
 </div></div>

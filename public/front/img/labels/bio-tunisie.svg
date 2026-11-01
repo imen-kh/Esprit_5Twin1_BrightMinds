@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="BIO Tunisie">
+  <circle cx="100" cy="100" r="94" fill="#ffffff" stroke="#3d8b1f" stroke-width="8"/>
+  <circle cx="100" cy="100" r="78" fill="#3d8b1f"/>
+  <path d="M100 46c-22 8-34 26-30 48 22 2 40-12 46-34 2-8-6-16-16-14z" fill="#ffffff"/><path d="M74 92c10-14 22-24 38-32" fill="none" stroke="#3d8b1f" stroke-width="4" stroke-linecap="round"/>
+  <text x="100" y="128" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#ffffff">BIO</text>
+  <text x="100" y="152" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff">Tunisie</text>
+</svg>

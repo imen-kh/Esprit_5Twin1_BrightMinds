@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Label extends Model
 {
@@ -34,9 +36,20 @@ class Label extends Model
         return $this->hasMany(Certification::class);
     }
 
-    public function getLogoUrlAttribute(): ?string
+    /**
+     * URL du logo, toujours renseignée : le fichier envoyé s'il existe sur cette machine
+     * (le dossier storage/ n'est pas partagé par Git), sinon le logo par défaut du label,
+     * sinon un logo générique.
+     */
+    public function getLogoUrlAttribute(): string
     {
-        return $this->logo ? asset('storage/'.$this->logo) : null;
+        if ($this->logo && Storage::disk('public')->exists($this->logo)) {
+            return asset('storage/'.$this->logo);
+        }
+
+        $fichier = 'front/img/labels/'.Str::slug((string) $this->nom).'.svg';
+
+        return asset(is_file(public_path($fichier)) ? $fichier : 'front/img/labels/label.svg');
     }
 
     public function scopeActive(Builder $query): Builder
