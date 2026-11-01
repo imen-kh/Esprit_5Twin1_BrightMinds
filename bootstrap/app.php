@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'acteur' => \App\Http\Middleware\ActeurMiddleware::class,
             'compte' => \App\Http\Middleware\GuestToRegister::class,
             'distributeur' => \App\Http\Middleware\DistributeurMiddleware::class,
+            // spatie/laravel-permission : rôles et permissions (RolePermissionSeeder)
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
         // Déconnexion sans vérification du jeton CSRF : une page restée ouverte longtemps

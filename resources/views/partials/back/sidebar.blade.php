@@ -87,7 +87,10 @@
                 <div class="text-truncate">Catalogue</div>
               </a>
               <ul class="menu-sub">
-                  <li class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}"><a href="{{ route('admin.categories.index') }}" class="menu-link"><div class="text-truncate">Catégories</div></a></li>
+                  {{-- Liens affichés selon les permissions Spatie (RolePermissionSeeder) --}}
+                  @can('gerer-categories')
+                    <li class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}"><a href="{{ route('admin.categories.index') }}" class="menu-link"><div class="text-truncate">Catégories</div></a></li>
+                  @endcan
                   <li class="menu-item {{ request()->routeIs('admin.produits.*') ? 'active' : '' }}"><a href="{{ route('admin.produits.index') }}" class="menu-link"><div class="text-truncate">Produits</div></a></li>
               </ul>
             </li>
@@ -123,7 +126,9 @@
               </a>
               <ul class="menu-sub">
                 <li class="menu-item {{ request()->routeIs('admin.labels.*') ? 'active' : '' }}"><a href="{{ route('admin.labels.index') }}" class="menu-link"><div class="text-truncate">Labels</div></a></li>
-                <li class="menu-item {{ request()->routeIs('admin.certifications.*') ? 'active' : '' }}"><a href="{{ route('admin.certifications.index') }}" class="menu-link"><div class="text-truncate">Certifications</div></a></li>
+                @can('valider-certifications')
+                  <li class="menu-item {{ request()->routeIs('admin.certifications.*') ? 'active' : '' }}"><a href="{{ route('admin.certifications.index') }}" class="menu-link"><div class="text-truncate">Certifications</div></a></li>
+                @endcan
               </ul>
             </li>
             <li class="menu-item {{ request()->routeIs('admin.facteurs-emission.*') || request()->routeIs('admin.bilans-environnementaux.*') ? 'active open' : '' }}">
