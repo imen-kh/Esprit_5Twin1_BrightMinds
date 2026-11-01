@@ -160,40 +160,16 @@
                   <div class="card mb-6">
                     <h5 class="card-header">
                       Double authentification
-                      @if ($user->two_factor_enabled)
+                      @if ($user->aDoubleAuthentification())
                         <span class="badge bg-label-success ms-2">Activée</span>
+                      @elseif ($user->doubleAuthentificationEnAttente())
+                        <span class="badge bg-label-warning ms-2">En cours d'activation</span>
                       @else
                         <span class="badge bg-label-secondary ms-2">Désactivée</span>
                       @endif
                     </h5>
-                    <div class="card-body">
-                      <p class="mb-6">
-                        Lorsqu'elle est activée, un code à 6 chiffres est envoyé à <strong>{{ $user->email }}</strong> à chaque connexion, en plus de votre mot de passe.
-                      </p>
-                      <form id="formDoubleAuth" method="POST" action="{{ route('profil.two-factor') }}" novalidate>
-                        @csrf
-                        @method('PUT')
-                        <div class="row g-6">
-                          <div class="col-md-6">
-                            <label for="two_factor_password" class="form-label">Confirmez avec votre mot de passe</label>
-                            <input
-                              type="password"
-                              class="form-control @error('password', 'deuxFacteurs') is-invalid @enderror"
-                              id="two_factor_password"
-                              name="password" />
-                            @error('password', 'deuxFacteurs')
-                              <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                          </div>
-                        </div>
-                        <div class="mt-6">
-                          @if ($user->two_factor_enabled)
-                            <button type="submit" class="btn btn-danger">Désactiver la double authentification</button>
-                          @else
-                            <button type="submit" class="btn btn-primary">Activer la double authentification</button>
-                          @endif
-                        </div>
-                      </form>
+                    <div class="card-body" id="double-authentification">
+                      @include('partials.double-authentification', ['theme' => 'back'])
                     </div>
                   </div>
 

@@ -92,12 +92,20 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
+        // Gestion user : rôles et permissions Spatie d'abord, pour que chaque compte reçoive le sien
+        $this->call(RolePermissionSeeder::class);
+
         foreach ($comptes as $compte) {
             // L'email identifie le compte ; le reste (rôle, profil, mot de passe) est mis à jour
-            User::updateOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => $compte['email']],
                 [...$compte, 'password' => 'password'],
             );
+
+            // Comptes de démo : adresse déjà vérifiée (email_verified_at n'est pas « fillable »)
+            if (! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+            }
         }
 
         // Chaque membre ajoute ici les seeders de son module, par exemple :
@@ -109,6 +117,7 @@ class DatabaseSeeder extends Seeder
             EnvironnementSeeder::class,
             ReclamationSeeder::class,    // module Réclamations
             CommandeLivraisonSeeder::class, // module Commandes et Livraisons
+            RolePermissionSeeder::class, // rôles Spatie des comptes créés par les seeders des modules
         ]);
     }
 }

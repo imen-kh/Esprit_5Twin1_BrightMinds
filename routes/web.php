@@ -9,6 +9,8 @@ use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
 use App\Http\Controllers\PanierController;
 use App\Http\Controllers\CommandeController;
+use App\Http\Controllers\DoubleAuthentificationController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -63,7 +65,7 @@ Route::post('/tracabilite/{lot:code}/assistant', [TracabiliteController::class, 
 Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
 Route::post('/environnement/simuler', [EnvironnementController::class, 'simuler'])->name('front.environnement.simuler');
 
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/environnement/create', [EnvironnementController::class, 'create'])->name('front.environnement.create');
     Route::post('/environnement', [EnvironnementController::class, 'store'])->name('front.environnement.store');
     Route::get('/environnement/{bilan}/edit', [EnvironnementController::class, 'edit'])->name('front.environnement.edit');
@@ -81,16 +83,27 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 
-    // Mot de passe oublié : demande du lien par email, puis choix du nouveau mot de passe
-    Route::get('/mot-de-passe-oublie', [PasswordResetController::class, 'showForgot'])->name('password.request');
-    Route::post('/mot-de-passe-oublie', [PasswordResetController::class, 'sendLink'])->name('password.email');
-    Route::get('/reinitialiser-mot-de-passe/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
-    Route::post('/reinitialiser-mot-de-passe', [PasswordResetController::class, 'reset'])->name('password.update');
+    // Mot de passe oublié (broker natif de Laravel) : lien par email, puis choix du nouveau mot de passe
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgot'])->name('password.request');
+    // Limiteurs nommés « mot-de-passe », « deux-facteurs »… : voir AppServiceProvider
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:mot-de-passe')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:mot-de-passe')->name('password.update');
 
-    // Double authentification : saisie du code reçu par email, après le mot de passe
-    Route::get('/verification-connexion', [TwoFactorController::class, 'showChallenge'])->name('two-factor.challenge');
-    Route::post('/verification-connexion', [TwoFactorController::class, 'verify'])->name('two-factor.verify');
-    Route::post('/verification-connexion/renvoyer', [TwoFactorController::class, 'resend'])->name('two-factor.resend');
+    // Double authentification (TOTP) : code de l'application ou code de récupération, après le mot de passe
+    Route::get('/two-factor-challenge', [TwoFactorController::class, 'showChallenge'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorController::class, 'verify'])->middleware('throttle:deux-facteurs')->name('two-factor.verify');
+});
+
+// ===== Vérification de l'adresse email (utilisateur connecté, adresse non encore confirmée) =====
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:verification-email'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:verification-email')
+        ->name('verification.send');
 });
 
 // Déconnexion : le bouton envoie un POST ; le GET évite l'erreur 405 quand on saisit /logout
@@ -98,22 +111,27 @@ Route::middleware('guest')->group(function () {
 // simplement vers la page de connexion.
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ===== Mon profil (tous les rôles connectés) =====
-Route::middleware('auth')->group(function () {
+// ===== Mon profil (tous les rôles connectés, adresse email vérifiée) =====
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('reclamations', FrontReclamationController::class);
     Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profil.password');
-    Route::put('/profil/double-authentification', [ProfileController::class, 'toggleTwoFactor'])->name('profil.two-factor');
+    // Double authentification par application (TOTP)
+    Route::post('/profil/double-authentification', [DoubleAuthentificationController::class, 'activer'])->name('profil.two-factor.activer');
+    Route::post('/profil/double-authentification/confirmer', [DoubleAuthentificationController::class, 'confirmer'])->middleware('throttle:activation-deux-facteurs')->name('profil.two-factor.confirmer');
+    Route::post('/profil/double-authentification/codes', [DoubleAuthentificationController::class, 'regenererCodes'])->name('profil.two-factor.codes');
+    Route::delete('/profil/double-authentification/annuler', [DoubleAuthentificationController::class, 'annuler'])->name('profil.two-factor.annuler');
+    Route::delete('/profil/double-authentification', [DoubleAuthentificationController::class, 'desactiver'])->name('profil.two-factor.desactiver');
     Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profil.destroy');
     Route::get('/mes-commandes', [CommandeController::class, 'index'])->name('commandes.index');
     Route::get('/mes-commandes/create', [CommandeController::class, 'create'])->name('commandes.create');
     Route::get('/mes-commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
 });
 
-Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
+Route::middleware(['auth', 'verified', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
     Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
     Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
@@ -121,7 +139,7 @@ Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(
 });
 
 // ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
-Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
+Route::middleware(['auth', 'verified', 'acteur', 'permission:gerer-lots'])->prefix('gestion')->name('gestion.')->group(function () {
     Route::resource('lots', LotController::class);
     // IA du module : histoire du produit (page publique) et analyse des anomalies
     Route::post('lots/{lot}/histoire', [LotController::class, 'regenererHistoire'])->name('lots.histoire');
@@ -133,7 +151,7 @@ Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->grou
 Route::get('/labels', [PublicLabelController::class, 'index'])->name('labels.index');
 Route::get('/labels/{label}', [PublicLabelController::class, 'show'])->name('labels.show');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('labels/create', [AdminLabelController::class, 'create'])->name('labels.create');
     Route::get('labels/{label}/edit', [AdminLabelController::class, 'edit'])->name('labels.edit');
     Route::apiResource('labels', AdminLabelController::class)->except(['create', 'edit']);
@@ -142,11 +160,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('certifications', [AdminCertificationController::class, 'index'])->name('certifications.index');
     Route::get('certifications/{certification}', [AdminCertificationController::class, 'show'])->name('certifications.show');
     Route::get('certifications-expiring', [AdminCertificationController::class, 'expiring'])->name('certifications.expiring');
-    Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->name('certifications.validate');
+    Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->middleware('permission:valider-certifications')->name('certifications.validate');
     Route::delete('certifications/{certification}', [AdminCertificationController::class, 'destroy'])->name('certifications.destroy');
 });
 
-Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'acteur'])->group(function () {
+Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'verified', 'acteur'])->group(function () {
     Route::get('certifications/create', [ActeurCertificationController::class, 'create'])->name('certifications.create');
     Route::get('certifications-expiring', [ActeurCertificationController::class, 'expiring'])->name('certifications.expiring');
     Route::apiResource('certifications', ActeurCertificationController::class)->except(['create', 'edit']);
@@ -154,7 +172,7 @@ Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'acteur'])->group(
 });
 
 // ===== Module Commandes : espace du distributeur (commandes et livraisons) =====
-Route::middleware(['auth', 'distributeur'])->prefix('distributeur')->name('distributeur.')->group(function () {
+Route::middleware(['auth', 'verified', 'distributeur', 'permission:gerer-livraisons'])->prefix('distributeur')->name('distributeur.')->group(function () {
     Route::get('/', [DistributeurLivraisonController::class, 'dashboard'])->name('dashboard');
     Route::get('/commandes', [DistributeurCommandeController::class, 'index'])->name('commandes.index');
     Route::get('/commandes/{commande}', [DistributeurCommandeController::class, 'show'])->name('commandes.show');
@@ -173,7 +191,7 @@ Route::middleware(['auth', 'distributeur'])->prefix('distributeur')->name('distr
 });
 
 // ===== Back office (Sneat) : réservé aux administrateurs connectés =====
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::view('/auth-forgot-password-basic', 'back.auth-forgot-password-basic')->name('auth-forgot-password-basic');
     Route::view('/auth-login-basic', 'back.auth-login-basic')->name('auth-login-basic');
     Route::view('/auth-register-basic', 'back.auth-register-basic')->name('auth-register-basic');
@@ -216,9 +234,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/ui-toasts', 'back.ui-toasts')->name('ui-toasts');
     Route::view('/ui-tooltips-popovers', 'back.ui-tooltips-popovers')->name('ui-tooltips-popovers');
     Route::view('/ui-typography', 'back.ui-typography')->name('ui-typography');
-    Route::resource('categories', CategoryController::class)->except(['show']);
-    Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->name('categories.valider');
-    Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->name('categories.refuser');
+    // Spatie : permissions en plus du middleware « admin » (voir RolePermissionSeeder)
+    Route::resource('categories', CategoryController::class)->except(['show'])->middleware('permission:gerer-categories');
+    Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->middleware('permission:gerer-categories')->name('categories.valider');
+    Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->middleware('permission:gerer-categories')->name('categories.refuser');
     Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
     Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
     Route::get('/commandes', [AdminCommandeController::class, 'index'])->name('commandes.index');

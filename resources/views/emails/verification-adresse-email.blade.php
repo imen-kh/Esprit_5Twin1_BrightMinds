@@ -1,10 +1,10 @@
-{{-- Email du code de double authentification : styles en ligne, obligatoires pour les messageries --}}
+{{-- Email de vérification de l'adresse : styles en ligne, obligatoires pour les messageries --}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Votre code de vérification</title>
+    <title>Confirmez votre adresse email</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: Arial, Helvetica, sans-serif; color: #45595b;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f6f8; padding: 32px 16px;">
@@ -20,16 +20,22 @@
                         <td style="padding: 32px;">
                             <h1 style="margin: 0 0 16px; font-size: 20px; color: #45595b;">Bonjour {{ $user->name }},</h1>
                             <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6;">
-                                Voici votre code de vérification pour terminer votre connexion à NutriTrace :
+                                Bienvenue sur NutriTrace ! Pour activer votre compte et accéder à votre espace, confirmez votre adresse email.
                             </p>
                             <p style="margin: 24px 0; text-align: center;">
-                                <span style="display: inline-block; background-color: #f4f6f8; color: #45595b; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 16px 28px; border-radius: 10px;">{{ $code }}</span>
+                                <a href="{{ $url }}" style="display: inline-block; background-color: #81c408; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 15px; padding: 14px 28px; border-radius: 30px;">
+                                    Confirmer mon adresse email
+                                </a>
                             </p>
                             <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6;">
-                                Ce code expire dans {{ $duree }} minutes et ne peut servir qu'une seule fois.
+                                Ce lien expire dans {{ $duree }} minutes.
                             </p>
-                            <p style="margin: 0; font-size: 15px; line-height: 1.6;">
-                                Si vous n'êtes pas à l'origine de cette connexion, ne communiquez ce code à personne et changez votre mot de passe.
+                            <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6;">
+                                Si vous n'avez pas créé de compte NutriTrace, ignorez simplement cet email.
+                            </p>
+                            <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #8a9a9c; border-top: 1px solid #e6ebee; padding-top: 16px;">
+                                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+                                <a href="{{ $url }}" style="color: #81c408; word-break: break-all;">{{ $url }}</a>
                             </p>
                         </td>
                     </tr>
