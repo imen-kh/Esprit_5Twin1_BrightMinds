@@ -15,9 +15,7 @@ use Illuminate\Http\Request;
  */
 class DoubleAuthentificationController extends Controller
 {
-    public function __construct(private DoubleAuthentificationService $doubleAuth)
-    {
-    }
+    public function __construct(private DoubleAuthentificationService $doubleAuth) {}
 
     /**
      * Génère la clé secrète : la 2FA reste inactive tant que le premier code n'est pas confirmé.

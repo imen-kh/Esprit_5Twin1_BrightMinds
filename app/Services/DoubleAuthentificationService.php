@@ -20,9 +20,7 @@ class DoubleAuthentificationService
     /** Nombre de codes de récupération fournis à l'utilisateur. */
     public const NOMBRE_CODES_RECUPERATION = 8;
 
-    public function __construct(private Google2FA $google2fa)
-    {
-    }
+    public function __construct(private Google2FA $google2fa) {}
 
     /**
      * Nouvelle clé secrète (base32), à enregistrer chiffrée sur l'utilisateur.
@@ -47,7 +45,7 @@ class DoubleAuthentificationService
     {
         $url = $this->google2fa->getQRCodeUrl(config('app.name', 'NutriTrace'), $user->email, $user->two_factor_secret);
 
-        $svg = (new Writer(new ImageRenderer(new RendererStyle(200, 1), new SvgImageBackEnd())))->writeString($url);
+        $svg = (new Writer(new ImageRenderer(new RendererStyle(200, 1), new SvgImageBackEnd)))->writeString($url);
 
         // Sans le prologue XML, le SVG s'insère directement dans la page
         return trim(preg_replace('/^<\?xml.*?\?>/s', '', $svg));

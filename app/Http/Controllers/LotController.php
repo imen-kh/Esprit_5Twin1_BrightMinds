@@ -239,7 +239,7 @@ class LotController extends Controller
     /**
      * Produits pour lesquels l'utilisateur peut créer un lot : tous pour l'admin, les siens pour un acteur.
      *
-     * @return \Illuminate\Support\Collection<int, \App\Models\Product>
+     * @return Collection<int, Product>
      */
     private function produitsAccessibles(User $user): Collection
     {
@@ -253,7 +253,7 @@ class LotController extends Controller
      * Lots proposés comme lot d'origine en modification : ceux des matières premières commandées
      * par le transformateur (tous pour l'admin), plus l'origine déjà enregistrée, sauf le lot lui-même.
      *
-     * @return \Illuminate\Support\Collection<int, \App\Models\Lot>
+     * @return Collection<int, Lot>
      */
     private function lotsOrigine(User $user, MatieresPremieresService $matieres, Lot $lot): Collection
     {

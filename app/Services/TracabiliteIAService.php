@@ -65,7 +65,7 @@ class TracabiliteIAService
     {
         $donnees = $this->donneesChaine($lot, $lot->chaineComplete());
 
-        $prompt = <<<PROMPT
+        $prompt = <<<'PROMPT'
         Tu es le narrateur de NutriTrace, une plateforme tunisienne de traçabilité alimentaire.
         Un consommateur vient de scanner le QR code d'un produit. À partir UNIQUEMENT des données JSON ci-dessous,
         raconte-lui en français le parcours de ce produit, de son origine jusqu'à lui.
@@ -121,7 +121,7 @@ class TracabiliteIAService
             'vitesse_max_kmh' => config('tracabilite.vitesse_max_kmh'),
         ];
 
-        $prompt = <<<PROMPT
+        $prompt = <<<'PROMPT'
         Tu es auditeur qualité et sécurité alimentaire pour NutriTrace, une plateforme tunisienne de traçabilité.
         Voici la chaîne de traçabilité d'un lot et les anomalies détectées par des contrôles automatiques fiables
         (règles déterministes : chaîne du froid, vitesse des trajets, étapes manquantes, dates).
@@ -238,7 +238,7 @@ class TracabiliteIAService
     /**
      * Données envoyées au modèle : produit, lot, lot d'origine et étapes de la chaîne complète.
      *
-     * @param  \Illuminate\Support\Collection<int, \App\Models\EtapeTracabilite>  $etapes
+     * @param  Collection<int, EtapeTracabilite>  $etapes
      * @return array<string, mixed>
      */
     private function donneesChaine(Lot $lot, Collection $etapes): array
