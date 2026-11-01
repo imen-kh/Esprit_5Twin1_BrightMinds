@@ -53,6 +53,11 @@ Route::view('/404', 'errors.404')->name('page404');
 // Module Traçabilité : pages publiques (sans connexion), accessibles par QR code
 Route::get('/tracabilite', [TracabiliteController::class, 'index'])->name('tracabilite.index');
 Route::get('/tracabilite/{lot:code}', [TracabiliteController::class, 'show'])->name('tracabilite.show');
+Route::get('/tracabilite/{lot:code}/pdf', [TracabiliteController::class, 'pdf'])->name('tracabilite.pdf');
+// Assistant IA de la page publique : 10 questions par minute et par visiteur
+Route::post('/tracabilite/{lot:code}/assistant', [TracabiliteController::class, 'assistant'])
+    ->middleware('throttle:10,1')
+    ->name('tracabilite.assistant');
 // Module Environnement — front-office
 // Les segments fixes (simuler, create) sont déclarés avant /{bilan}.
 Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
@@ -118,6 +123,9 @@ Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(
 // ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
 Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
     Route::resource('lots', LotController::class);
+    // IA du module : histoire du produit (page publique) et analyse des anomalies
+    Route::post('lots/{lot}/histoire', [LotController::class, 'regenererHistoire'])->name('lots.histoire');
+    Route::post('lots/{lot}/analyser', [LotController::class, 'analyser'])->name('lots.analyser');
     Route::resource('etapes', EtapeTracabiliteController::class);
 });
 

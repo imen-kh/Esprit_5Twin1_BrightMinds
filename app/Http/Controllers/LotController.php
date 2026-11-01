@@ -8,6 +8,7 @@ use App\Models\Lot;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\MatieresPremieresService;
+use App\Services\TracabiliteIAService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -47,8 +48,16 @@ class LotController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        // Contrôles automatiques des lots de la page : icône d'alerte selon la gravité la plus haute
+        $alertes = $lots->getCollection()->mapWithKeys(function (Lot $lot) {
+            $anomalies = $lot->anomalies();
+
+            return [$lot->id => ['nombre' => count($anomalies), 'gravite' => Lot::graviteMax($anomalies)]];
+        });
+
         return view('back.lots.index', [
             'lots' => $lots,
+            'alertes' => $alertes,
             'recherche' => $recherche,
             'statut' => $statut,
             'produitFiltre' => $produit,
@@ -114,19 +123,63 @@ class LotController extends Controller
     /**
      * Détail d'un lot : produit, lot d'origine, lots dérivés et étapes.
      */
-    public function show(Request $request, Lot $lot): View
+    public function show(Request $request, Lot $lot, TracabiliteIAService $ia): View
     {
         abort_unless($lot->estVisiblePar($request->user()), 403, 'Vous n\'avez pas accès à ce lot.');
 
         $lot->load(['produit.category', 'produit.user', 'lotOrigine.produit', 'lotsDerives.produit', 'etapes.acteur']);
 
+        // Contrôles automatiques et score de transparence sur la chaîne complète (lots d'origine compris)
+        $chaine = $lot->chaineComplete();
+        $anomalies = $lot->anomalies($chaine);
+        $criteres = $lot->criteresTransparence($chaine, $anomalies);
+
         return view('back.lots.show', [
             'lot' => $lot,
+            'anomalies' => $anomalies,
+            'criteres' => $criteres,
+            'score' => (int) array_sum(array_column($criteres, 'points')),
+            // Histoire et analyse IA : seulement celles déjà en cache, cette page n'attend jamais l'API
+            'histoireAJour' => $lot->histoireAJour(),
+            'analyseIA' => $ia->analyseEnCache($lot),
+            'iaConfiguree' => $ia->estConfigure(),
             'peutModifier' => $lot->estModifiablePar($request->user()),
             'peutAjouterEtape' => $lot->accepteEtapeDe($request->user()),
             // QR code (SVG) vers la page publique de traçabilité du lot
             'qrCode' => (string) QrCode::size(150)->margin(1)->generate(route('tracabilite.show', $lot)),
         ]);
+    }
+
+    /**
+     * (Re)génère l'histoire IA du produit, affichée sur la page publique.
+     */
+    public function regenererHistoire(Request $request, Lot $lot, TracabiliteIAService $ia): RedirectResponse
+    {
+        abort_unless($lot->estVisiblePar($request->user()), 403, 'Vous n\'avez pas accès à ce lot.');
+
+        if (! $ia->estConfigure()) {
+            return back()->with('error', 'L\'IA n\'est pas configurée : renseignez GEMINI_API_KEY dans le fichier .env.');
+        }
+
+        return $ia->histoire($lot, forcer: true) !== null
+            ? back()->with('success', "L'histoire du lot {$lot->code} a été générée par l'IA.")
+            : back()->with('error', 'Le service d\'IA est momentanément indisponible. Réessayez dans quelques instants.');
+    }
+
+    /**
+     * Analyse IA du lot à partir des anomalies détectées automatiquement.
+     */
+    public function analyser(Request $request, Lot $lot, TracabiliteIAService $ia): RedirectResponse
+    {
+        abort_unless($lot->estVisiblePar($request->user()), 403, 'Vous n\'avez pas accès à ce lot.');
+
+        if (! $ia->estConfigure()) {
+            return back()->with('error', 'L\'IA n\'est pas configurée : seuls les contrôles automatiques sont affichés.');
+        }
+
+        return $ia->analyserEtMemoriser($lot, $lot->anomalies()) !== null
+            ? back()->with('success', "Analyse IA du lot {$lot->code} terminée.")
+            : back()->with('error', 'Le service d\'IA est momentanément indisponible : seuls les contrôles automatiques sont affichés.');
     }
 
     /**
