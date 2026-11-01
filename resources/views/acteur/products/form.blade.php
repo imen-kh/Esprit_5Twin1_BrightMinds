@@ -1,9 +1,17 @@
 @extends('layouts.front')
 
-@section('title', $product->exists ? 'Modifier un produit' : 'Ajouter un produit')
+@php
+    // Le transformateur saisit un produit transformé (avec ses ingrédients), le producteur une matière première
+    $transformateur = auth()->user()->isTransformateur();
+    $titre = $product->exists
+        ? ($transformateur ? 'Modifier un produit transformé' : 'Modifier un produit')
+        : ($transformateur ? 'Ajouter un produit transformé' : 'Ajouter un produit');
+@endphp
+
+@section('title', $titre)
 
 @section('content')
-@include('partials.front.page-header', ['titre' => $product->exists ? 'Modifier un produit' : 'Ajouter un produit'])
+@include('partials.front.page-header', ['titre' => $titre])
 
 <div class="container py-4">
     @if (session('success'))
@@ -13,17 +21,17 @@
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-7">
             <div class="bg-light rounded p-3 p-md-4">
-                <h2 class="h4 text-primary mb-1">{{ $product->exists ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
+                <h2 class="h4 text-primary mb-1">{{ $product->exists ? ($transformateur ? 'Modifier le produit transformé' : 'Modifier le produit') : ($transformateur ? 'Nouveau produit transformé' : 'Nouveau produit') }}</h2>
                 <p class="mb-3">Dès l’enregistrement, le produit est publié et visible dans le catalogue.</p>
 
-                <form id="product-form" method="POST" action="{{ $product->exists ? route('acteur.produits.update', $product) : route('acteur.produits.store') }}" enctype="multipart/form-data" data-has-image="{{ $product->image ? '1' : '0' }}" novalidate>
+                <form id="product-form" method="POST" action="{{ $product->exists ? route('acteur.produits.update', $product) : route('acteur.produits.store') }}" enctype="multipart/form-data" data-has-image="{{ $product->aUnePhoto() ? '1' : '0' }}" novalidate>
                     @csrf
                     @if ($product->exists) @method('PUT') @endif
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label" for="name">Nom</label>
-                            <input class="form-control border-secondary rounded-pill py-2 px-3 @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $product->name) }}" placeholder="Ex. Tomate">
+                            <input class="form-control border-secondary rounded-pill py-2 px-3 @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $product->name) }}" placeholder="{{ $transformateur ? 'Ex. Confiture de fraises' : 'Ex. Tomate' }}">
                             <div class="form-text">Entre 3 et 100 caractères.</div>
                             <div class="invalid-feedback" data-error-for="name">@error('name'){{ $message }}@enderror</div>
                         </div>
@@ -40,13 +48,13 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="description">Description</label>
-                            <textarea class="form-control border-secondary rounded py-2 px-3 @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Décrivez le produit">{{ old('description', $product->description) }}</textarea>
+                            <textarea class="form-control border-secondary rounded py-2 px-3 @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="{{ $transformateur ? 'Décrivez le produit transformé' : 'Décrivez le produit' }}">{{ old('description', $product->description) }}</textarea>
                             <div class="form-text">Entre 10 et 1000 caractères.</div>
                             <div class="invalid-feedback" data-error-for="description">@error('description'){{ $message }}@enderror</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="price">Prix (DT)</label>
-                            <input class="form-control border-secondary rounded-pill py-2 px-3 @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price', $product->price) }}" placeholder="Ex. 2,500">
+                            <input class="form-control border-secondary rounded-pill py-2 px-3 @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price', $product->price) }}" placeholder="{{ $transformateur ? 'Ex. 8,500' : 'Ex. 2,500' }}">
                             <div class="form-text">Entre 0,1 et 9999 DT.</div>
                             <div class="invalid-feedback" data-error-for="price">@error('price'){{ $message }}@enderror</div>
                         </div>
@@ -59,17 +67,17 @@
                         <div class="col-12">
                             <label class="form-label" for="image">Image</label>
                             <input class="form-control form-control-sm border-secondary @error('image') is-invalid @enderror" id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp">
-                            <div class="form-text">JPG, PNG ou WEBP, 2 Mo maximum.@if ($product->image) Laissez vide pour conserver l’image actuelle.@endif</div>
+                            <div class="form-text">JPG, PNG ou WEBP, 2 Mo maximum.@if ($product->aUnePhoto()) Laissez vide pour conserver l’image actuelle.@endif</div>
                             <div class="invalid-feedback" data-error-for="image">@error('image'){{ $message }}@enderror</div>
                             <img id="image-preview" class="d-none rounded mt-2" alt="Aperçu de l’image" style="max-height: 120px;">
-                            @if ($product->image)
+                            @if ($product->aUnePhoto())
                                 <img id="current-image" class="rounded mt-2" src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" style="max-height: 120px;">
                             @endif
                         </div>
-                        @if (auth()->user()->type_acteur === 'transformateur')
+                        @if ($transformateur)
                             <div class="col-12">
                                 <label class="form-label" for="ingredients">Ingrédients</label>
-                                <textarea class="form-control border-secondary rounded py-2 px-3 @error('ingredients') is-invalid @enderror" id="ingredients" name="ingredients" rows="3">{{ old('ingredients', $product->ingredients) }}</textarea>
+                                <textarea class="form-control border-secondary rounded py-2 px-3 @error('ingredients') is-invalid @enderror" id="ingredients" name="ingredients" rows="3" placeholder="Ex. fraises, sucre, jus de citron">{{ old('ingredients', $product->ingredients) }}</textarea>
                                 <div class="form-text">Matières premières transformées, entre 10 et 1000 caractères. Exemple : fraises, sucre, jus de citron.</div>
                                 <div class="invalid-feedback" data-error-for="ingredients">@error('ingredients'){{ $message }}@enderror</div>
                             </div>
