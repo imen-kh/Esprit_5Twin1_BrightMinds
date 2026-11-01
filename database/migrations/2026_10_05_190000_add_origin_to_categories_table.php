@@ -14,13 +14,19 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->after('origin')->constrained()->nullOnDelete();
         });
 
-        DB::statement("ALTER TABLE `categories` ADD CONSTRAINT `categories_origin_check` CHECK (`origin` IN ('admin', 'producteur'))");
+        // Contrainte CHECK propre à MySQL : ignorée sous SQLite (tests et CI)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `categories` ADD CONSTRAINT `categories_origin_check` CHECK (`origin` IN ('admin', 'producteur'))");
+        }
+
         DB::table('categories')->where('status', 'proposee')->update(['origin' => 'producteur']);
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE `categories` DROP CHECK `categories_origin_check`');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `categories` DROP CHECK `categories_origin_check`');
+        }
 
         Schema::table('categories', function (Blueprint $table) {
             $table->dropConstrainedForeignId('user_id');
