@@ -37,7 +37,11 @@
                                     <a href="#" class="nav-link dropdown-toggle {{ $dansMonEspace ? 'active' : '' }}" data-bs-toggle="dropdown">Mon espace</a>
                                     <div class="dropdown-menu m-0 bg-secondary rounded-0">
                                         @if ($utilisateur->isProducteur())
+                                            <a href="{{ route('acteur.tableau') }}" class="dropdown-item">Tableau de bord</a>
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits</a>
+                                            <a href="{{ route('acteur.meteo') }}" class="dropdown-item">Météo agricole</a>
+                                            <a href="{{ route('acteur.recoltes.index') }}" class="dropdown-item">Mes récoltes</a>
+                                            <a href="{{ route('acteur.stocks.index') }}" class="dropdown-item">Gestion intelligente des stocks</a>
                                         @elseif ($utilisateur->isTransformateur())
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
                                         @elseif ($utilisateur->isDistributeur())

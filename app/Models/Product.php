@@ -7,19 +7,89 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductFactory> */
-    use HasFactory;
+    use HasFactory, Searchable;
+
+    public const DRAFT = 'draft';
+
+    public const PENDING = 'pending_review';
+
+    public const CHANGES = 'changes_requested';
+
+    public const REJECTED = 'rejected';
+
+    public const PUBLISHED = 'published';
+
     protected $fillable = [
         'name', 'description', 'price', 'origin', 'image', 'ingredients',
-        'status', 'type_produit', 'category_id', 'user_id',
+        'status', 'review_note', 'reviewed_at', 'reviewed_by', 'ai_analysis', 'quality_analysis',
+        'type_produit', 'category_id', 'user_id',
     ];
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:3'];
+        return [
+            'price' => 'decimal:3',
+            'reviewed_at' => 'datetime',
+            'ai_analysis' => 'array',
+            'quality_analysis' => 'array',
+        ];
+    }
+
+    public function libelleStatut(): string
+    {
+        return match ($this->status) {
+            self::PUBLISHED => 'Publié',
+            self::PENDING => 'En attente de validation',
+            self::CHANGES => 'Modification demandée',
+            self::REJECTED => 'Refusé',
+            default => 'Brouillon',
+        };
+    }
+
+    public function classeStatut(): string
+    {
+        return match ($this->status) {
+            self::PUBLISHED => 'bg-success',
+            self::PENDING => 'bg-warning text-dark',
+            self::CHANGES => 'bg-info text-dark',
+            self::REJECTED => 'bg-danger',
+            default => 'bg-secondary',
+        };
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Champs réellement stockés, envoyés à Meilisearch. Les brouillons ne sont pas indexés.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        $this->loadMissing('category');
+
+        return [
+            'name' => (string) $this->name,
+            'description' => (string) $this->description,
+            'origin' => (string) $this->origin,
+            'ingredients' => (string) $this->ingredients,
+            'category' => (string) $this->category?->name,
+            'price' => (float) $this->price,
+            'status' => (string) $this->status,
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->status === self::PUBLISHED;
     }
 
     public function category(): BelongsTo
@@ -30,6 +100,11 @@ class Product extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function harvests(): HasMany
+    {
+        return $this->hasMany(Harvest::class);
     }
 
     public function formattedPrice(): string

@@ -91,8 +91,23 @@
                   @can('gerer-categories')
                     <li class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}"><a href="{{ route('admin.categories.index') }}" class="menu-link"><div class="text-truncate">Catégories</div></a></li>
                   @endcan
-                  <li class="menu-item {{ request()->routeIs('admin.produits.*') ? 'active' : '' }}"><a href="{{ route('admin.produits.index') }}" class="menu-link"><div class="text-truncate">Produits</div></a></li>
+                  <li class="menu-item {{ request()->routeIs('admin.produits.index', 'admin.produits.statut') ? 'active' : '' }}"><a href="{{ route('admin.produits.index') }}" class="menu-link"><div class="text-truncate">Produits</div></a></li>
+                  @can('valider-produits')
+                    <li class="menu-item {{ request()->routeIs('admin.produits.validation', 'admin.produits.revue') ? 'active' : '' }}"><a href="{{ route('admin.produits.validation') }}" class="menu-link"><div class="text-truncate">Validation</div></a></li>
+                  @endcan
               </ul>
+            </li>
+            @endif
+            @if (auth()->user()->isAdmin())
+            <li class="menu-item {{ request()->routeIs('admin.recoltes.*') ? 'active' : '' }}">
+              <a href="{{ route('admin.recoltes.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-calendar"></i><div class="text-truncate">Récoltes</div>
+              </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('admin.stocks.*') ? 'active' : '' }}">
+              <a href="{{ route('admin.stocks.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-archive"></i><div class="text-truncate">Stocks</div>
+              </a>
             </li>
             @endif
             {{-- Module Commandes : suivi des commandes et des livraisons par l'administrateur --}}

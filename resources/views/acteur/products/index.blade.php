@@ -61,7 +61,7 @@
         <div class="table-responsive border rounded">
             <table class="table align-middle mb-0">
                 <thead>
-                    <tr><th></th><th>Produit transformé</th><th>Catégorie</th><th>Type</th><th>Prix</th><th>Lots</th><th>Actions</th></tr>
+                    <tr><th></th><th>Produit transformé</th><th>Catégorie</th><th>Type</th><th>Prix</th><th>Statut</th><th>Lots</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                 @forelse ($products as $product)
@@ -74,6 +74,12 @@
                         <td><span class="badge bg-success">Transformé</span></td>
                         <td>{{ $product->formattedPrice() }} DT</td>
                         <td>
+                            <span class="badge {{ $product->classeStatut() }}">{{ $product->libelleStatut() }}</span>
+                            @if ($product->review_note)
+                                <small class="d-block text-muted mt-1">{{ $product->review_note }}</small>
+                            @endif
+                        </td>
+                        <td>
                             {{-- module Traçabilité : lots de ce produit --}}
                             <a href="{{ route('gestion.lots.index', ['produit_id' => $product->id]) }}" class="badge bg-secondary text-decoration-none" title="Voir les lots de ce produit">
                                 {{ $product->lots_count }} lot{{ $product->lots_count > 1 ? 's' : '' }}
@@ -81,7 +87,9 @@
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-2">
-                                <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{{ route('produit.detail', $product) }}">Voir</a>
+                                @if ($product->status === \App\Models\Product::PUBLISHED)
+                                    <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{{ route('produit.detail', $product) }}">Voir</a>
+                                @endif
                                 <a class="btn btn-sm btn-outline-primary rounded-pill px-3" href="{{ route('acteur.produits.edit', $product) }}">Modifier</a>
                                 <button
                                     class="btn btn-sm btn-outline-danger rounded-pill px-3"
@@ -94,7 +102,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center py-4">Aucun produit transformé enregistré.</td></tr>
+                    <tr><td colspan="8" class="text-center py-4">Aucun produit transformé enregistré.</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -102,7 +110,7 @@
     @else
         {{-- ===== Producteur : matières premières ===== --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-5">
-            <p class="mb-0">Vos produits publiés apparaissent ici et dans le catalogue.</p>
+            <p class="mb-0">Un produit ajouté reste en attente jusqu’à la validation d’un administrateur.</p>
             <a class="btn btn-primary rounded-pill px-4 py-3" href="{{ route('acteur.produits.create') }}">Ajouter un produit</a>
         </div>
 
@@ -117,6 +125,10 @@
                             <span class="fs-5 fw-bold text-primary">{{ $product->formattedPrice() }} DT</span>
                         </div>
                         <h3 class="h4">{{ $product->name }}</h3>
+                        <p class="mb-2"><span class="badge {{ $product->classeStatut() }}">{{ $product->libelleStatut() }}</span></p>
+                        @if ($product->review_note)
+                            <p class="mb-2 text-danger">{{ $product->review_note }}</p>
+                        @endif
                         <p class="mb-2">{{ \Illuminate\Support\Str::limit($product->description, 140) }}</p>
                         <p class="mb-4"><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ $product->origin }}</p>
                         <div class="d-flex flex-wrap gap-2 mt-auto">
@@ -133,7 +145,7 @@
                 <div class="col-12">
                     <div class="bg-light rounded text-center p-5">
                         <h3 class="h4 text-primary">Aucun produit pour le moment</h3>
-                        <p class="mb-4">Ajoutez votre premier produit pour le publier dans le catalogue.</p>
+                        <p class="mb-4">Ajoutez votre premier produit. Il sera publié après validation.</p>
                         <a class="btn btn-primary rounded-pill px-4 py-3" href="{{ route('acteur.produits.create') }}">Ajouter un produit</a>
                     </div>
                 </div>

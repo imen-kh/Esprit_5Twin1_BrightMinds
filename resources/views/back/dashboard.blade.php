@@ -27,6 +27,8 @@
                 </div>
               </div>
 
+              @include('back.partials.dashboard-agricole')
+
               {{-- ===== Chiffres clés ===== --}}
               <div class="row g-6 mb-6">
                 @foreach ([
