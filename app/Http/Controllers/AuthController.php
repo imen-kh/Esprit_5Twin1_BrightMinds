@@ -38,7 +38,6 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
-        $user->confirmerSiCompteDemonstration();
 
         // Double authentification active : pas de connexion tant que le code de l'application n'est pas saisi
         if ($user->aDoubleAuthentification()) {

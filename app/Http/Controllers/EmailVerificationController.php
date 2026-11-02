@@ -19,8 +19,6 @@ class EmailVerificationController extends Controller
      */
     public function notice(Request $request): View|RedirectResponse
     {
-        $request->user()->confirmerSiCompteDemonstration();
-
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->route($request->user()->espaceRoute());
         }
