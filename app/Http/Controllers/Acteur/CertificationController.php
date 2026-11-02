@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\CertificationIAService;
 
 class CertificationController extends Controller
 {
@@ -52,6 +53,14 @@ class CertificationController extends Controller
         $this->authorize('view', $certification);
         $certification->load(['label', 'product']);
         return $request->expectsJson() ? response()->json($certification) : view('acteur.certifications.show', compact('certification'));
+    }
+
+    public function analyser(Request $request, Certification $certification, CertificationIAService $service): mixed
+    {
+        $this->authorize('view', $certification);
+        $analyse = $service->analyser($certification);
+
+        return $request->expectsJson() ? response()->json($analyse) : back()->with('analyse_ia', $analyse);
     }
 
     public function edit(Certification $certification): mixed

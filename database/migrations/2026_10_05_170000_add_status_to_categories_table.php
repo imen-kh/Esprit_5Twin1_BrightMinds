@@ -9,6 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('categories', 'status')) {
+            return;
+        }
+
         // SQLite (tests et CI) : même colonne via le Schema Builder, sans la contrainte CHECK propre à MySQL
         if (DB::getDriverName() !== 'mysql') {
             Schema::table('categories', function (Blueprint $table) {
