@@ -108,6 +108,9 @@ class DatabaseSeeder extends Seeder
             FacteurEmissionSeeder::class, // module Environnement
             EnvironnementSeeder::class,
             ReclamationSeeder::class,    // module Réclamations
+            PanierSeeder::class,
+            CommandeSeeder::class,
+            LivraisonSeeder::class,
         ]);
     }
 }

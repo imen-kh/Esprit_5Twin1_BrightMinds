@@ -67,23 +67,16 @@
                         </div>
                         <div class="d-flex m-3 me-0">
                             <button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>
-                            @php
-                                $cart_count = 0;
-                                if (Auth::check()) {
+                            @if (Auth::check() && (Auth::user()->isConsommateur() || Auth::user()->isTransformateur()))
+                                @php
                                     $cart = \App\Models\Panier::where('user_id', Auth::id())->where('statut', 'actif')->withCount('products')->first();
-                                    if ($cart) $cart_count = $cart->products_count;
-                                } else {
-                                    $panier_id = session('panier_id');
-                                    if ($panier_id) {
-                                        $cart = \App\Models\Panier::where('id', $panier_id)->where('statut', 'actif')->withCount('products')->first();
-                                        if ($cart) $cart_count = $cart->products_count;
-                                    }
-                                }
-                            @endphp
-                            <a href="{{ route('panier') }}" class="position-relative me-4 my-auto">
-                                <i class="fa fa-shopping-bag fa-2x"></i>
-                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">{{ $cart_count }}</span>
-                            </a>
+                                    $cart_count = $cart?->products_count ?? 0;
+                                @endphp
+                                <a href="{{ route('panier') }}" class="position-relative me-4 my-auto">
+                                    <i class="fa fa-shopping-bag fa-2x"></i>
+                                    <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">{{ $cart_count }}</span>
+                                </a>
+                            @endif
                             @guest
                                 <a href="{{ route('login') }}" class="my-auto" title="Se connecter">
                                     <i class="fas fa-user fa-2x"></i>

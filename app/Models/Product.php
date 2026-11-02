@@ -44,6 +44,11 @@ class Product extends Model
         return $this->hasMany(Lot::class, 'produit_id');
     }
 
+    public function certifications(): HasMany
+    {
+        return $this->hasMany(Certification::class);
+    }
+
     public function paniers()
     {
         return $this->belongsToMany(Panier::class, 'panier_produit')->withPivot('quantite')->withTimestamps();

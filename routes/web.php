@@ -40,6 +40,14 @@ Route::middleware('compte')->group(function () {
     Route::get('/produits/{product}', [CatalogueController::class, 'show'])->name('produit.detail');
     // Module Commandes : panier et passage de commande
     Route::get('/panier', [PanierController::class, 'index'])->name('panier');
+    Route::get('/panier/intelligent/analyser', fn () => redirect()->route('panier'));
+    Route::post('/panier/intelligent/analyser', [PanierController::class, 'smartAnalyze'])->name('panier.smart.analyze');
+    Route::get('/panier/intelligent/comprendre', fn () => redirect()->route('panier'));
+    Route::post('/panier/intelligent/comprendre', [PanierController::class, 'parseSmartRequest'])->name('panier.smart.parse');
+    Route::get('/panier/intelligent/confirmer', fn () => redirect()->route('panier'));
+    Route::post('/panier/intelligent/confirmer', [PanierController::class, 'confirmSmart'])->name('panier.smart.confirm');
+    Route::post('/panier/optimiser', [PanierController::class, 'optimize'])->name('panier.optimize');
+    Route::post('/panier/optimiser/confirmer', [PanierController::class, 'confirmOptimization'])->name('panier.optimize.confirm');
     Route::post('/panier/add', [PanierController::class, 'add'])->name('panier.add');
     Route::put('/panier/{product_id}', [PanierController::class, 'update'])->name('panier.update');
     Route::delete('/panier/{product_id}', [PanierController::class, 'remove'])->name('panier.remove');

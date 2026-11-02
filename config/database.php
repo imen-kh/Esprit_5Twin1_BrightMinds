@@ -58,8 +58,12 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => env('MYSQL_ATTR_SSL_VERIFY_SERVER_CERT', false),
+                // Aiven impose une connexion TLS ; le certificat est fourni dans le projet.
+                PDO::MYSQL_ATTR_SSL_CA => is_file((string) env('MYSQL_ATTR_SSL_CA'))
+                    ? env('MYSQL_ATTR_SSL_CA')
+                    : base_path('ca.pem'),
+                // Le chiffrement SSL reste actif ; cette option évite seulement les incompatibilités PDO de vérification hôte.
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
             ]) : [],
         ],
 
