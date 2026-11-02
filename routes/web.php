@@ -4,7 +4,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\EtapeTracabiliteController;
 use App\Http\Controllers\LotController;
+use App\Http\Controllers\Acteur\AgriWeatherController;
+use App\Http\Controllers\Acteur\HarvestController as ActeurHarvestController;
+use App\Http\Controllers\Acteur\StockController as ActeurStockController;
+use App\Http\Controllers\Admin\HarvestController as AdminHarvestController;
+use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Acteur\CategorySuggestionController;
+use App\Http\Controllers\Acteur\DashboardController as ActeurDashboardController;
 use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
 use App\Http\Controllers\PanierController;
@@ -136,6 +142,26 @@ Route::middleware(['auth', 'verified', 'acteur'])->prefix('acteur')->name('acteu
     Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
     Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
+    Route::post('produits/generer-ia', [ActeurProductController::class, 'genererIa'])
+        ->middleware(['permission:gerer-produits', 'throttle:10,1'])
+        ->name('produits.generer-ia');
+    Route::post('produits/qualite-ia', [ActeurProductController::class, 'qualiteIa'])
+        ->middleware(['permission:gerer-produits', 'throttle:10,1'])
+        ->name('produits.qualite-ia');
+    Route::get('meteo', [AgriWeatherController::class, 'index'])
+        ->middleware('permission:gerer-produits')
+        ->name('meteo');
+    Route::middleware('permission:gerer-produits')->group(function () {
+        Route::get('tableau', [ActeurDashboardController::class, 'index'])->name('tableau');
+        Route::get('recoltes/evenements', [ActeurHarvestController::class, 'events'])->name('recoltes.evenements');
+        Route::resource('recoltes', ActeurHarvestController::class)->parameters(['recoltes' => 'harvest']);
+        Route::get('stocks', [ActeurStockController::class, 'index'])->name('stocks.index');
+        Route::get('stocks/creer', [ActeurStockController::class, 'create'])->name('stocks.create');
+        Route::post('stocks', [ActeurStockController::class, 'store'])->name('stocks.store');
+        Route::get('stocks/{stockItem}', [ActeurStockController::class, 'show'])->name('stocks.show');
+        Route::patch('stocks/{stockItem}', [ActeurStockController::class, 'update'])->name('stocks.update');
+        Route::post('stocks/{stockItem}/mouvements', [ActeurStockController::class, 'mouvement'])->name('stocks.mouvements.store');
+    });
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
 });
 
@@ -207,6 +233,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::view('/forms-input-groups', 'back.forms-input-groups')->name('forms-input-groups');
     Route::view('/icons-boxicons', 'back.icons-boxicons')->name('icons-boxicons');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('recoltes', [AdminHarvestController::class, 'index'])->name('recoltes.index');
+    Route::get('stocks', [AdminStockController::class, 'index'])->name('stocks.index');
     Route::view('/layouts-blank', 'back.layouts-blank')->name('layouts-blank');
     Route::view('/layouts-container', 'back.layouts-container')->name('layouts-container');
     Route::view('/layouts-fluid', 'back.layouts-fluid')->name('layouts-fluid');
@@ -242,7 +270,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->middleware('permission:gerer-categories')->name('categories.valider');
     Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->middleware('permission:gerer-categories')->name('categories.refuser');
     Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
-    Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
+    Route::middleware('permission:valider-produits')->group(function () {
+        Route::get('/produits/validation', [AdminProductController::class, 'validation'])->name('produits.validation');
+        Route::get('/produits/{product}/revue', [AdminProductController::class, 'revue'])->name('produits.revue');
+        Route::post('/produits/{product}/analyser', [AdminProductController::class, 'analyser'])->middleware('throttle:10,1')->name('produits.analyser');
+        Route::patch('/produits/{product}/approuver', [AdminProductController::class, 'approuver'])->name('produits.approuver');
+        Route::patch('/produits/{product}/refuser', [AdminProductController::class, 'refuser'])->name('produits.refuser');
+        Route::patch('/produits/{product}/modification', [AdminProductController::class, 'demanderModification'])->name('produits.modification');
+        Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
+    });
     Route::get('/commandes', [AdminCommandeController::class, 'index'])->name('commandes.index');
     Route::get('/commandes/{commande}', [AdminCommandeController::class, 'show'])->name('commandes.show');
     Route::patch('/commandes/{commande}/confirmer', [AdminCommandeController::class, 'confirmer'])->name('commandes.confirmer');

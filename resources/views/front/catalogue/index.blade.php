@@ -10,8 +10,9 @@
     <div class="container">
     <form id="catalogue-search" method="GET" action="{{ route('produits') }}" class="bg-light rounded p-3 p-md-4 mb-4">
         <div class="row g-3">
-            <div class="col-md-7">
-                <input class="form-control border-secondary rounded-pill py-3 px-4" name="q" value="{{ request('q') }}" placeholder="Rechercher un produit" autocomplete="off">
+            <div class="col-md-7 position-relative">
+                <input id="catalogue-query" class="form-control border-secondary rounded-pill py-3 px-4" name="q" value="{{ request('q') }}" placeholder="Ex. légumes de Nabeul à moins de 5 DT" autocomplete="off">
+                <div id="catalogue-suggestions" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 5;"></div>
             </div>
             <div class="col-md-5">
                 <select class="form-select border-secondary rounded-pill py-3 px-4" name="category_id">
@@ -24,6 +25,9 @@
         </div>
     </form>
     <div id="catalogue-results">
+        @if ($criteres['resume'] !== '')
+            <p class="text-muted mb-3">{{ $criteres['resume'] }}</p>
+        @endif
         @if ($products->isNotEmpty())
             <div class="owl-carousel product-carousel">
                 @foreach ($products as $product)
@@ -74,6 +78,8 @@ initProductCarousel(document);
 
 const catalogueSearch = document.getElementById('catalogue-search');
 const catalogueResults = document.getElementById('catalogue-results');
+const catalogueQuery = document.getElementById('catalogue-query');
+const catalogueSuggestions = document.getElementById('catalogue-suggestions');
 let catalogueTimer;
 let catalogueRequest = 0;
 
@@ -112,6 +118,39 @@ async function searchCatalogue() {
         initProductCarousel(catalogueResults);
     }
     history.replaceState(null, '', url);
+    showCatalogueSuggestions();
 }
+
+async function showCatalogueSuggestions() {
+    const term = catalogueQuery.value.trim();
+    catalogueSuggestions.replaceChildren();
+    if (term === '') {
+        catalogueSuggestions.classList.add('d-none');
+        return;
+    }
+    const response = await fetch(@json(route('produits.suggestions')) + '?q=' + encodeURIComponent(term), {
+        headers: { 'Accept': 'application/json' }
+    });
+    const products = await response.json();
+    products.forEach(function (product) {
+        const link = document.createElement('a');
+        link.className = 'list-group-item list-group-item-action';
+        link.href = product.url;
+        const title = document.createElement('strong');
+        title.textContent = product.name;
+        const meta = document.createElement('small');
+        meta.className = 'd-block text-muted';
+        meta.textContent = product.category + ' · ' + product.price;
+        link.append(title, meta);
+        catalogueSuggestions.append(link);
+    });
+    catalogueSuggestions.classList.toggle('d-none', products.length === 0);
+}
+
+document.addEventListener('click', function (event) {
+    if (!catalogueSearch.contains(event.target)) {
+        catalogueSuggestions.classList.add('d-none');
+    }
+});
 </script>
 @endpush

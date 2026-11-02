@@ -297,7 +297,7 @@ class TracabiliteIAService
         }
 
         // Modèle principal puis modèles de secours, essayés tant que l'erreur est passagère
-        $modeles = collect([config('services.gemini.model') ?: 'gemini-3.8-flash'])
+        $modeles = collect([config('services.gemini.model') ?: 'gemini-3.5-flash'])
             ->merge(config('services.gemini.secours', []))
             ->filter()
             ->unique()

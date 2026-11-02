@@ -44,10 +44,17 @@ return [
     // Module Traçabilité : histoire du produit et analyse des anomalies par IA (API Google Gemini)
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-3.8-flash'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.5-flash'),
         // Modèles essayés ensuite si le principal est saturé, au-dessus du quota ou retiré
-        'secours' => array_filter(array_map('trim', explode(',', (string) env('GEMINI_MODELES_SECOURS', 'gemini-3.7-flash,gemini-flash-lite-latest')))),
-        'timeout' => 20, // secondes
+        'secours' => array_filter(array_map('trim', explode(',', (string) env('GEMINI_MODELES_SECOURS', 'gemini-3.1-flash-lite')))),
+        'timeout' => 40, // secondes : une photo peut prendre plus longtemps qu'un texte
+        'embedding_model' => env('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-001'),
+    ],
+
+    'openmeteo' => [
+        'forecast_url' => env('OPENMETEO_FORECAST_URL', 'https://api.open-meteo.com/v1/forecast'),
+        'geocode_url' => env('OPENMETEO_GEOCODE_URL', 'https://geocoding-api.open-meteo.com/v1/search'),
+        'cache_minutes' => (int) env('OPENMETEO_CACHE_MINUTES', 30),
     ],
 
     'slack' => [

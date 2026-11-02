@@ -86,6 +86,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Product::class);
     }
 
+    public function harvests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Harvest::class);
+    }
+
+    public function stockItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StockItem::class);
+    }
+
     public function reclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Reclamation::class);
