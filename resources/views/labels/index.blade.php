@@ -3,6 +3,7 @@
 @section('content')
 <div class="container-fluid page-header py-5"><h1 class="text-center text-white display-6">Labels certifiés</h1></div>
 <div class="container py-5"><div class="row g-4">
+<form class="row g-2 mb-4" method="GET"><div class="col-md-8"><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Rechercher un label ou un organisme"></div><div class="col-md-auto"><button class="btn btn-outline-primary">Rechercher</button></div></form>
 @forelse($labels as $label)
 <div class="col-md-6 col-lg-4"><div class="card h-100 shadow-sm">
     <img src="{{ $label->logo_url }}" class="card-img-top p-4" style="height:180px;object-fit:contain" alt="{{ $label->nom }}">

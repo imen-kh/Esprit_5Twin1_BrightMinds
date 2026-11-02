@@ -14,7 +14,13 @@ class LabelController extends Controller
 {
     public function index(Request $request): mixed
     {
-        $labels = Label::latest()->paginate(15);
+        $query = Label::withCount(['certifications as certifications_valides_count' => fn ($certifications) => $certifications->verified()]);
+        if ($request->filled('q')) {
+            $term = '%'.addcslashes((string) $request->input('q'), '%_').'%';
+            $query->where(fn ($query) => $query->where('nom', 'like', $term)->orWhere('organisme', 'like', $term));
+        }
+        if ($request->has('actif') && $request->input('actif') !== '') $query->where('actif', $request->boolean('actif'));
+        $labels = $query->latest()->paginate(15);
         return $request->expectsJson() ? response()->json($labels) : view('admin.labels.index', compact('labels'));
     }
 

@@ -159,6 +159,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::post('certifications', [AdminCertificationController::class, 'store'])->name('certifications.store');
     Route::get('certifications', [AdminCertificationController::class, 'index'])->name('certifications.index');
     Route::get('certifications/{certification}', [AdminCertificationController::class, 'show'])->name('certifications.show');
+    Route::post('certifications/{certification}/analyser', [AdminCertificationController::class, 'analyser'])->middleware('permission:valider-certifications')->name('certifications.analyser');
     Route::get('certifications-expiring', [AdminCertificationController::class, 'expiring'])->name('certifications.expiring');
     Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->middleware('permission:valider-certifications')->name('certifications.validate');
     Route::delete('certifications/{certification}', [AdminCertificationController::class, 'destroy'])->name('certifications.destroy');
@@ -168,6 +169,7 @@ Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'verified', 'acteu
     Route::get('certifications/create', [ActeurCertificationController::class, 'create'])->name('certifications.create');
     Route::get('certifications-expiring', [ActeurCertificationController::class, 'expiring'])->name('certifications.expiring');
     Route::apiResource('certifications', ActeurCertificationController::class)->except(['create', 'edit']);
+    Route::post('certifications/{certification}/analyser', [ActeurCertificationController::class, 'analyser'])->name('certifications.analyser');
     Route::get('certifications/{certification}/edit', [ActeurCertificationController::class, 'edit'])->name('certifications.edit');
 });
 
