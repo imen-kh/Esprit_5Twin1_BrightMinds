@@ -112,7 +112,11 @@ class BilanEnvironnementalController extends Controller
         $data = $this->synchroniserProduit($request->validated());
 
         if ($request->boolean('recalculer_ia') || blank($data['score_numerique'] ?? null) || blank($data['eco_score'] ?? null)) {
+            if ($request->boolean('recalculer_ia')) {
+                $data['_reutiliser'] = false;
+            }
             $data = array_merge($data, $service->calculer($data));
+            unset($data['_reutiliser']);
         }
 
         $bilan->update($data);

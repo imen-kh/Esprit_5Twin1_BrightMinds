@@ -330,6 +330,62 @@ class BilanEnvironnementalTest extends TestCase
         $this->assertDatabaseMissing('bilans_environnementaux', ['id' => $cree->id]);
     }
 
+    public function test_classement_circuit_court_et_comparaison(): void
+    {
+        $proche = $this->creerBilan();
+        $proche->update([
+            'produit_id' => null,
+            'nom_produit' => 'Orange locale test',
+            'distance_km' => 40,
+            'score_numerique' => 95,
+            'eco_score' => 'A',
+            'co2_total' => 0.200,
+            'alternative_locale' => 'Production du Cap Bon.',
+        ]);
+
+        $loin = $this->creerBilan();
+        $loin->update([
+            'produit_id' => null,
+            'nom_produit' => 'Tomate importee test',
+            'distance_km' => 1400,
+            'score_numerique' => 20,
+            'eco_score' => 'E',
+            'co2_total' => 3.500,
+            'alternative_locale' => 'Remplacer par le Cap Bon.',
+        ]);
+
+        $this->get(route('front.environnement.index'))
+            ->assertOk()
+            ->assertSee('Classement des bilans')
+            ->assertSeeInOrder(['Orange locale test', 'Tomate importee test']);
+
+        $this->get(route('front.environnement.index', ['circuit' => 1]))
+            ->assertOk()
+            ->assertSee('Orange locale test')
+            ->assertDontSee('Tomate importee test');
+
+        $this->get(route('front.environnement.comparer', [
+            'gauche' => $proche->id,
+            'droite' => $loin->id,
+        ]))
+            ->assertOk()
+            ->assertSee('Comparer deux produits')
+            ->assertSee('Orange locale test')
+            ->assertSee('émet');
+
+        $this->postJson(route('front.environnement.simuler'), [
+            'nom_produit' => 'Orange locale test',
+            'distance_km' => 40,
+            'mode_transport' => 'camion',
+            'mode_culture' => 'bio',
+            'type_emballage' => 'vrac',
+            'quantite_produit' => 1,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.source_ia', 'bilan')
+            ->assertJsonPath('data.alternative_locale', 'Production du Cap Bon.');
+    }
+
     public function test_un_visiteur_est_redirige_vers_la_connexion(): void
     {
         $this->get(route('admin.bilans-environnementaux.index'))

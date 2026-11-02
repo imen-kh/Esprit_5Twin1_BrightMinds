@@ -131,6 +131,25 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->type_acteur === 'distributeur';
     }
 
+    /**
+     * Les comptes officiels de démonstration n'attendent pas un email de confirmation.
+     */
+    public function confirmerSiCompteDemonstration(): void
+    {
+        $demos = [
+            'admin@nutritrace.tn',
+            'producteur@nutritrace.tn',
+            'transformateur@nutritrace.tn',
+            'distributeur@nutritrace.tn',
+            'client@nutritrace.tn',
+            'consommateur@nutritrace.tn',
+        ];
+
+        if (in_array(strtolower((string) $this->email), $demos, true) && ! $this->hasVerifiedEmail()) {
+            $this->markEmailAsVerified();
+        }
+    }
+
     public function espaceRoute(): string
     {
         if ($this->isAdmin()) {

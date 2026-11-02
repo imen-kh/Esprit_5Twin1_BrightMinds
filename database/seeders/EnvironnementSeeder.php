@@ -228,7 +228,7 @@ class EnvironnementSeeder extends Seeder
         ];
 
         foreach ($exemplesBilans as $exemple) {
-            $calculs = $serviceIA->analyser($exemple);
+            $calculs = $serviceIA->analyser($exemple, false);
             BilanEnvironnemental::query()->updateOrCreate(
                 ['nom_produit' => $exemple['nom_produit']],
                 array_merge($exemple, $calculs)

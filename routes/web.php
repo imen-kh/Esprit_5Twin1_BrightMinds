@@ -63,6 +63,7 @@ Route::post('/tracabilite/{lot:code}/assistant', [TracabiliteController::class, 
 // Module Environnement — front-office
 // Les segments fixes (simuler, create) sont déclarés avant /{bilan}.
 Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
+Route::get('/environnement/comparer', [EnvironnementController::class, 'comparer'])->name('front.environnement.comparer');
 Route::post('/environnement/simuler', [EnvironnementController::class, 'simuler'])->name('front.environnement.simuler');
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {

@@ -34,6 +34,13 @@ return [
         'api_secret' => env('CLOUDINARY_API_SECRET'),
     ],
 
+    // Module Environnement : rédaction de l'alternative locale par ChatGPT (API OpenAI)
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+        'timeout' => 20,
+    ],
+
     // Module Traçabilité : histoire du produit et analyse des anomalies par IA (API Google Gemini)
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),

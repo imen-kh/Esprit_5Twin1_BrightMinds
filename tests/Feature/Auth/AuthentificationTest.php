@@ -72,6 +72,21 @@ class AuthentificationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_le_compte_admin_de_demo_passe_la_verification_email(): void
+    {
+        $admin = User::factory()->unverified()->create([
+            'email' => 'admin@nutritrace.tn',
+            'role' => 'admin',
+        ]);
+
+        $this->post(route('login.submit'), [
+            'email' => 'admin@nutritrace.tn',
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertTrue($admin->fresh()->hasVerifiedEmail());
+    }
+
     public function test_connexion_puis_deconnexion(): void
     {
         $user = User::factory()->create(['role' => 'acteur', 'type_acteur' => 'producteur']);

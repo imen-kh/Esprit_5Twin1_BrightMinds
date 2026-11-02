@@ -37,6 +37,10 @@ class EnvironnementController extends Controller
             $query->where('produit_id', $request->integer('produit'));
         }
 
+        if ($request->boolean('circuit')) {
+            $query->where('distance_km', '<=', 150);
+        }
+
         if ($request->filled('q')) {
             $q = '%'.$request->string('q').'%';
             $query->where(function ($sub) use ($q) {
@@ -49,7 +53,11 @@ class EnvironnementController extends Controller
             });
         }
 
-        $bilans = $query->latest()->paginate(9)->withQueryString();
+        $bilans = $query
+            ->orderByDesc('score_numerique')
+            ->orderBy('nom_produit')
+            ->paginate(9)
+            ->withQueryString();
 
         $stats = [
             'total' => BilanEnvironnemental::valide()->count(),
@@ -99,7 +107,11 @@ class EnvironnementController extends Controller
         $data = $this->synchroniserProduit($request->validated());
 
         if ($request->boolean('recalculer_ia') || blank($data['score_numerique'] ?? null) || blank($data['eco_score'] ?? null)) {
+            if ($request->boolean('recalculer_ia')) {
+                $data['_reutiliser'] = false;
+            }
             $data = array_merge($data, $service->calculer($data));
+            unset($data['_reutiliser']);
         }
 
         $bilan->update($data);
@@ -136,6 +148,32 @@ class EnvironnementController extends Controller
             ->get();
 
         return view('front.environnement-detail', compact('bilan', 'autresBilans'));
+    }
+
+    public function comparer(Request $request): View
+    {
+        $bilans = BilanEnvironnemental::query()
+            ->with('product')
+            ->when(! $request->user()?->isAdmin(), fn ($query) => $query->valide())
+            ->orderByDesc('score_numerique')
+            ->orderBy('nom_produit')
+            ->get();
+
+        $gauche = $bilans->firstWhere('id', $request->integer('gauche'));
+        $droite = $bilans->firstWhere('id', $request->integer('droite'));
+        $identiques = $gauche && $droite && $gauche->is($droite);
+        $gain = null;
+        $meilleur = null;
+
+        if ($gauche && $droite && ! $identiques) {
+            $co2Gauche = (float) $gauche->co2_total;
+            $co2Droite = (float) $droite->co2_total;
+            $pire = max($co2Gauche, $co2Droite);
+            $gain = $pire > 0 ? round((($pire - min($co2Gauche, $co2Droite)) / $pire) * 100, 1) : 0.0;
+            $meilleur = $co2Gauche <= $co2Droite ? $gauche : $droite;
+        }
+
+        return view('front.environnement-comparer', compact('bilans', 'gauche', 'droite', 'identiques', 'gain', 'meilleur'));
     }
 
     public function simuler(Request $request, EnvironmentalScoreService $service): JsonResponse
