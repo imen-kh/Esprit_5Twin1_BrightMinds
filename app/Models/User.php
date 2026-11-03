@@ -86,6 +86,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Product::class);
     }
 
+    public function harvests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Harvest::class);
+    }
+
+    public function stockItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StockItem::class);
+    }
+
     public function reclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Reclamation::class);
@@ -94,6 +104,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function reponsesReclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ReponseReclamation::class);
+    }
+
+    public function avis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Avis::class);
+    }
+
+    /**
+     * Commandes livrées de l'utilisateur qui contiennent ce produit (achat vérifié, réclamation liée).
+     */
+    public function commandesLivreesAvec(int $produitId): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->commandes()
+            ->where('statut', 'livree')
+            ->whereHas('products', fn ($q) => $q->whereKey($produitId))
+            ->latest('id');
     }
 
     public function isConsommateur(): bool

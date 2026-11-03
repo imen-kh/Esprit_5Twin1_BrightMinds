@@ -366,7 +366,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('preview-gain').textContent = d.reduction_co2_estimee_pourcent ? `Gain potentiel : -${d.reduction_co2_estimee_pourcent}% CO2` : '';
         document.getElementById('preview-alternative-texte').textContent = d.alternative_locale;
 
-        status.textContent = '✅ Estimation terminée et formulaire pré-rempli !';
+        const sources = {
+          openai: 'Texte rédigé par ChatGPT (OpenAI). Le score et le CO₂ viennent des facteurs d\'émission.',
+          bilan: 'Texte déjà enregistré pour ce produit. ChatGPT n\'a pas été rappelé.',
+          openai_indisponible: 'ChatGPT n\'a pas répondu. La formule locale a été utilisée.'
+        };
+        status.textContent = sources[d.source_ia] || 'Formule locale utilisée. Ajoutez OPENAI_API_KEY dans .env pour ChatGPT.';
       } else {
         status.textContent = '❌ Erreur lors de l\'estimation IA.';
       }

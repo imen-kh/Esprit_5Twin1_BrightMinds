@@ -120,6 +120,8 @@ class DatabaseSeeder extends Seeder
             CommandeSeeder::class,
             LivraisonSeeder::class,
             CommandeLivraisonSeeder::class, // module Commandes et Livraisons
+            // module Réclamations & Avis (après les commandes : achats vérifiés)
+            RolePermissionSeeder::class, // rôles Spatie des comptes créés par les seeders des modules
         ]);
     }
 }

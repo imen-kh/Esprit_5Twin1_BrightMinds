@@ -33,8 +33,11 @@
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
-        <!-- Aucun appel réel à Gemini : les tests IA simulent l'API avec Http::fake -->
+        <!-- Aucun appel réel à Gemini, OpenAI ou DeepSeek : les tests IA simulent l'API avec Http::fake -->
         <env name="GEMINI_API_KEY" value="" force="true"/>
+        <env name="OPENAI_API_KEY" value="" force="true"/>
+        <env name="DEEPSEEK_API_KEY" value="" force="true"/>
+        <env name="SCOUT_DRIVER" value="null" force="true"/>
         <env name="CLOUDINARY_CLOUD_NAME" value="" force="true"/>
     </php>
 </phpunit>

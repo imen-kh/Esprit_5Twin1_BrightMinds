@@ -28,41 +28,50 @@
                             <a href="{{ route('labels.index') }}" class="nav-item nav-link {{ request()->routeIs('labels.*') ? 'active' : '' }}">Labels</a>
                             <a href="{{ route('front.environnement.index') }}" class="nav-item nav-link {{ request()->routeIs('front.environnement.*') ? 'active' : '' }}">Éco-Score</a>
                             @auth
-                                @if (auth()->user()->isProducteur())
-                                    <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Ajouter un produit</a>
-                                    <a href="{{ route('acteur.production-planner') }}" class="nav-item nav-link {{ request()->routeIs('acteur.production-planner*') ? 'active' : '' }}">Prévisions de demande</a>
-                                @elseif (auth()->user()->isTransformateur())
-                                    <a href="{{ route('acteur.transformation') }}" class="nav-item nav-link {{ request()->routeIs('acteur.transformation') ? 'active' : '' }}">Transformation</a>
-                                    <a href="{{ route('acteur.production-planner') }}" class="nav-item nav-link {{ request()->routeIs('acteur.production-planner*') ? 'active' : '' }}">Prévisions de production</a>
-                                @elseif (auth()->user()->isDistributeur())
-                                    <a href="{{ route('acteur.distribution') }}" class="nav-item nav-link {{ request()->routeIs('acteur.distribution') ? 'active' : '' }}">Distribution</a>
-                                @endif
-                                {{-- module Traçabilité : gestion des lots et des étapes, pour tous les acteurs --}}
-                                @if (auth()->user()->isActeur())
-                                    <a href="{{ route('gestion.lots.index') }}" class="nav-item nav-link">Mes lots</a>
-                                    <a href="{{ route('acteur.certifications.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.certifications.*') ? 'active' : '' }}">Mes certifications</a>
-                                @endif
-                                <a href="{{ route('reclamations.index') }}" class="nav-item nav-link {{ request()->routeIs('reclamations.*') ? 'active' : '' }}">Réclamations</a>
-                            @endauth
-                            <div class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                                <div class="dropdown-menu m-0 bg-secondary rounded-0">
-                                    <a href="{{ route('panier') }}" class="dropdown-item">Panier</a>
-                                    <a href="{{ route('commande') }}" class="dropdown-item">Commande</a>
-                                    @auth
-                                        @if (auth()->user()->isTransformateur())
-                                            <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
-                                    <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
-                                        @elseif (auth()->user()->role === 'consommateur')
-                                            <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
-                                        @elseif (auth()->user()->isDistributeur())
+                                {{-- Liens propres au rôle, regroupés dans un seul menu pour garder la barre sur une ligne --}}
+                                @php
+                                    $utilisateur = auth()->user();
+                                    $dansMonEspace = request()->routeIs('acteur.*', 'gestion.*', 'distributeur.*', 'commandes.*', 'reclamations.*', 'avis.*');
+                                    $notificationsNonLues = $utilisateur->unreadNotifications()->count();
+                                @endphp
+                                <div class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle {{ $dansMonEspace ? 'active' : '' }}" data-bs-toggle="dropdown">Mon espace @if ($notificationsNonLues)<span class="badge rounded-pill bg-danger ms-1">{{ $notificationsNonLues }}</span>@endif</a>
+                                    <div class="dropdown-menu m-0 bg-secondary rounded-0">
+                                        @if ($utilisateur->isProducteur())
+                                            <a href="{{ route('acteur.tableau') }}" class="dropdown-item">Tableau de bord</a>
+                                            <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits</a>
+                                            <a href="{{ route('acteur.meteo') }}" class="dropdown-item">Météo agricole</a>
+                                            <a href="{{ route('acteur.recoltes.index') }}" class="dropdown-item">Mes récoltes</a>
+                                            <a href="{{ route('acteur.stocks.index') }}" class="dropdown-item">Gestion intelligente des stocks</a>
+                                        @elseif ($utilisateur->isTransformateur())
+                                            <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
+                                        @elseif ($utilisateur->isDistributeur())
+                                            <a href="{{ route('acteur.distribution') }}" class="dropdown-item">Distribution</a>
                                             <a href="{{ route('distributeur.dashboard') }}" class="dropdown-item">Tableau de bord</a>
                                             <a href="{{ route('distributeur.commandes.index') }}" class="dropdown-item">Commandes à traiter</a>
                                             <a href="{{ route('distributeur.livraisons.index') }}" class="dropdown-item">Mes livraisons</a>
                                         @endif
-                                    @endauth
-                                    <a href="{{ route('temoignages') }}" class="dropdown-item">Témoignages</a>
-                                    <a href="{{ route('page404') }}" class="dropdown-item">Page 404</a>
+                                        {{-- modules Traçabilité et Certifications : pour tous les acteurs --}}
+                                        @if ($utilisateur->isActeur())
+                                            <a href="{{ route('gestion.lots.index') }}" class="dropdown-item">Mes lots</a>
+                                            <a href="{{ route('acteur.certifications.index') }}" class="dropdown-item">Mes certifications</a>
+                                        @endif
+                                        @if ($utilisateur->role === 'consommateur' || $utilisateur->isTransformateur())
+                                            <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
+                                        @endif
+                                        {{-- module Réclamations & Avis --}}
+                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations @if ($notificationsNonLues)<span class="badge rounded-pill bg-danger ms-1">{{ $notificationsNonLues }}</span>@endif</a>
+                                        @can('publier-avis')
+                                            <a href="{{ route('avis.index') }}" class="dropdown-item">Mes avis</a>
+                                        @endcan
+                                        @if ($utilisateur->isActeur())
+                                            <a href="{{ route('acteur.reclamations.index') }}" class="dropdown-item">Réclamations sur mes produits</a>
+                                            <a href="{{ route('acteur.avis.index') }}" class="dropdown-item">Avis sur mes produits</a>
+                                        @endif
+                                        @if ($utilisateur->isAdmin())
+                                            <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Back office</a>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             <a href="{{ route('contact') }}" class="nav-item nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>

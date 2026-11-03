@@ -22,9 +22,15 @@
         <div class="col-md-10 col-lg-7">
             <div class="bg-light rounded p-3 p-md-4">
                 <h2 class="h4 text-primary mb-1">{{ $product->exists ? ($transformateur ? 'Modifier le produit transformé' : 'Modifier le produit') : ($transformateur ? 'Nouveau produit transformé' : 'Nouveau produit') }}</h2>
-                <p class="mb-3">Dès l’enregistrement, le produit est publié et visible dans le catalogue.</p>
+                <p class="mb-3">Après l’enregistrement, le produit reste en attente. Il n’apparaît dans le catalogue qu’une fois approuvé par un administrateur.</p>
 
-                <form id="product-form" method="POST" action="{{ $product->exists ? route('acteur.produits.update', $product) : route('acteur.produits.store') }}" enctype="multipart/form-data" data-has-image="{{ $product->aUnePhoto() ? '1' : '0' }}" novalidate>
+                @if ($product->exists && filled($product->review_note))
+                    <div class="alert alert-warning">
+                        <strong>{{ $product->libelleStatut() }}.</strong> {{ $product->review_note }}
+                    </div>
+                @endif
+
+                <form id="product-form" method="POST" action="{{ $product->exists ? route('acteur.produits.update', $product) : route('acteur.produits.store') }}" enctype="multipart/form-data" data-has-image="{{ $product->aUnePhoto() ? '1' : '0' }}" data-url-ia="{{ route('acteur.produits.generer-ia') }}" data-url-qualite="{{ route('acteur.produits.qualite-ia') }}" novalidate>
                     @csrf
                     @if ($product->exists) @method('PUT') @endif
 
@@ -65,6 +71,9 @@
                             <div class="invalid-feedback" data-error-for="origin">@error('origin'){{ $message }}@enderror</div>
                         </div>
                         <div class="col-12">
+                            <div id="assistant-produit" class="alert d-none mb-0" role="status"></div>
+                        </div>
+                        <div class="col-12">
                             <label class="form-label" for="image">Image</label>
                             <input class="form-control form-control-sm border-secondary @error('image') is-invalid @enderror" id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp">
                             <div class="form-text">JPG, PNG ou WEBP, 2 Mo maximum.@if ($product->aUnePhoto()) Laissez vide pour conserver l’image actuelle.@endif</div>
@@ -85,8 +94,15 @@
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button class="btn border border-secondary rounded-pill px-4 text-primary" type="button" id="generer-ia">Générer avec IA</button>
+                        <button class="btn border border-secondary rounded-pill px-4 text-primary" type="button" id="qualite-ia">Analyser la qualité avec IA</button>
                         <button class="btn btn-primary rounded-pill px-4" type="submit">Enregistrer</button>
                         <a class="btn border border-secondary rounded-pill px-4 text-primary" href="{{ route('acteur.produits.index') }}">Annuler</a>
+                    </div>
+                    <div id="carte-qualite" class="mt-3">
+                        @if ($product->quality_analysis)
+                            @include('partials.qualite-produit', ['analyse' => $product->quality_analysis])
+                        @endif
                     </div>
                 </form>
             </div>
@@ -216,6 +232,162 @@ document.getElementById('image').addEventListener('change', function () {
     preview.classList.remove('d-none');
     if (current) current.classList.add('d-none');
 });
+
+const form = document.getElementById('product-form');
+const assistant = document.getElementById('assistant-produit');
+const jeton = form.querySelector('input[name="_token"]').value;
+
+function messageAssistant(texte, type) {
+    assistant.className = 'alert alert-' + type + ' mb-0';
+    assistant.textContent = texte;
+}
+
+function remplirSiPresent(champ, valeur) {
+    if (!champ || valeur === null || valeur === undefined || valeur === '') {
+        return;
+    }
+    champ.value = valeur;
+}
+
+async function appelerAssistant(url, options) {
+    messageAssistant('Recherche en cours…', 'secondary');
+    try {
+        const reponse = await fetch(url, options);
+        const donnees = await reponse.json().catch(function () { return {}; });
+        if (!reponse.ok) {
+            messageAssistant(donnees.message || 'Service indisponible. Complétez la fiche manuellement.', 'warning');
+            return;
+        }
+        remplirSiPresent(form.name, donnees.name);
+        remplirSiPresent(form.description, donnees.description);
+        remplirSiPresent(form.origin, donnees.origin);
+        remplirSiPresent(form.ingredients, donnees.ingredients);
+        if (donnees.category_id && form.category_id.querySelector('option[value="' + donnees.category_id + '"]')) {
+            form.category_id.value = String(donnees.category_id);
+        }
+        const detail = donnees.category_name ? ' Catégorie proposée : ' + donnees.category_name + '.' : '';
+        messageAssistant('Proposition reçue. Relisez les champs avant d’enregistrer.' + detail, 'success');
+    } catch (erreur) {
+        messageAssistant('Service indisponible. Complétez la fiche manuellement.', 'warning');
+    }
+}
+
+document.getElementById('generer-ia').addEventListener('click', function () {
+    const image = form.image.files[0];
+    if (!image) {
+        messageAssistant('Choisissez d’abord une image, puis relancez la génération.', 'warning');
+        return;
+    }
+    const envoi = new FormData();
+    envoi.append('image', image);
+    envoi.append('_token', jeton);
+    appelerAssistant(form.dataset.urlIa, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': jeton },
+        body: envoi
+    });
+});
+
+document.getElementById('qualite-ia').addEventListener('click', async function () {
+    const image = form.image.files[0];
+    const carte = document.getElementById('carte-qualite');
+    if (!image) {
+        messageAssistant('Choisissez d’abord une photo du fruit ou du légume.', 'warning');
+        return;
+    }
+    messageAssistant('Analyse visuelle en cours…', 'secondary');
+    const envoi = new FormData();
+    envoi.append('image', image);
+    envoi.append('_token', jeton);
+    try {
+        const reponse = await fetch(form.dataset.urlQualite, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': jeton },
+            body: envoi
+        });
+        const donnees = await reponse.json().catch(function () { return {}; });
+        if (!reponse.ok) {
+            messageAssistant(donnees.message || 'Analyse indisponible. Vous pouvez enregistrer le produit sans elle.', 'warning');
+            return;
+        }
+        carte.replaceChildren(carteQualite(donnees));
+        messageAssistant('Analyse indicative affichée. Elle sera jointe au produit si vous enregistrez cette même photo.', 'success');
+    } catch (erreur) {
+        messageAssistant('Analyse indisponible. Vous pouvez enregistrer le produit sans elle.', 'warning');
+    }
+});
+
+function carteQualite(donnees) {
+    const carte = document.createElement('div');
+    carte.className = 'card border-0 shadow-sm';
+    const corps = document.createElement('div');
+    corps.className = 'card-body';
+    const entete = document.createElement('div');
+    entete.className = 'd-flex justify-content-between align-items-start gap-3 mb-3';
+    const titres = document.createElement('div');
+    const titre = document.createElement('h3');
+    titre.className = 'h5 mb-1';
+    titre.textContent = 'Qualité visuelle';
+    const avertissement = document.createElement('p');
+    avertissement.className = 'small text-body-secondary mb-0';
+    avertissement.textContent = donnees.avertissement || 'Indication visuelle seulement.';
+    titres.append(titre, avertissement);
+    entete.append(titres);
+    if (donnees.evaluable) {
+        const score = document.createElement('div');
+        score.className = 'text-center flex-shrink-0';
+        const note = document.createElement('div');
+        note.className = 'display-6 fw-bold text-primary lh-1';
+        note.textContent = donnees.score;
+        const sur = document.createElement('div');
+        sur.className = 'small text-body-secondary';
+        sur.textContent = '/ 100';
+        const badge = document.createElement('span');
+        const classes = { 'Excellente': 'bg-success', 'Bonne': 'bg-primary', 'Moyenne': 'bg-warning text-dark', 'Faible': 'bg-danger' };
+        badge.className = 'badge mt-1 ' + (classes[donnees.classification] || 'bg-secondary');
+        badge.textContent = donnees.classification;
+        score.append(note, sur, badge);
+        entete.append(score);
+    } else {
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-secondary';
+        badge.textContent = 'Photo insuffisante';
+        entete.append(badge);
+    }
+    corps.append(entete);
+    if (donnees.evaluable) {
+        corps.append(listeQualite('Défauts visibles', donnees.defauts, 'Aucun défaut visible sur cette photo.'));
+    }
+    if (donnees.recommandations && donnees.recommandations.length) {
+        corps.append(listeQualite('Tri et présentation', donnees.recommandations, ''));
+    }
+    carte.append(corps);
+    return carte;
+}
+
+function listeQualite(titreTexte, lignes, vide) {
+    const bloc = document.createDocumentFragment();
+    const titre = document.createElement('p');
+    titre.className = 'fw-medium mb-1';
+    titre.textContent = titreTexte;
+    bloc.append(titre);
+    if (!lignes || !lignes.length) {
+        const texte = document.createElement('p');
+        texte.className = 'text-body-secondary';
+        texte.textContent = vide;
+        bloc.append(texte);
+        return bloc;
+    }
+    const liste = document.createElement('ul');
+    liste.className = 'mb-3';
+    lignes.forEach(function (ligne) {
+        const item = document.createElement('li');
+        item.textContent = ligne;
+        liste.append(item);
+    });
+    bloc.append(liste);
+    return bloc;
+}
 
 document.getElementById('toggle-category-suggestion').addEventListener('click', function () {
     document.getElementById('category-suggestion').classList.toggle('d-none');

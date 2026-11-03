@@ -9,10 +9,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('categories', function (Blueprint $table) {
-            $table->string('origin', 20)->default('admin')->after('status');
-            $table->foreignId('user_id')->nullable()->after('origin')->constrained()->nullOnDelete();
-        });
+        if (! Schema::hasColumn('categories', 'origin')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->string('origin', 20)->default('admin')->after('status');
+            });
+        }
+
+        if (! Schema::hasColumn('categories', 'user_id')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable()->after('origin')->constrained()->nullOnDelete();
+            });
+        }
 
         // Contrainte CHECK propre à MySQL : ignorée sous SQLite (tests et CI)
         if (DB::getDriverName() === 'mysql') {
