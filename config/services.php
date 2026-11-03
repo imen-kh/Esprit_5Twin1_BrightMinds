@@ -41,6 +41,14 @@ return [
         'timeout' => (int) env('GEMINI_TIMEOUT', 8),
     ],
 
+    'forecast' => [
+        'mode' => env('FORECAST_MODE', 'http'),
+        'url' => env('FORECAST_API_URL', 'http://127.0.0.1:8001/predict'),
+        'python' => env('FORECAST_PYTHON', 'auto'),
+        'fallback' => (bool) env('FORECAST_FALLBACK', false),
+        'timeout' => (int) env('FORECAST_API_TIMEOUT', 15),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

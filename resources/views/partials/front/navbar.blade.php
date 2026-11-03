@@ -29,8 +29,10 @@
                             @auth
                                 @if (auth()->user()->isProducteur())
                                     <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Ajouter un produit</a>
+                                    <a href="{{ route('acteur.production-planner') }}" class="nav-item nav-link {{ request()->routeIs('acteur.production-planner*') ? 'active' : '' }}">Prévisions de demande</a>
                                 @elseif (auth()->user()->isTransformateur())
                                     <a href="{{ route('acteur.transformation') }}" class="nav-item nav-link {{ request()->routeIs('acteur.transformation') ? 'active' : '' }}">Transformation</a>
+                                    <a href="{{ route('acteur.production-planner') }}" class="nav-item nav-link {{ request()->routeIs('acteur.production-planner*') ? 'active' : '' }}">Prévisions de production</a>
                                 @elseif (auth()->user()->isDistributeur())
                                     <a href="{{ route('acteur.distribution') }}" class="nav-item nav-link {{ request()->routeIs('acteur.distribution') ? 'active' : '' }}">Distribution</a>
                                 @endif

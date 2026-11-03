@@ -23,6 +23,7 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\Admin\CertificationController as AdminCertificationController;
 use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Acteur\CertificationController as ActeurCertificationController;
+use App\Http\Controllers\Acteur\ProductionForecastController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\Back\FacteurEmissionController;
 use App\Http\Controllers\Back\BilanEnvironnementalController;
@@ -116,6 +117,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
     Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
     Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
+    Route::get('/production-planner', [ProductionForecastController::class, 'index'])->name('production-planner');
+    Route::post('/production-planner/prevoir', [ProductionForecastController::class, 'predict'])->name('production-planner.predict');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
 });
