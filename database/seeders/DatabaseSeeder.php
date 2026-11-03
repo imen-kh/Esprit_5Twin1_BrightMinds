@@ -115,8 +115,8 @@ class DatabaseSeeder extends Seeder
             LabelCertificationSeeder::class, // module Certifications : labels et certifications
             FacteurEmissionSeeder::class, // module Environnement
             EnvironnementSeeder::class,
-            ReclamationSeeder::class,    // module Réclamations
             CommandeLivraisonSeeder::class, // module Commandes et Livraisons
+            ReclamationSeeder::class,    // module Réclamations & Avis (après les commandes : achats vérifiés)
             RolePermissionSeeder::class, // rôles Spatie des comptes créés par les seeders des modules
         ]);
     }

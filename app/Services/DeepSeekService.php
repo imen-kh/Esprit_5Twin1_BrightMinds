@@ -84,7 +84,8 @@ class DeepSeekService
         ], fn ($valeur) => $valeur !== null);
 
         try {
-            $reponse = Http::timeout((int) config('services.deepseek.timeout', 30))
+            $reponse = Http::connectTimeout(8)
+                ->timeout((int) config('services.deepseek.timeout', 30))
                 ->acceptJson()
                 ->withToken((string) config('services.deepseek.key'))
                 ->post(config('services.deepseek.base_url').'/chat/completions', $corps);

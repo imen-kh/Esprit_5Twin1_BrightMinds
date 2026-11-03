@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ReclamationFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Support\Carbon;
 
 class Reclamation extends Model
 {
-    /** @use HasFactory<\Database\Factories\ReclamationFactory> */
+    /** @use HasFactory<ReclamationFactory> */
     use HasFactory;
 
     public const STATUTS = ['en_attente', 'en_cours', 'resolue', 'rejetee'];

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\ReclamationsAvis;
 
+use App\Models\Avis;
 use App\Models\Reclamation;
 use App\Services\AiReclamationService;
 use App\Services\AvisIAService;
@@ -148,8 +149,8 @@ class DeepSeekIATest extends TestCase
             'points_forts' => ['Goût sucré'], 'points_faibles' => ['Emballage fragile'],
         ])]))]);
 
-        \App\Models\Avis::factory()->create(['produit_id' => $this->produit->id, 'user_id' => $this->client->id, 'note' => 5]);
-        \App\Models\Avis::factory()->create(['produit_id' => $this->produit->id, 'user_id' => $this->autreClient->id, 'note' => 2]);
+        Avis::factory()->create(['produit_id' => $this->produit->id, 'user_id' => $this->client->id, 'note' => 5]);
+        Avis::factory()->create(['produit_id' => $this->produit->id, 'user_id' => $this->autreClient->id, 'note' => 2]);
 
         $service = app(AvisIAService::class);
         $premiere = $service->synthese($this->produit);

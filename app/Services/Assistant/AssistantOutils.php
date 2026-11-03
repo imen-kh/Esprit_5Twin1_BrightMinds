@@ -11,9 +11,11 @@ use App\Models\Product;
 use App\Models\Reclamation;
 use App\Models\User;
 use App\Services\AiReclamationService;
+use App\Services\AvisIAService;
 use App\Services\GestionAvisService;
 use App\Services\GestionReclamationService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -207,7 +209,7 @@ class AssistantOutils
                 $reclamation = $this->reclamations->creer($user, $a, 'assistant');
 
                 return [
-                    'message' => "C'est fait ✅ Votre réclamation {$reclamation->reference} est enregistrée (priorité {$reclamation->prioriteLibelle()}, {$reclamation->slaLibelle()}). Vous serez prévenu à chaque réponse.",
+                    'message' => "C'est fait ✅ Votre réclamation {$reclamation->reference} est enregistrée (priorité ".mb_strtolower($reclamation->prioriteLibelle()).', délai de traitement : '.mb_strtolower($reclamation->slaLibelle()).'). Vous serez prévenu à chaque réponse.',
                     'liens' => [['label' => 'Voir '.$reclamation->reference, 'url' => route('reclamations.show', $reclamation)]],
                 ];
 
@@ -353,9 +355,9 @@ class AssistantOutils
     /**
      * Produits reçus (commandes livrées) sans avis de l'utilisateur. Sert aussi au message d'accueil proactif.
      *
-     * @return \Illuminate\Support\Collection<int, Product>
+     * @return Collection<int, Product>
      */
-    public function produitsNonEvalues(User $user): \Illuminate\Support\Collection
+    public function produitsNonEvalues(User $user): Collection
     {
         $dejaNotes = Avis::query()->where('user_id', $user->id)->pluck('produit_id');
 
@@ -400,7 +402,7 @@ class AssistantOutils
             ->withCount(['reclamations as reclamations_ouvertes' => fn ($q) => $q->ouvertes()])
             ->get();
 
-        $aspects = app(\App\Services\AvisIAService::class);
+        $aspects = app(AvisIAService::class);
 
         return [
             'produits' => $produits->map(fn (Product $p) => [

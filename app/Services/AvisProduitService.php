@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Avis;
+use App\Models\AvisReaction;
 use App\Models\Product;
 use App\Models\User;
 
@@ -43,7 +44,7 @@ class AvisProduitService
 
         $monAvis = $user ? Avis::query()->where('user_id', $user->id)->where('produit_id', $produit->id)->first() : null;
         $mesReactions = $user
-            ? \App\Models\AvisReaction::query()->where('user_id', $user->id)->whereIn('avis_id', $liste->pluck('id'))->get()->groupBy('avis_id')->map->pluck('type')
+            ? AvisReaction::query()->where('user_id', $user->id)->whereIn('avis_id', $liste->pluck('id'))->get()->groupBy('avis_id')->map->pluck('type')
             : collect();
 
         return [

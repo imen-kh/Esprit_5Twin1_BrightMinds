@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAvisRequest;
 use App\Models\Avis;
 use App\Models\AvisReaction;
 use App\Models\Product;
+use App\Services\Assistant\AssistantOutils;
 use App\Services\GestionAvisService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -27,7 +28,7 @@ class AvisController extends Controller
 
         return view('front.avis.index', [
             'avis' => $user->avis()->with('produit')->latest()->paginate(10),
-            'aNoter' => app(\App\Services\Assistant\AssistantOutils::class)->produitsNonEvalues($user),
+            'aNoter' => app(AssistantOutils::class)->produitsNonEvalues($user),
         ]);
     }
 
