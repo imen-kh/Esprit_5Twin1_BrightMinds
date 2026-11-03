@@ -84,6 +84,56 @@
                                     <i class="fas fa-user fa-2x"></i>
                                 </a>
                             @else
+                                {{-- Cloche de notifications --}}
+                                @php
+                                    $nbNonLues = auth()->user()->unreadNotifications->count();
+                                    $recentes  = auth()->user()->notifications()->latest()->take(5)->get();
+                                @endphp
+                                <div class="nav-item dropdown my-auto me-3 position-relative">
+                                    <a href="javascript:void(0);" class="position-relative" data-bs-toggle="dropdown"
+                                       id="notif-bell-front" aria-label="Notifications">
+                                        <i class="fas fa-bell fa-2x"></i>
+                                        @if ($nbNonLues > 0)
+                                            <span class="position-absolute bg-danger rounded-circle d-flex align-items-center justify-content-center text-white px-1"
+                                                  style="top:-6px;left:14px;height:20px;min-width:20px;font-size:.65rem;">{{ $nbNonLues }}</span>
+                                        @endif
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end p-0 mt-2" style="width:310px;max-height:400px;overflow-y:auto;left:auto;right:0;">
+                                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                                            <strong style="font-size:.9rem;">Notifications</strong>
+                                            @if ($nbNonLues > 0)
+                                                <form method="POST" action="{{ route('notifications.tout-lire') }}">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Tout lire</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                        @forelse ($recentes as $notif)
+                                            @php $data = $notif->data; @endphp
+                                            <a href="{{ $data['url'] ?? '#' }}"
+                                               class="dropdown-item py-2 px-3 border-bottom {{ $notif->read_at ? '' : 'bg-light' }}"
+                                               style="white-space:normal;">
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <i class="fas {{ str_starts_with($data['type'] ?? '', 'livraison') ? 'fa-shipping-fast' : 'fa-shopping-bag' }} text-primary mt-1"></i>
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-semibold" style="font-size:.82rem;">{{ $data['titre'] ?? 'Notification' }}</div>
+                                                        <small class="text-muted">{{ $notif->created_at->diffForHumans() }}</small>
+                                                    </div>
+                                                    @if (!$notif->read_at)
+                                                        <form method="POST" action="{{ route('notifications.lire', $notif->id) }}" class="ms-auto">
+                                                            @csrf @method('PATCH')
+                                                            <button type="submit" class="btn btn-sm p-0 text-muted" title="Marquer comme lue">&times;</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            </a>
+                                        @empty
+                                            <p class="text-muted text-center py-3 mb-0" style="font-size:.85rem;">Aucune notification</p>
+                                        @endforelse
+                                        <a href="{{ route('notifications.index') }}" class="dropdown-item text-center py-2 text-primary border-top">Voir tout l'historique</a>
+                                    </div>
+                                </div>
+
                                 {{-- Utilisateur connecté : menu avec son nom --}}
                                 <div class="nav-item dropdown my-auto">
                                     <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">

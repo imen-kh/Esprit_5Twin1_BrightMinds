@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Distributeur;
 
 use App\Http\Controllers\Controller;
 use App\Models\Commande;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,6 +48,8 @@ class CommandeController extends Controller
         }
 
         $commande->update(['distributeur_id' => Auth::id(), 'statut' => 'preparee']);
+
+        NotificationService::notifierCommandePreparee($commande);
 
         return back()->with('success', 'Commande prise en charge avec succès.');
     }

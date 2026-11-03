@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Commande;
 use App\Models\Panier;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +100,8 @@ class CommandeController extends Controller
             $panier->update(['statut' => 'converti']);
             return $commande;
         });
+
+        NotificationService::notifierNouvelleCommande($commande);
 
         return redirect()->route('commandes.show', $commande)
             ->with('success', 'Commande créée avec succès.');

@@ -31,6 +31,7 @@ use App\Http\Controllers\Front\EnvironnementController;
 use App\Http\Controllers\Front\ReclamationController as FrontReclamationController;
 use App\Http\Controllers\Back\ReclamationController as BackReclamationController;
 use App\Http\Controllers\ReponseReclamationController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -112,6 +113,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/mes-commandes', [CommandeController::class, 'index'])->name('commandes.index');
     Route::get('/mes-commandes/create', [CommandeController::class, 'create'])->name('commandes.create');
     Route::get('/mes-commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
+
+    // ── Notifications (tous rôles connectés) ──────────────────────────────────
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/tout-lire', [NotificationController::class, 'toutMarquerLu'])->name('notifications.tout-lire');
+    Route::patch('/notifications/{id}/lire', [NotificationController::class, 'marquerLue'])->name('notifications.lire');
 });
 
 Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
