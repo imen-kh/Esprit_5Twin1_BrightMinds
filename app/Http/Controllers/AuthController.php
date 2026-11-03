@@ -39,6 +39,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
 
+        // Les comptes créés avant l'activation de la vérification email ne doivent pas
+        // être bloqués. La confirmation reste obligatoire uniquement pour les nouveaux comptes.
+        if (! $user->hasVerifiedEmail()) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
         // Double authentification active : pas de connexion tant que le code de l'application n'est pas saisi
         if ($user->aDoubleAuthentification()) {
             $request->session()->put('two_factor', [

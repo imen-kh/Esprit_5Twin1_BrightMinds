@@ -43,8 +43,10 @@
                                             <a href="{{ route('acteur.meteo') }}" class="dropdown-item">Météo agricole</a>
                                             <a href="{{ route('acteur.recoltes.index') }}" class="dropdown-item">Mes récoltes</a>
                                             <a href="{{ route('acteur.stocks.index') }}" class="dropdown-item">Gestion intelligente des stocks</a>
+                                            <a href="{{ route('acteur.production-planner') }}" class="dropdown-item">Prévisions de la demande</a>
                                         @elseif ($utilisateur->isTransformateur())
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
+                                            <a href="{{ route('acteur.production-planner') }}" class="dropdown-item">Prévisions de production</a>
                                         @elseif ($utilisateur->isDistributeur())
                                             <a href="{{ route('acteur.distribution') }}" class="dropdown-item">Distribution</a>
                                             <a href="{{ route('distributeur.dashboard') }}" class="dropdown-item">Tableau de bord</a>
