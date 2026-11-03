@@ -38,6 +38,12 @@ use App\Http\Controllers\Front\EnvironnementController;
 use App\Http\Controllers\Front\ReclamationController as FrontReclamationController;
 use App\Http\Controllers\Back\ReclamationController as BackReclamationController;
 use App\Http\Controllers\ReponseReclamationController;
+use App\Http\Controllers\Front\AvisController as FrontAvisController;
+use App\Http\Controllers\Back\AvisController as BackAvisController;
+use App\Http\Controllers\Back\AlerteQualiteController;
+use App\Http\Controllers\Acteur\RetourClientController;
+use App\Http\Controllers\AssistantController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -120,8 +126,29 @@ Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->nam
 
 // ===== Mon profil (tous les rôles connectés, adresse email vérifiée) =====
 Route::middleware(['auth', 'verified'])->group(function () {
+    // ===== Module Réclamations & Avis (client, acteur vendeur, admin : droits dans les Policies) =====
     Route::resource('reclamations', FrontReclamationController::class);
     Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
+    Route::patch('reclamations/{reclamation}/cloturer', [FrontReclamationController::class, 'cloturer'])->name('reclamations.cloturer');
+    Route::post('reclamations/{reclamation}/evaluer', [FrontReclamationController::class, 'evaluer'])->name('reclamations.evaluer');
+    Route::post('reclamations/{reclamation}/relancer', [FrontReclamationController::class, 'relancer'])->name('reclamations.relancer');
+
+    Route::get('mes-avis', [FrontAvisController::class, 'index'])->name('avis.index');
+    Route::post('produits/{product}/avis', [FrontAvisController::class, 'store'])->middleware('throttle:10,1')->name('avis.store');
+    Route::get('avis/{avis}/modifier', [FrontAvisController::class, 'edit'])->name('avis.edit');
+    Route::put('avis/{avis}', [FrontAvisController::class, 'update'])->name('avis.update');
+    Route::delete('avis/{avis}', [FrontAvisController::class, 'destroy'])->name('avis.destroy');
+    Route::post('avis/{avis}/reagir', [FrontAvisController::class, 'reagir'])->middleware('throttle:30,1')->name('avis.reagir');
+    Route::post('avis/{avis}/reclamation', [FrontAvisController::class, 'convertir'])->name('avis.convertir');
+
+    // Agent Sahbi : 20 messages par minute et par utilisateur
+    Route::get('assistant', [AssistantController::class, 'etat'])->name('assistant.etat');
+    Route::post('assistant/message', [AssistantController::class, 'message'])->middleware('throttle:20,1')->name('assistant.message');
+    Route::post('assistant/messages/{message}/decision', [AssistantController::class, 'decider'])->middleware('throttle:20,1')->name('assistant.decider');
+    Route::delete('assistant', [AssistantController::class, 'reinitialiser'])->name('assistant.reinitialiser');
+
+    Route::get('notifications/{id}', [NotificationController::class, 'lire'])->name('notifications.lire');
+    Route::post('notifications/tout-lire', [NotificationController::class, 'toutLire'])->name('notifications.tout-lire');
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
@@ -163,6 +190,10 @@ Route::middleware(['auth', 'verified', 'acteur'])->prefix('acteur')->name('acteu
         Route::post('stocks/{stockItem}/mouvements', [ActeurStockController::class, 'mouvement'])->name('stocks.mouvements.store');
     });
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
+    // Module Réclamations & Avis : retours des clients sur les produits de l'acteur
+    Route::get('retours/reclamations', [RetourClientController::class, 'reclamations'])->name('reclamations.index');
+    Route::get('retours/avis', [RetourClientController::class, 'avis'])->name('avis.index');
+    Route::post('retours/avis/{avis}/reponse', [RetourClientController::class, 'repondreAvis'])->middleware('permission:repondre-avis')->name('avis.repondre');
 });
 
 // ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
@@ -297,9 +328,28 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
         'bilans-environnementaux' => 'bilan',
     ]);
 
-    Route::resource('reclamations', BackReclamationController::class);
-    Route::patch('reclamations/{reclamation}/statut', [BackReclamationController::class, 'updateStatus'])->name('reclamations.statut');
-    Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
-    Route::put('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'update'])->name('reponses-reclamations.update');
-    Route::delete('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'destroy'])->name('reponses-reclamations.destroy');
+    // Module Réclamations & Avis : traitement, copilote IA, alertes qualité, modération
+    Route::middleware('permission:traiter-reclamations')->group(function () {
+        Route::resource('reclamations', BackReclamationController::class);
+        Route::patch('reclamations/{reclamation}/statut', [BackReclamationController::class, 'updateStatus'])->name('reclamations.statut');
+        Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
+        Route::post('reclamations/{reclamation}/copilote', [BackReclamationController::class, 'copilote'])->middleware('throttle:15,1')->name('reclamations.copilote');
+        Route::post('reclamations/{reclamation}/responsabilite', [BackReclamationController::class, 'responsabilite'])->middleware('throttle:15,1')->name('reclamations.responsabilite');
+        Route::post('reclamations/{reclamation}/reanalyser', [BackReclamationController::class, 'reanalyser'])->middleware('throttle:15,1')->name('reclamations.reanalyser');
+        Route::get('reclamations/{reclamation}/pdf', [BackReclamationController::class, 'pdf'])->name('reclamations.pdf');
+        Route::put('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'update'])->name('reponses-reclamations.update');
+        Route::delete('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'destroy'])->name('reponses-reclamations.destroy');
+
+        Route::get('alertes-qualite', [AlerteQualiteController::class, 'index'])->name('alertes.index');
+        Route::post('alertes-qualite/{alerte}/analyser', [AlerteQualiteController::class, 'analyser'])->middleware('throttle:15,1')->name('alertes.analyser');
+        Route::post('alertes-qualite/{alerte}/rappel', [AlerteQualiteController::class, 'rappel'])->name('alertes.rappel');
+        Route::patch('alertes-qualite/{alerte}/classer', [AlerteQualiteController::class, 'classer'])->name('alertes.classer');
+    });
+
+    Route::middleware('permission:moderer-avis')->group(function () {
+        Route::get('avis', [BackAvisController::class, 'index'])->name('avis.index');
+        Route::patch('avis/{avis}/publier', [BackAvisController::class, 'publier'])->name('avis.publier');
+        Route::patch('avis/{avis}/masquer', [BackAvisController::class, 'masquer'])->name('avis.masquer');
+        Route::delete('avis/{avis}', [BackAvisController::class, 'destroy'])->name('avis.destroy');
+    });
 });

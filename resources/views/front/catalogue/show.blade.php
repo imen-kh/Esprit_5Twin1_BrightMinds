@@ -26,6 +26,12 @@
                 </div>
                 <div class="col-lg-6 p-4 p-lg-5">
                     <h2 class="display-6 mb-3">{{ $product->name }}</h2>
+                    @if ($avis['total'] > 0)
+                        <a href="#avis" class="d-inline-flex align-items-center gap-2 mb-3 text-decoration-none">
+                            <x-etoiles :note="$avis['moyenne']" />
+                            <span class="text-muted">{{ str_replace('.', ',', (string) $avis['moyenne']) }}/5 · {{ $avis['total'] }} avis</span>
+                        </a>
+                    @endif
                     <p class="fs-5">{{ $product->description ?: 'Aucune description renseignée.' }}</p>
                     @if ($product->ingredients)
                         <p><strong>Ingrédients :</strong> {{ $product->ingredients }}</p>
@@ -110,8 +116,15 @@
             @endforeach
         </div>
     @endif
+
+    {{-- module Réclamations & Avis : notes, synthèse IA et avis des clients --}}
+    @include('front.avis._section')
 </div>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/reclamations-avis.css') }}">
+@endpush
 
 @push('scripts')
 <script>

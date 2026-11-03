@@ -205,4 +205,9 @@ class Product extends Model
     {
         return $this->hasMany(Reclamation::class, 'produit_id');
     }
+
+    public function avis(): HasMany
+    {
+        return $this->hasMany(Avis::class, 'produit_id');
+    }
 }

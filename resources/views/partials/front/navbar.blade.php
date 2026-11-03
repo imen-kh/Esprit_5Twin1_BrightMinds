@@ -31,10 +31,11 @@
                                 {{-- Liens propres au rôle, regroupés dans un seul menu pour garder la barre sur une ligne --}}
                                 @php
                                     $utilisateur = auth()->user();
-                                    $dansMonEspace = request()->routeIs('acteur.*', 'gestion.*', 'distributeur.*', 'commandes.*', 'reclamations.*');
+                                    $dansMonEspace = request()->routeIs('acteur.*', 'gestion.*', 'distributeur.*', 'commandes.*', 'reclamations.*', 'avis.*');
+                                    $notificationsNonLues = $utilisateur->unreadNotifications()->count();
                                 @endphp
                                 <div class="nav-item dropdown">
-                                    <a href="#" class="nav-link dropdown-toggle {{ $dansMonEspace ? 'active' : '' }}" data-bs-toggle="dropdown">Mon espace</a>
+                                    <a href="#" class="nav-link dropdown-toggle {{ $dansMonEspace ? 'active' : '' }}" data-bs-toggle="dropdown">Mon espace @if ($notificationsNonLues)<span class="badge rounded-pill bg-danger ms-1">{{ $notificationsNonLues }}</span>@endif</a>
                                     <div class="dropdown-menu m-0 bg-secondary rounded-0">
                                         @if ($utilisateur->isProducteur())
                                             <a href="{{ route('acteur.tableau') }}" class="dropdown-item">Tableau de bord</a>
@@ -58,7 +59,15 @@
                                         @if ($utilisateur->role === 'consommateur' || $utilisateur->isTransformateur())
                                             <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
                                         @endif
-                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations</a>
+                                        {{-- module Réclamations & Avis --}}
+                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations @if ($notificationsNonLues)<span class="badge rounded-pill bg-danger ms-1">{{ $notificationsNonLues }}</span>@endif</a>
+                                        @can('publier-avis')
+                                            <a href="{{ route('avis.index') }}" class="dropdown-item">Mes avis</a>
+                                        @endcan
+                                        @if ($utilisateur->isActeur())
+                                            <a href="{{ route('acteur.reclamations.index') }}" class="dropdown-item">Réclamations sur mes produits</a>
+                                            <a href="{{ route('acteur.avis.index') }}" class="dropdown-item">Avis sur mes produits</a>
+                                        @endif
                                         @if ($utilisateur->isAdmin())
                                             <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Back office</a>
                                         @endif

@@ -156,13 +156,27 @@
                 <li class="menu-item {{ request()->routeIs('admin.bilans-environnementaux.*') ? 'active' : '' }}"><a href="{{ route('admin.bilans-environnementaux.index') }}" class="menu-link"><div class="text-truncate">Bilans</div></a></li>
               </ul>
             </li>
-            <li class="menu-item {{ request()->routeIs('admin.reclamations.*') ? 'active open' : '' }}">
+            @php
+              $retardsReclamations = \App\Models\Reclamation::query()->enRetard()->count();
+              $alertesOuvertes = \App\Models\AlerteQualite::query()->where('statut', 'ouverte')->count();
+              $avisAModerer = \App\Models\Avis::query()->where('statut', 'en_moderation')->count();
+            @endphp
+            <li class="menu-item {{ request()->routeIs('admin.reclamations.*', 'admin.avis.*', 'admin.alertes.*') ? 'active open' : '' }}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-message-square-error"></i>
-                <div class="text-truncate">Signalements</div>
+                <div class="text-truncate">Réclamations &amp; Avis</div>
+                @if ($retardsReclamations + $alertesOuvertes + $avisAModerer > 0)
+                  <span class="badge rounded-pill bg-danger ms-auto">{{ $retardsReclamations + $alertesOuvertes + $avisAModerer }}</span>
+                @endif
               </a>
               <ul class="menu-sub">
-                <li class="menu-item {{ request()->routeIs('admin.reclamations.*') ? 'active' : '' }}"><a href="{{ route('admin.reclamations.index') }}" class="menu-link"><div class="text-truncate">Réclamations</div></a></li>
+                @can('traiter-reclamations')
+                  <li class="menu-item {{ request()->routeIs('admin.reclamations.*') ? 'active' : '' }}"><a href="{{ route('admin.reclamations.index') }}" class="menu-link"><div class="text-truncate">Réclamations</div>@if ($retardsReclamations)<span class="badge bg-label-danger ms-auto">{{ $retardsReclamations }}</span>@endif</a></li>
+                  <li class="menu-item {{ request()->routeIs('admin.alertes.*') ? 'active' : '' }}"><a href="{{ route('admin.alertes.index') }}" class="menu-link"><div class="text-truncate">Alertes qualité</div>@if ($alertesOuvertes)<span class="badge bg-label-danger ms-auto">{{ $alertesOuvertes }}</span>@endif</a></li>
+                @endcan
+                @can('moderer-avis')
+                  <li class="menu-item {{ request()->routeIs('admin.avis.*') ? 'active' : '' }}"><a href="{{ route('admin.avis.index') }}" class="menu-link"><div class="text-truncate">Avis clients</div>@if ($avisAModerer)<span class="badge bg-label-warning ms-auto">{{ $avisAModerer }}</span>@endif</a></li>
+                @endcan
               </ul>
             </li>
             <li class="menu-item">
