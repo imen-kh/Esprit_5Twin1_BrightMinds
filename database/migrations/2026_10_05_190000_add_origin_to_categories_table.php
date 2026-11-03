@@ -9,20 +9,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('categories', function (Blueprint $table) {
-            $table->string('origin', 20)->default('admin')->after('status');
-            $table->foreignId('user_id')->nullable()->after('origin')->constrained()->nullOnDelete();
-        });
+        if (! Schema::hasColumn('categories', 'origin')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->string('origin', 20)->default('admin')->after('status');
+            });
+        }
 
-        if (DB::getDriverName() !== 'sqlite') {
+        if (! Schema::hasColumn('categories', 'user_id')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable()->after('origin')->constrained()->nullOnDelete();
+            });
+        }
+
+        // Contrainte CHECK propre à MySQL : ignorée sous SQLite (tests et CI)
+        if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE `categories` ADD CONSTRAINT `categories_origin_check` CHECK (`origin` IN ('admin', 'producteur'))");
         }
+
         DB::table('categories')->where('status', 'proposee')->update(['origin' => 'producteur']);
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement('ALTER TABLE `categories` DROP CHECK `categories_origin_check`');
         }
 

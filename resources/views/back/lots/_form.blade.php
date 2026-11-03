@@ -1,6 +1,7 @@
 {{--
   Champs du formulaire d'un lot, partagés par la création et la modification.
-  Variables : $lot (nouveau ou existant), $produits, $lotsOrigine.
+  Variables : $lot (nouveau ou existant), $produits, $lotsOrigine,
+  $origineFixe (lot à transformer transmis par « Transformer ce lot », sinon null).
 --}}
 <div class="row g-6">
   <div class="col-md-6">
@@ -35,21 +36,49 @@
   </div>
 
   {{-- Lot d'origine : proposé seulement au transformateur et à l'admin (un lot de matière première n'en a pas) --}}
-  @if (\App\Models\Lot::origineAutoriseePour(auth()->user()))
+  @if ($origineFixe ?? null)
+  {{-- Lot à transformer : affiché en lecture seule, transmis par un champ caché --}}
+  <div class="col-12">
+    <label class="form-label">Lot d'origine (matière première)</label>
+    <input type="hidden" name="lot_origine_id" value="{{ $origineFixe->id }}" />
+    <div class="border rounded p-4 bg-lighter @error('lot_origine_id') border-danger @enderror">
+      <div class="d-flex flex-wrap align-items-center gap-4">
+        <span class="badge bg-label-primary fs-6">{{ $origineFixe->code }}</span>
+        <div>
+          <strong>{{ $origineFixe->produit->name }}</strong>
+          <small class="d-block text-body-secondary">
+            Producteur : {{ $origineFixe->produit->user?->nom_entreprise ?: $origineFixe->produit->user?->name ?: '—' }}
+            · produit le {{ $origineFixe->date_production->format('d/m/Y') }}
+            · {{ number_format($origineFixe->quantite, 0, ',', ' ') }} {{ $origineFixe->unite }}
+          </small>
+        </div>
+        <a href="{{ route('tracabilite.show', $origineFixe) }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-auto">Voir sa traçabilité</a>
+      </div>
+    </div>
+    @error('lot_origine_id')
+      <div class="text-danger small mt-1">{{ $message }}</div>
+    @else
+      <div class="form-text">Le nouveau lot sera rattaché à ce lot de matière première.</div>
+    @enderror
+  </div>
+  @elseif (\App\Models\Lot::origineAutoriseePour(auth()->user()))
   <div class="col-12">
     <label for="lot_origine_id" class="form-label">Lot d'origine (matière première)</label>
     <select class="form-select @error('lot_origine_id') is-invalid @enderror" id="lot_origine_id" name="lot_origine_id">
       <option value="">Aucun : ce lot n'est pas issu d'un autre lot</option>
       @foreach ($lotsOrigine as $origine)
         <option value="{{ $origine->id }}" @selected((string) old('lot_origine_id', $lot->lot_origine_id ?? null) === (string) $origine->id)>
-          {{ $origine->code }} — {{ $origine->produit->name }} (produit le {{ $origine->date_production->format('d/m/Y') }})
+          {{ $origine->code }} — {{ $origine->produit->name }}, {{ $origine->produit->user?->nom_entreprise ?: $origine->produit->user?->name }} (produit le {{ $origine->date_production->format('d/m/Y') }})
         </option>
       @endforeach
     </select>
     @error('lot_origine_id')
       <div class="invalid-feedback">{{ $message }}</div>
     @else
-      <div class="form-text">Facultatif. À renseigner pour un lot transformé, par exemple une confiture issue d'un lot de fraises.</div>
+      <div class="form-text">
+        Facultatif. À renseigner pour un lot transformé, par exemple une confiture issue d'un lot de fraises.
+        @unless (auth()->user()->isAdmin()) Seuls les lots des matières premières que vous avez commandées sont proposés. @endunless
+      </div>
     @enderror
   </div>
   @endif
@@ -123,6 +152,22 @@
     @enderror
   </div>
 
+  {{-- Motif du rappel : visible et obligatoire seulement quand le statut « Rappelé » est choisi --}}
+  <div class="col-12" id="bloc-motif-rappel" @if (old('statut', $lot->statut ?? null) !== 'rappele') hidden @endif>
+    <label for="motif_rappel" class="form-label text-danger">Motif du rappel <span class="text-danger">*</span></label>
+    <textarea
+      class="form-control @error('motif_rappel') is-invalid @enderror"
+      id="motif_rappel"
+      name="motif_rappel"
+      rows="2"
+      maxlength="500"
+      placeholder="Ex. : présence d'un corps étranger détectée lors d'un contrôle qualité">{{ old('motif_rappel', $lot->motif_rappel ?? null) }}</textarea>
+    <div class="form-text">Affiché aux consommateurs dans la bannière d'alerte de la page publique du lot.</div>
+    @error('motif_rappel')
+      <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+  </div>
+
   <div class="col-12">
     <label for="notes" class="form-label">Notes</label>
     <textarea
@@ -141,3 +186,17 @@
   <button type="submit" class="btn btn-primary me-3">Enregistrer</button>
   <a href="{{ $lot->exists ? route('gestion.lots.show', $lot) : route('gestion.lots.index') }}" class="btn btn-outline-secondary">Annuler</a>
 </div>
+
+@push('scripts')
+  <script>
+    // Le champ « Motif du rappel » n'apparaît que pour le statut « Rappelé »
+    document.addEventListener('DOMContentLoaded', function () {
+      const statut = document.getElementById('statut');
+      const bloc = document.getElementById('bloc-motif-rappel');
+
+      if (statut && bloc) {
+        statut.addEventListener('change', () => { bloc.hidden = statut.value !== 'rappele'; });
+      }
+    });
+  </script>
+@endpush

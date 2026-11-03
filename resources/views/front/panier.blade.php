@@ -51,7 +51,13 @@
                     <form action="{{ route('panier.smart.parse') }}" method="POST">
                         @csrf
                         <label for="need-description" class="form-label fw-semibold">Décrire votre besoin en une phrase</label>
-                        <textarea name="need_description" id="need-description" class="form-control mb-2" rows="2" maxlength="2000" placeholder="Exemple : J'ai 50 DT, je veux 2 kg de tomates et 3 kg de pommes, au prix le plus bas.">{{ old('need_description', $naturalText) }}</textarea>
+                        <div class="input-group mb-2">
+                            <textarea name="need_description" id="need-description" class="form-control" rows="2" maxlength="2000" placeholder="Exemple : J'ai 50 DT, je veux 2 kg de tomates et 3 kg de pommes, au prix le plus bas.">{{ old('need_description', $naturalText) }}</textarea>
+                            <button type="button" class="btn btn-outline-primary d-flex align-items-center justify-content-center" id="voice-need" title="Dicter votre demande" aria-label="Dicter votre demande">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <div id="voice-need-status" class="form-text mb-2">Cliquez sur le microphone pour dicter votre demande.</div>
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <input type="number" name="budget" class="form-control" style="max-width: 160px" min="0.001" step="0.001" value="{{ old('budget', $smartBudget) }}" placeholder="Budget DT">
                             <button type="submit" class="btn btn-outline-primary rounded-pill">Comprendre ma demande</button>
@@ -314,9 +320,60 @@ document.addEventListener('DOMContentLoaded', function () {
     const addButton = document.getElementById('add-smart-product');
     const search = document.getElementById('smart-product-search');
     const categoryFilter = document.getElementById('smart-category-filter');
+    const needDescription = document.getElementById('need-description');
+    const voiceButton = document.getElementById('voice-need');
+    const voiceStatus = document.getElementById('voice-need-status');
     const catalogue = @json($catalogueOptions);
     const producerOptions = @json($producerOptions);
     let lineIndex = lines ? lines.querySelectorAll('.smart-product-line').length : 0;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        if (voiceButton) voiceButton.disabled = true;
+        if (voiceStatus) voiceStatus.textContent = 'La dictée vocale n’est pas disponible dans ce navigateur.';
+    } else if (voiceButton) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'fr-TN';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            voiceButton.classList.add('active');
+            voiceButton.innerHTML = '<i class="fas fa-stop"></i>';
+            if (voiceStatus) voiceStatus.textContent = 'Écoute en cours… Parlez maintenant.';
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.trim();
+            if (!needDescription || !transcript) return;
+            needDescription.value = `${needDescription.value.trim()} ${transcript}`.trim();
+            needDescription.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+
+        recognition.onerror = (event) => {
+            if (voiceStatus) {
+                voiceStatus.textContent = event.error === 'not-allowed'
+                    ? 'Accès au microphone refusé. Autorisez le microphone dans le navigateur.'
+                    : 'La dictée vocale n’a pas pu être lancée. Réessayez.';
+            }
+        };
+
+        recognition.onend = () => {
+            voiceButton.classList.remove('active');
+            voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            if (voiceStatus && voiceStatus.textContent === 'Écoute en cours… Parlez maintenant.') {
+                voiceStatus.textContent = 'Texte transcrit. Vous pouvez le modifier avant de l’envoyer.';
+            }
+        };
+
+        voiceButton.addEventListener('click', () => {
+            try {
+                recognition.start();
+            } catch (error) {
+                if (voiceStatus) voiceStatus.textContent = 'La dictée est déjà active. Parlez maintenant.';
+            }
+        });
+    }
 
     function optionsHtml() {
         return '<option value="">Sélectionner un produit</option>' + catalogue.map(product => `<option value="${product.id}" data-category="${product.categoryId}" ${product.stock < 1 ? 'disabled' : ''}>${product.name} — ${product.producer} — ${product.price} DT — ${product.stock > 0 ? 'stock ' + product.stock : 'stock épuisé'}</option>`).join('');

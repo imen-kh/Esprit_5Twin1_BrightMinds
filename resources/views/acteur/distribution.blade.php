@@ -11,9 +11,7 @@
         @forelse ($products as $product)
             <div class="col-md-4">
                 <div class="border rounded h-100 overflow-hidden">
-                    @if ($product->image)
-                        <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="w-100" style="height: 180px; object-fit: cover;">
-                    @endif
+                    <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="w-100" style="height: 180px; object-fit: cover;">
                     <div class="p-4">
                     <span class="badge bg-secondary">{{ $product->category->name }}</span>
                     <h2 class="h5 mt-3">{{ $product->name }}</h2>

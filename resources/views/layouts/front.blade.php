@@ -59,6 +59,8 @@
     <!-- Template Javascript -->
     <script src="{{ asset('front/js/main.js') }}"></script>
         @stack('scripts')
+        {{-- module Réclamations & Avis : agent Sahbi --}}
+        @include('partials.assistant.sahbi')
     </body>
 
 </html>

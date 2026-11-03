@@ -5,26 +5,20 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReponseReclamationRequest;
 use App\Models\Reclamation;
 use App\Models\ReponseReclamation;
+use App\Services\GestionReclamationService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class ReponseReclamationController extends Controller
 {
-    public function store(StoreReponseReclamationRequest $request, Reclamation $reclamation): RedirectResponse
+    use AuthorizesRequests;
+
+    public function store(StoreReponseReclamationRequest $request, Reclamation $reclamation, GestionReclamationService $service): RedirectResponse
     {
-        abort_unless(
-            $request->user()->isAdmin() || $reclamation->user_id === $request->user()->id,
-            403
-        );
+        $this->authorize('repondre', $reclamation);
 
-        $reclamation->reponses()->create([
-            'user_id' => $request->user()->id,
-            'message' => $request->validated()['message'],
-        ]);
-
-        if ($request->user()->isAdmin() && $reclamation->statut === 'en_attente') {
-            $reclamation->update(['statut' => 'en_cours']);
-        }
+        $service->repondre($reclamation, $request->user(), $request->validated()['message']);
 
         return back()->with('success', 'Réponse enregistrée.');
     }

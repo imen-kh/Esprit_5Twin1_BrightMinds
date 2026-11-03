@@ -1,0 +1,88 @@
+# Déploiement continu NutriTrace : après une CI réussie sur main, l'image Docker est publiée
+# sur GitHub Container Registry (ghcr.io) puis, si configuré, déployée sur Render.
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # Relance manuelle possible depuis l'onglet Actions
+  workflow_dispatch:
+
+concurrency:
+  group: cd-main
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    name: Publication de l'image et déploiement
+    # Uniquement un push sur main dont la CI est verte (pas une Pull Request), ou un lancement manuel
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Exactement le commit validé par la CI
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # Le nom d'une image ghcr.io doit être en minuscules (imen-kh/… -> imen-kh/…)
+      - name: Nom de l'image
+        id: image
+        run: |
+          proprietaire="${{ github.repository_owner }}"
+          echo "nom=ghcr.io/${proprietaire,,}/nutritrace" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Connexion à ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build et push (latest + SHA du commit)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.nom }}:latest
+            ${{ steps.image.outputs.nom }}:${{ steps.image.outputs.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ steps.image.outputs.sha }}
+            org.opencontainers.image.title=NutriTrace
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Un secret ne peut pas être testé dans « if: » : on le passe en variable et le script décide
+      - name: Déploiement (Render)
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+            echo "Déploiement Render déclenché pour ${{ steps.image.outputs.nom }}:${{ steps.image.outputs.sha }}"
+          else
+            echo "Déploiement non configuré : ajoutez le secret RENDER_DEPLOY_HOOK pour déployer automatiquement."
+            echo "Image publiée : ${{ steps.image.outputs.nom }}:latest"
+          fi
+
+      - name: Résumé
+        run: |
+          {
+            echo "### Image publiée"
+            echo ""
+            echo "- \`${{ steps.image.outputs.nom }}:latest\`"
+            echo "- \`${{ steps.image.outputs.nom }}:${{ steps.image.outputs.sha }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -25,7 +25,60 @@
 
               <ul class="navbar-nav flex-row align-items-center ms-md-auto">
 
-                <!-- User -->
+                @auth
+                @php
+                  $nbNonLues = auth()->user()->unreadNotifications->count();
+                  $recentes  = auth()->user()->notifications()->latest()->take(5)->get();
+                @endphp
+                {{-- Cloche de notifications --}}
+                <li class="nav-item dropdown me-3">
+                  <a class="nav-link position-relative" href="javascript:void(0);"
+                     data-bs-toggle="dropdown" aria-expanded="false"
+                     id="notif-bell-admin" aria-label="Notifications">
+                    <i class="icon-base bx bx-bell icon-md"></i>
+                    @if ($nbNonLues > 0)
+                      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                            style="font-size:0.65rem;min-width:18px;">{{ $nbNonLues }}</span>
+                    @endif
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-end p-0" style="width:320px;max-height:420px;overflow-y:auto;">
+                    <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                      <strong class="text-sm">Notifications</strong>
+                      @if ($nbNonLues > 0)
+                        <form method="POST" action="{{ route('notifications.tout-lire') }}">
+                          @csrf @method('PATCH')
+                          <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Tout lire</button>
+                        </form>
+                      @endif
+                    </div>
+                    @forelse ($recentes as $notif)
+                      @php $data = $notif->data; @endphp
+                      <a href="{{ $data['url'] ?? '#' }}"
+                         class="dropdown-item py-2 px-3 border-bottom {{ $notif->read_at ? '' : 'bg-light' }}"
+                         style="white-space:normal;">
+                        <div class="d-flex align-items-start gap-2">
+                          <i class="bx {{ str_starts_with($data['type'] ?? '', 'livraison') ? 'bx-package' : 'bx-cart' }} text-primary mt-1"></i>
+                          <div class="flex-grow-1">
+                            <div class="fw-semibold" style="font-size:.85rem;">{{ $data['titre'] ?? 'Notification' }}</div>
+                            <small class="text-muted">{{ $notif->created_at->diffForHumans() }}</small>
+                          </div>
+                          @if (!$notif->read_at)
+                            <form method="POST" action="{{ route('notifications.lire', $notif->id) }}" class="ms-auto">
+                              @csrf @method('PATCH')
+                              <button type="submit" class="btn btn-sm p-0 text-muted" title="Marquer comme lue">&times;</button>
+                            </form>
+                          @endif
+                        </div>
+                      </a>
+                    @empty
+                      <p class="text-muted text-center py-3 mb-0" style="font-size:.85rem;">Aucune notification</p>
+                    @endforelse
+                    <a href="{{ route('notifications.index') }}" class="dropdown-item text-center py-2 text-primary border-top">Voir tout l'historique</a>
+                  </div>
+                </li>
+                @endauth
+
+                {{-- User --}}
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                   <a
                     class="nav-link dropdown-toggle hide-arrow p-0"

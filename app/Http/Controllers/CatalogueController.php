@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\AvisProduitService;
+use App\Services\RechercheIntelligenteService;
 use Illuminate\Http\Request;
 
 class CatalogueController extends Controller
@@ -23,18 +25,20 @@ class CatalogueController extends Controller
         return view('front.home', compact('products'));
     }
 
-    public function suggest(Request $request)
+    public function suggest(Request $request, RechercheIntelligenteService $recherche)
     {
         $term = trim((string) $request->query('q', ''));
 
-        $products = Product::with('category')
-            ->where('status', 'published')
-            ->when($term !== '', function ($query) use ($term) {
-                $query->where('name', 'like', '%'.$term.'%');
-            })
-            ->orderBy('name')
-            ->take(6)
-            ->get();
+        if ($term === '') {
+            $products = Product::with('category')
+                ->where('status', Product::PUBLISHED)
+                ->orderBy('name')
+                ->take(6)
+                ->get();
+        } else {
+            $categories = Category::validated()->orderBy('name')->get();
+            $products = $recherche->resultats($recherche->interpreter($term, $categories))->take(6);
+        }
 
         return response()->json($products->map(function (Product $product) {
             return [
@@ -46,26 +50,30 @@ class CatalogueController extends Controller
         }));
     }
 
-    public function index(Request $request)
+    public function index(Request $request, RechercheIntelligenteService $recherche)
     {
         $categories = Category::validated()->orderBy('name')->get();
+        $criteres = $recherche->interpreter(trim((string) $request->query('q', '')), $categories);
 
-        $products = Product::with(['category', 'user'])
-            ->where('status', 'published')
-            ->when($request->filled('category_id'), function ($query) use ($request) {
-                $query->where('category_id', $request->input('category_id'));
-            })
-            ->when($request->filled('q'), function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->input('q').'%');
-            })
-            ->orderByDesc('created_at')
-            ->paginate(12)
-            ->withQueryString();
+        if ($request->filled('category_id')) {
+            $id = (int) $request->input('category_id');
+            $criteres['category_ids'] = $criteres['category_ids'] === []
+                ? [$id]
+                : array_values(array_intersect($criteres['category_ids'], [$id]));
 
-        return view('front.catalogue.index', compact('categories', 'products'));
+            if ($criteres['category_ids'] === []) {
+                $criteres['category_ids'] = [-1];
+            }
+
+            $criteres['resume'] = $recherche->decrire($criteres, $categories);
+        }
+
+        $products = $recherche->paginer($criteres);
+
+        return view('front.catalogue.index', compact('categories', 'products', 'criteres'));
     }
 
-    public function show(Product $product)
+    public function show(Request $request, Product $product, AvisProduitService $avisProduit)
     {
         abort_unless($product->status === 'published', 404);
 
@@ -85,6 +93,9 @@ class CatalogueController extends Controller
             ->latest()
             ->get();
 
-        return view('front.catalogue.show', compact('product', 'related', 'bilansPublics'));
+        // Module Réclamations & Avis : moyenne, synthèse IA et liste des avis
+        $avis = $avisProduit->section($product, $request->user(), (string) $request->query('tri', 'recents'));
+
+        return view('front.catalogue.show', compact('product', 'related', 'bilansPublics', 'avis'));
     }
 }

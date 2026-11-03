@@ -7,7 +7,10 @@ use App\Models\Category;
 use App\Models\EtapeTracabilite;
 use App\Models\Lot;
 use App\Models\Product;
+use App\Models\Reclamation;
 use App\Models\User;
+use App\Services\DashboardAgricoleService;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -15,8 +18,16 @@ use Illuminate\View\View;
  */
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function __construct(private DashboardAgricoleService $agricole) {}
+
+    public function index(Request $request): View
     {
+        $filtres = $request->validate([
+            'du' => ['nullable', 'date'],
+            'au' => ['nullable', 'date'],
+            'produit' => ['nullable', 'string', 'max:100'],
+            'region' => ['nullable', 'string', 'max:100'],
+        ]);
         // Nombre de lots par statut, dans l'ordre des statuts du modèle
         $parStatut = Lot::query()->selectRaw('statut, count(*) as total')->groupBy('statut')->pluck('total', 'statut');
         $lotsParStatut = collect(Lot::STATUTS)->map(fn (array $infos, string $cle) => [
@@ -50,6 +61,15 @@ class DashboardController extends Controller
             'parTypeActeur' => $parTypeActeur,
             'lotsRappeles' => Lot::with('produit')->where('statut', 'rappele')->orderByDesc('date_production')->get(),
             'dernieresEtapes' => EtapeTracabilite::with(['lot.produit', 'acteur'])->orderByDesc('date_etape')->take(6)->get(),
+            // Module Réclamations : nombre par statut et dernières réclamations reçues
+            'reclamationsParStatut' => Reclamation::query()->selectRaw('statut, count(*) as total')->groupBy('statut')->pluck('total', 'statut'),
+            'dernieresReclamations' => Reclamation::with(['user', 'produit'])->latest()->take(5)->get(),
+            'agricole' => $this->agricole->admin([
+                'du' => $filtres['du'] ?? null,
+                'au' => $filtres['au'] ?? null,
+                'produit' => $filtres['produit'] ?? null,
+                'region' => $filtres['region'] ?? null,
+            ]),
         ]);
     }
 }

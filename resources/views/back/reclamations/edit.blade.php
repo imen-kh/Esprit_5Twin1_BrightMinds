@@ -32,6 +32,12 @@
                     <input class="form-control @error('commande_id') is-invalid @enderror" id="commande_id" name="commande_id" type="number" min="1" value="{{ old('commande_id', $reclamation->commande_id) }}">
                     @error('commande_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="code_lot">Code du lot</label>
+                    <input class="form-control @error('code_lot') is-invalid @enderror" id="code_lot" name="code_lot" maxlength="40" value="{{ old('code_lot', $reclamation->lot?->code) }}" placeholder="LOT-2026-0001">
+                    @error('code_lot')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6"></div>
                 <div class="col-md-8">
                     <label class="form-label" for="sujet">Sujet</label>
                     <input class="form-control @error('sujet') is-invalid @enderror" id="sujet" name="sujet" value="{{ old('sujet', $reclamation->sujet) }}" required>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,23 +39,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
 
-        // Double authentification activée : on envoie un code par email et on attend sa saisie
-        if ($user->two_factor_enabled) {
-            try {
-                $user->envoyerCodeDoubleAuth();
-            } catch (Throwable $e) {
-                report($e);
-
-                return back()
-                    ->withErrors(['email' => "L'envoi du code de vérification a échoué. Réessayez dans un instant."])
-                    ->onlyInput('email');
-            }
-
+        // Double authentification active : pas de connexion tant que le code de l'application n'est pas saisi
+        if ($user->aDoubleAuthentification()) {
             $request->session()->put('two_factor', [
                 'user_id' => $user->id,
                 'remember' => $seSouvenir,
                 'tentatives' => 0,
-                'envoye_a' => time(),
             ]);
 
             return redirect()->route('two-factor.challenge');
@@ -65,7 +55,8 @@ class AuthController extends Controller
         // Protection contre la fixation de session
         $request->session()->regenerate();
 
-        return redirect()->route($request->user()->espaceRoute());
+        // Page demandée avant la connexion (ex. lien de vérification d'email), sinon l'espace du rôle
+        return redirect()->intended(route($request->user()->espaceRoute()));
     }
 
     /**
@@ -91,10 +82,18 @@ class AuthController extends Controller
 
         $user = User::create($donnees);
 
+        // Événement natif : Laravel envoie l'email de vérification (VerificationAdresseEmail).
+        // Un échec d'envoi n'empêche pas l'inscription : le lien peut être renvoyé depuis la page d'attente.
+        try {
+            event(new Registered($user));
+        } catch (Throwable $e) {
+            report($e);
+        }
+
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('home');
+        return redirect()->route('verification.notice');
     }
 
     /**

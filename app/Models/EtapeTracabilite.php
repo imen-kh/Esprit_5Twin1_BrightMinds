@@ -17,6 +17,13 @@ class EtapeTracabilite extends Model
     protected $table = 'etape_tracabilites';
 
     /**
+     * Créer, modifier ou supprimer une étape met à jour le lot : l'histoire IA en cache devient périmée.
+     *
+     * @var list<string>
+     */
+    protected $touches = ['lot'];
+
+    /**
      * Types d'étape : libellé français, icône Boxicons et couleur Bootstrap.
      */
     public const TYPES = [

@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 /**
  * Données de démo du module Traçabilité : des lots et leurs étapes, de la ferme à l'assiette.
@@ -24,13 +25,6 @@ class TracabiliteSeeder extends Seeder
 
     public function run(): void
     {
-        // Les codes de lot sont uniques : on ne ressème pas une base qui contient déjà des lots
-        if (Lot::query()->exists()) {
-            $this->command?->warn('TracabiliteSeeder ignoré : des lots existent déjà.');
-
-            return;
-        }
-
         foreach (['producteur', 'transformateur', 'distributeur'] as $type) {
             $this->acteurs[$type] = User::where('email', $type.'@nutritrace.tn')->first();
 
@@ -41,7 +35,15 @@ class TracabiliteSeeder extends Seeder
             }
         }
 
+        // Produits et catégories de démo : sans doublon, donc relançable sur une base déjà remplie
         $produits = $this->produitsDeDemo();
+
+        // Les codes de lot sont uniques : on ne ressème pas une base qui contient déjà des lots
+        if (Lot::query()->exists()) {
+            $this->command?->warn('TracabiliteSeeder : produits de démo vérifiés ; lots ignorés car des lots existent déjà.');
+
+            return;
+        }
 
         // ===== Chaîne fraises -> confiture : le lot transformé référence son lot de matière première =====
         $lotFraises = $this->creerLot($produits['Fraises de Nabeul'], 24, [
@@ -51,7 +53,7 @@ class TracabiliteSeeder extends Seeder
         ], ['quantite' => 800, 'unite' => 'kg', 'statut' => 'disponible', 'peremption' => 12]);
 
         $this->creerLot($produits['Confiture de fraises'], 20, [
-            ['transformation', 'Menzel Bouzelfa', 0, 8, 'Cuisson et mise en pots de la confiture', 'Cuisson au chaudron, 60 % de fruits, pasteurisation des pots.'],
+            ['transformation', 'Menzel Bouzelfa', 0, 8, 'Cuisson et mise en pots de la confiture', 'Cuisson au chaudron à 85 °C, 60 % de fruits, pasteurisation des pots.', 85],
             ['transport', 'Tunis', 3, 6, 'Transport vers la plateforme logistique', null],
             ['stockage', 'Sousse', 4, 10, 'Stockage à l\'entrepôt du distributeur', null],
             ['distribution', 'Sousse', 6, 9, 'Mise en rayon à l\'Épicerie Bio Sousse', 'Lot disponible à la vente.'],
@@ -66,9 +68,26 @@ class TracabiliteSeeder extends Seeder
             ['stockage', 'Tunis', 5, 11, 'Stockage en entrepôt', 'Lot bloqué à la suite du rappel.'],
         ], ['quantite' => 600, 'unite' => 'unités', 'peremption' => 300, 'rappele' => true]);
 
+        // ===== Démo IA : un lot « parfait » (score 100, aucune anomalie)... =====
+        $lotParfait = $this->creerLot($produits['Oranges maltaises'], 10, [
+            ['production', 'Nabeul', 0, '07:15', 'Cueillette des oranges maltaises', 'Récolte à la main au verger familial du Cap Bon, tri et calibrage sur place.', 18],
+            ['transport', 'Grombalia', 0, '14:30', 'Transport réfrigéré vers la station de conditionnement', 'Camion frigorifique, chaîne du froid contrôlée.', 4],
+            ['stockage', 'Tunis', 1, '09:00', 'Stockage en chambre froide', 'Contrôle qualité à la réception, conservation à 3 °C.', 3],
+            ['distribution', 'Tunis', 2, '08:30', 'Mise en rayon au marché central de Tunis', 'Lot disponible à la vente.', 6],
+        ], ['quantite' => 400, 'unite' => 'kg', 'statut' => 'disponible', 'peremption' => 21]);
+
+        // ... et un lot « suspect » : 14 °C pendant le transport, Béja -> Sfax en 1 h 10, pas de distribution,
+        // péremption dans 2 jours (alerte « Bientôt périmé »)
+        $lotSuspect = $this->creerLot($produits['Tomates de Béja'], 8, [
+            ['production', 'Béja', 0, '06:30', 'Récolte des tomates', 'Récolte en plein champ.', 20],
+            ['transport', 'Sfax', 0, '07:40', 'Transport vers l\'entrepôt de Sfax', 'Camion non réfrigéré.', 14],
+            ['stockage', 'Sfax', 1, '10:00', 'Stockage en entrepôt', null, 5],
+        ], ['quantite' => 900, 'unite' => 'kg', 'statut' => 'disponible', 'peremption' => 10]);
+
         // ===== Pour chaque produit : 1 à 2 lots, avec 3 à 5 étapes chronologiques =====
         foreach (Product::with('user')->withCount('lots')->get() as $produit) {
-            $objectif = random_int(1, 2);
+            // Les produits de la chaîne de démo gardent leur seul lot : le scénario reste prévisible
+            $objectif = $produit->lots_count > 0 ? 1 : random_int(1, 2);
 
             for ($i = $produit->lots_count; $i < $objectif; $i++) {
                 $this->creerLotGenerique($produit);
@@ -80,6 +99,15 @@ class TracabiliteSeeder extends Seeder
             Lot::count(),
             EtapeTracabilite::count()
         ));
+        $this->command?->info("Démo IA : lot parfait {$lotParfait->code}, lot suspect {$lotSuspect->code}.");
+
+        // Histoire IA du lot parfait enregistrée en base : la démo fonctionne ensuite sans internet
+        if (config('services.gemini.key')) {
+            Artisan::call('tracabilite:generer-histoires', ['--lot' => [$lotParfait->code]]);
+            $this->command?->line(trim(Artisan::output()));
+        } else {
+            $this->command?->warn('GEMINI_API_KEY vide : lancez « php artisan tracabilite:generer-histoires » une fois la clé renseignée.');
+        }
     }
 
     /**
@@ -96,9 +124,14 @@ class TracabiliteSeeder extends Seeder
         foreach ([
             'Fruits' => 'Fruits frais de saison.',
             'Légumes' => 'Légumes frais cultivés en Tunisie.',
-            'Produits transformés' => 'Conserves, confitures et préparations artisanales.',
+            // Les produits transformés sont rangés dans de vraies catégories : le badge « Transformé » suffit
+            'Conserves' => 'Confitures, compotes et conserves artisanales.',
+            'Condiments' => 'Harissa, épices et sauces.',
         ] as $nom => $description) {
-            $categories[$nom] = Category::firstOrCreate(['name' => $nom], ['description' => $description]);
+            $categories[$nom] = Category::firstOrCreate(
+                ['name' => $nom],
+                ['description' => $description, 'status' => Category::VALIDATED]
+            );
         }
 
         $definitions = [
@@ -108,10 +141,12 @@ class TracabiliteSeeder extends Seeder
                 'Oranges maltaises demi-sanguines, récoltées à maturité.'],
             ['Tomates de Béja', 'Légumes', 'producteur', 1.900, 'Béja', null,
                 'Tomates de plein champ, cultivées sans pesticides de synthèse.'],
-            ['Confiture de fraises', 'Produits transformés', 'transformateur', 7.900, 'Menzel Bouzelfa',
+            ['Piments de Korba', 'Légumes', 'producteur', 3.200, 'Korba', null,
+                'Piments rouges du Cap Bon, destinés à la harissa.'],
+            ['Confiture de fraises', 'Conserves', 'transformateur', 7.900, 'Menzel Bouzelfa',
                 'Fraises (60 %), sucre de canne, jus de citron, pectine de fruits.',
                 'Confiture artisanale cuite au chaudron.'],
-            ['Harissa du Cap Bon', 'Produits transformés', 'transformateur', 4.500, 'Menzel Bouzelfa',
+            ['Harissa du Cap Bon', 'Condiments', 'transformateur', 4.500, 'Menzel Bouzelfa',
                 'Piments rouges séchés, ail, huile d\'olive, sel, carvi, coriandre.',
                 'Harissa traditionnelle préparée à partir de piments du Cap Bon.'],
         ];
@@ -132,6 +167,11 @@ class TracabiliteSeeder extends Seeder
                     'type_produit' => $type === 'transformateur' ? 'transforme' : 'matiere_premiere',
                 ]
             );
+
+            // Base déjà remplie : le produit quitte l'ancienne catégorie fourre-tout « Produits transformés »
+            if ($produits[$nom]->category?->name === 'Produits transformés') {
+                $produits[$nom]->update(['category_id' => $categories[$categorie]->id]);
+            }
         }
 
         return $produits;
@@ -140,8 +180,8 @@ class TracabiliteSeeder extends Seeder
     /**
      * Crée un lot produit il y a $ilYAJours jours, avec ses étapes.
      *
-     * @param  list<array{0: string, 1: string, 2: int, 3: int, 4: ?string, 5: ?string}>  $etapes
-     *                                                                                             [type, ville, jours après la production, heure, titre, description]
+     * @param  list<array{0: string, 1: string, 2: int, 3: int|string, 4: ?string, 5: ?string, 6?: float|int}>  $etapes
+     *                                                                                                                 [type, ville, jours après la production, heure (8 = 8 h et minutes au hasard, ou « 08:30 » exact), titre, description, température (facultative)]
      * @param  array<string, mixed>  $options  quantite, unite, statut, peremption (jours), origine (Lot), rappele, notes
      */
     private function creerLot(Product $produit, int $ilYAJours, array $etapes, array $options = []): Lot
@@ -175,16 +215,23 @@ class TracabiliteSeeder extends Seeder
 
         $lot = $factory->create($attributs);
 
-        foreach ($etapes as [$type, $ville, $joursApres, $heure, $titre, $description]) {
+        foreach ($etapes as $etape) {
+            [$type, $ville, $joursApres, $heure, $titre, $description] = $etape;
             $attributsEtape = [
                 'lot_id' => $lot->id,
                 'user_id' => $this->acteurPour($type)->id,
-                'date_etape' => $production->addDays($joursApres)->setTime($heure, random_int(0, 59)),
+                'date_etape' => is_string($heure)
+                    ? $production->addDays($joursApres)->setTimeFromTimeString($heure)
+                    : $production->addDays($joursApres)->setTime($heure, random_int(0, 59)),
                 'description' => $description,
             ];
 
             if ($titre) {
                 $attributsEtape['titre'] = $titre;
+            }
+
+            if (isset($etape[6])) {
+                $attributsEtape['temperature'] = $etape[6];
             }
 
             EtapeTracabilite::factory()->type($type)->a($ville)->create($attributsEtape);
@@ -212,6 +259,12 @@ class TracabiliteSeeder extends Seeder
         }
 
         $chaine = array_slice($chaine, 0, $nombre);
+
+        // Un lot entreposé est déclaré disponible : on le termine en point de vente, sinon il serait
+        // signalé (à raison) par les contrôles automatiques et brouillerait la démo du lot suspect
+        if (end($chaine) === 'stockage') {
+            $chaine[] = 'distribution';
+        }
 
         $fermes = ['Nabeul', 'Béja', 'Bizerte', 'Sfax', 'Grombalia'];
         $entrepots = ['Tunis', 'Sousse', 'Sfax'];
@@ -262,10 +315,6 @@ class TracabiliteSeeder extends Seeder
      */
     private function statutSelonDerniereEtape(string $type): string
     {
-        return match ($type) {
-            'production', 'transformation' => 'en_production',
-            'transport' => 'en_transit',
-            default => 'disponible',
-        };
+        return Lot::statutPourEtape($type);
     }
 }

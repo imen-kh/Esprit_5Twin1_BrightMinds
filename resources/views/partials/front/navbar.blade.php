@@ -31,15 +31,19 @@
                                 {{-- Liens propres au rôle, regroupés dans un seul menu pour garder la barre sur une ligne --}}
                                 @php
                                     $utilisateur = auth()->user();
-                                    $dansMonEspace = request()->routeIs('acteur.*', 'gestion.*', 'distributeur.*', 'commandes.*', 'reclamations.*');
+                                    $dansMonEspace = request()->routeIs('acteur.*', 'gestion.*', 'distributeur.*', 'commandes.*', 'reclamations.*', 'avis.*');
+                                    $notificationsNonLues = $utilisateur->unreadNotifications()->count();
                                 @endphp
                                 <div class="nav-item dropdown">
-                                    <a href="#" class="nav-link dropdown-toggle {{ $dansMonEspace ? 'active' : '' }}" data-bs-toggle="dropdown">Mon espace</a>
+                                    <a href="#" class="nav-link dropdown-toggle {{ $dansMonEspace ? 'active' : '' }}" data-bs-toggle="dropdown">Mon espace @if ($notificationsNonLues)<span class="badge rounded-pill bg-danger ms-1">{{ $notificationsNonLues }}</span>@endif</a>
                                     <div class="dropdown-menu m-0 bg-secondary rounded-0">
                                         @if ($utilisateur->isProducteur())
+                                            <a href="{{ route('acteur.tableau') }}" class="dropdown-item">Tableau de bord</a>
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits</a>
+                                            <a href="{{ route('acteur.meteo') }}" class="dropdown-item">Météo agricole</a>
+                                            <a href="{{ route('acteur.recoltes.index') }}" class="dropdown-item">Mes récoltes</a>
+                                            <a href="{{ route('acteur.stocks.index') }}" class="dropdown-item">Gestion intelligente des stocks</a>
                                         @elseif ($utilisateur->isTransformateur())
-                                            <a href="{{ route('acteur.transformation') }}" class="dropdown-item">Transformation</a>
                                             <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
                                         @elseif ($utilisateur->isDistributeur())
                                             <a href="{{ route('acteur.distribution') }}" class="dropdown-item">Distribution</a>
@@ -55,13 +59,21 @@
                                         @if ($utilisateur->role === 'consommateur' || $utilisateur->isTransformateur())
                                             <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
                                         @endif
-                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations</a>
+                                        {{-- module Réclamations & Avis --}}
+                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations @if ($notificationsNonLues)<span class="badge rounded-pill bg-danger ms-1">{{ $notificationsNonLues }}</span>@endif</a>
+                                        @can('publier-avis')
+                                            <a href="{{ route('avis.index') }}" class="dropdown-item">Mes avis</a>
+                                        @endcan
+                                        @if ($utilisateur->isActeur())
+                                            <a href="{{ route('acteur.reclamations.index') }}" class="dropdown-item">Réclamations sur mes produits</a>
+                                            <a href="{{ route('acteur.avis.index') }}" class="dropdown-item">Avis sur mes produits</a>
+                                        @endif
                                         @if ($utilisateur->isAdmin())
                                             <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Back office</a>
                                         @endif
                                     </div>
                                 </div>
-                            @endauth
+                            </div>
                             <a href="{{ route('contact') }}" class="nav-item nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
                         </div>
                         <div class="d-flex m-3 me-0">
@@ -81,6 +93,56 @@
                                     <i class="fas fa-user fa-2x"></i>
                                 </a>
                             @else
+                                {{-- Cloche de notifications --}}
+                                @php
+                                    $nbNonLues = auth()->user()->unreadNotifications->count();
+                                    $recentes  = auth()->user()->notifications()->latest()->take(5)->get();
+                                @endphp
+                                <div class="nav-item dropdown my-auto me-3 position-relative">
+                                    <a href="javascript:void(0);" class="position-relative" data-bs-toggle="dropdown"
+                                       id="notif-bell-front" aria-label="Notifications">
+                                        <i class="fas fa-bell fa-2x"></i>
+                                        @if ($nbNonLues > 0)
+                                            <span class="position-absolute bg-danger rounded-circle d-flex align-items-center justify-content-center text-white px-1"
+                                                  style="top:-6px;left:14px;height:20px;min-width:20px;font-size:.65rem;">{{ $nbNonLues }}</span>
+                                        @endif
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end p-0 mt-2" style="width:310px;max-height:400px;overflow-y:auto;left:auto;right:0;">
+                                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                                            <strong style="font-size:.9rem;">Notifications</strong>
+                                            @if ($nbNonLues > 0)
+                                                <form method="POST" action="{{ route('notifications.tout-lire') }}">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Tout lire</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                        @forelse ($recentes as $notif)
+                                            @php $data = $notif->data; @endphp
+                                            <a href="{{ $data['url'] ?? '#' }}"
+                                               class="dropdown-item py-2 px-3 border-bottom {{ $notif->read_at ? '' : 'bg-light' }}"
+                                               style="white-space:normal;">
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <i class="fas {{ str_starts_with($data['type'] ?? '', 'livraison') ? 'fa-shipping-fast' : 'fa-shopping-bag' }} text-primary mt-1"></i>
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-semibold" style="font-size:.82rem;">{{ $data['titre'] ?? 'Notification' }}</div>
+                                                        <small class="text-muted">{{ $notif->created_at->diffForHumans() }}</small>
+                                                    </div>
+                                                    @if (!$notif->read_at)
+                                                        <form method="POST" action="{{ route('notifications.lire', $notif->id) }}" class="ms-auto">
+                                                            @csrf @method('PATCH')
+                                                            <button type="submit" class="btn btn-sm p-0 text-muted" title="Marquer comme lue">&times;</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            </a>
+                                        @empty
+                                            <p class="text-muted text-center py-3 mb-0" style="font-size:.85rem;">Aucune notification</p>
+                                        @endforelse
+                                        <a href="{{ route('notifications.index') }}" class="dropdown-item text-center py-2 text-primary border-top">Voir tout l'historique</a>
+                                    </div>
+                                </div>
+
                                 {{-- Utilisateur connecté : menu avec son nom --}}
                                 <div class="nav-item dropdown my-auto">
                                     <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">

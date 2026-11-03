@@ -5,23 +5,23 @@ namespace App\Http\Controllers\Acteur;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\MatieresPremieresService;
 use App\Services\ProductImageService;
+use App\Services\ProduitIAService;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        if (auth()->user()->isTransformateur()) {
-            return redirect()->route('acteur.transformation');
-        }
-
         if (auth()->user()->isDistributeur()) {
             return redirect()->route('acteur.distribution');
         }
 
-        $query = Product::with('category')->orderByDesc('created_at');
+        // withCount('lots') : colonne « Lots » du transformateur (module Traçabilité)
+        $query = Product::with('category')->withCount('lots')->orderByDesc('created_at');
 
         if (! auth()->user()->isAdmin()) {
             $query->where('user_id', auth()->id());
@@ -36,7 +36,20 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('acteur.products.index', compact('products', 'orderedProducts'));
+        // Espace du transformateur : matières premières commandées, chiffres et dernières
+        // transformations, fournis par le module Traçabilité
+        $matieres = collect();
+        $chiffres = null;
+        $dernieresTransformations = collect();
+
+        if (auth()->user()->isTransformateur()) {
+            $service = app(MatieresPremieresService::class);
+            $matieres = $service->pour(auth()->user());
+            $chiffres = $service->chiffres(auth()->user(), $matieres);
+            $dernieresTransformations = $service->dernieresTransformations(auth()->user());
+        }
+
+        return view('acteur.products.index', compact('products', 'orderedProducts', 'matieres', 'chiffres', 'dernieresTransformations'));
     }
 
     public function create()
@@ -51,13 +64,14 @@ class ProductController extends Controller
     {
         $this->denyProductCreation();
         $data = $this->validatedData($request);
+        $data['quality_analysis'] = $this->rapportQualite($request);
         $data['image'] = $this->storeImage($request);
         $data['user_id'] = $request->user()->id;
-        $data['status'] = 'published';
+        $data['status'] = Product::PENDING;
         $data['type_produit'] = $request->user()->isTransformateur() ? 'transforme' : 'matiere_premiere';
         Product::create($data);
 
-        return redirect()->route('acteur.produits.index')->with('success', 'Produit ajouté. Il est visible dans le catalogue.');
+        return redirect()->route('acteur.produits.index')->with('success', 'Produit soumis. Il sera publié dans le catalogue après validation par un administrateur.');
     }
 
     public function edit(Product $product)
@@ -74,12 +88,23 @@ class ProductController extends Controller
         $this->denyDistributor();
         $this->authorizeOwner($product);
         $data = $this->validatedData($request);
+        if ($request->hasFile('image')) {
+            $data['quality_analysis'] = $this->rapportQualite($request);
+        }
         $data['image'] = $this->storeImage($request, $product);
-        $data['status'] = 'published';
         $data['type_produit'] = $request->user()->isTransformateur() ? 'transforme' : 'matiere_premiere';
+
+        if (! $request->user()->isAdmin()) {
+            $data['status'] = Product::PENDING;
+            $data['review_note'] = null;
+            $data['reviewed_at'] = null;
+            $data['reviewed_by'] = null;
+            $data['ai_analysis'] = null;
+        }
+
         $product->update($data);
 
-        return redirect()->route('acteur.produits.index')->with('success', 'Produit modifié.');
+        return redirect()->route('acteur.produits.index')->with('success', 'Produit modifié et renvoyé en validation.');
     }
 
     public function destroy(Product $product)
@@ -91,6 +116,98 @@ class ProductController extends Controller
         app(ProductImageService::class)->supprimer($image);
 
         return redirect()->route('acteur.produits.index')->with('success', 'Produit supprimé.');
+    }
+
+    /**
+     * Gemini Vision propose une fiche à partir de la photo. Le producteur relit avant d'enregistrer.
+     */
+    public function genererIa(Request $request, ProduitIAService $ia): JsonResponse
+    {
+        $this->denyProductCreation();
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'image.required' => 'Choisissez une image avant de lancer l’analyse.',
+            'image.image' => 'Le fichier doit être une image.',
+            'image.mimes' => 'L’image doit être au format JPG, PNG ou WEBP.',
+            'image.max' => 'L’image ne peut pas dépasser 2 Mo.',
+        ]);
+
+        if (! $ia->estConfigure()) {
+            return response()->json([
+                'message' => 'L’IA n’est pas configurée. Saisissez le nom, la description et la catégorie manuellement.',
+            ], 503);
+        }
+
+        $proposition = $ia->proposerDepuisImage(
+            $request->file('image'),
+            Category::validated()->orderBy('name')->get()
+        );
+
+        if ($proposition === null) {
+            return response()->json([
+                'message' => 'L’analyse de l’image est indisponible. Le formulaire reste utilisable.',
+            ], 503);
+        }
+
+        return response()->json($proposition);
+    }
+
+    /**
+     * Analyse visuelle indicative. N'enregistre rien et ne publie pas le produit.
+     */
+    public function qualiteIa(Request $request, ProduitIAService $ia): JsonResponse
+    {
+        $this->denyProductCreation();
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'image.required' => 'Choisissez une image avant d’analyser la qualité.',
+            'image.image' => 'Le fichier doit être une image.',
+            'image.mimes' => 'L’image doit être au format JPG, PNG ou WEBP.',
+            'image.max' => 'L’image ne peut pas dépasser 2 Mo.',
+        ]);
+
+        if (! $ia->estConfigure()) {
+            return response()->json([
+                'message' => 'L’IA n’est pas configurée. Vous pouvez enregistrer le produit sans analyse de qualité.',
+            ], 503);
+        }
+
+        $rapport = $ia->evaluerQualite($request->file('image'));
+
+        if ($rapport === null) {
+            return response()->json([
+                'message' => 'L’analyse de qualité est indisponible. Le formulaire reste utilisable.',
+            ], 503);
+        }
+
+        $request->session()->put('produit_qualite_visuelle', [
+            'empreinte' => hash('sha256', $request->file('image')->get()),
+            'rapport' => $rapport,
+        ]);
+
+        return response()->json($rapport);
+    }
+
+    /**
+     * Le rapport n'est conservé que s'il correspond exactement à la photo envoyée.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function rapportQualite(Request $request): ?array
+    {
+        $memoire = $request->session()->pull('produit_qualite_visuelle');
+
+        if (! $request->hasFile('image') || ! is_array($memoire) || ! is_array($memoire['rapport'] ?? null)) {
+            return null;
+        }
+
+        $empreinte = hash('sha256', $request->file('image')->get());
+
+        return ($memoire['empreinte'] ?? null) === $empreinte ? $memoire['rapport'] : null;
     }
 
     private function validatedData(Request $request): array
@@ -157,14 +274,12 @@ class ProductController extends Controller
         return $url;
     }
 
+    /**
+     * Le producteur ajoute des matières premières, le transformateur des produits transformés ;
+     * le distributeur ne crée pas de produit.
+     */
     private function denyProductCreation(): void
     {
-        if (auth()->user()->isTransformateur()) {
-            throw new HttpResponseException(
-                redirect()->route('acteur.transformation')
-            );
-        }
-
         if (auth()->user()->isDistributeur()) {
             throw new HttpResponseException(
                 redirect()->route('acteur.distribution')

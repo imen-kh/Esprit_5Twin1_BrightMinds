@@ -2,7 +2,7 @@
 @section('title', $label->nom)
 @section('content')
 <div class="container py-5"><div class="d-flex align-items-center gap-3 mb-4">
-@if($label->logo)<img src="{{ asset('storage/'.$label->logo) }}" style="width:90px;height:90px;object-fit:contain" alt="{{ $label->nom }}">@endif
+<img src="{{ $label->logo_url }}" style="width:90px;height:90px;object-fit:contain" alt="{{ $label->nom }}">
 <div><h1>{{ $label->nom }}</h1><p class="text-muted mb-0">{{ $label->organisme }}</p></div></div>
 <p>{{ $label->description }}</p><h3 class="mt-5">Certifications vérifiées</h3>
 <div class="row g-3">@forelse($label->certifications as $certification)<div class="col-md-6"><div class="card p-3">

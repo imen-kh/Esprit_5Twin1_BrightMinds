@@ -46,7 +46,7 @@
         <div class="card border-primary shadow-sm mb-5">
             <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h4 class="mb-0 text-white"><i class="fas fa-robot me-2"></i> Simulateur Éco-Score IA & Alternative Locale</h4>
-                <span class="badge bg-light text-primary">Algorithme prédictif en temps réel</span>
+                <span class="badge bg-light text-primary">ChatGPT · OpenAI</span>
             </div>
             <div class="card-body p-4">
                 <p class="text-muted small mb-4">
@@ -115,6 +115,7 @@
                             <div class="p-3 bg-white rounded border border-success">
                                 <h6 class="text-success fw-bold mb-1"><i class="fas fa-lightbulb me-1"></i> Alternative locale suggérée par l'IA :</h6>
                                 <p class="mb-0 text-dark small" id="simu-alternative"></p>
+                                <p class="mb-0 text-muted small mt-2" id="simu-source"></p>
                             </div>
                         </div>
                     </div>
@@ -125,8 +126,8 @@
         <!-- Catalogue des Bilans Environnementaux Validés -->
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <div>
-                <h3 class="fw-bold mb-1">Bilans Environnementaux de nos Produits</h3>
-                <p class="text-muted mb-0">Consultez l'impact écologique certifié des aliments référencés sur NutriTrace.</p>
+                <h3 class="fw-bold mb-1">Classement des bilans</h3>
+                <p class="text-muted mb-0">Du meilleur score au plus faible. Le filtre circuit court garde les produits à 150 km ou moins.</p>
                 @if (auth()->user()?->isAdmin())
                     <a href="{{ route('front.environnement.create') }}" class="btn btn-primary mt-2">Ajouter un bilan environnemental</a>
                 @endif
@@ -136,15 +137,20 @@
                 @if (request('eco_score'))
                     <input type="hidden" name="eco_score" value="{{ request('eco_score') }}">
                 @endif
+                @if (request('circuit'))
+                    <input type="hidden" name="circuit" value="1">
+                @endif
                 <input type="search" name="q" value="{{ request('q') }}" class="form-control" placeholder="Rechercher un produit" style="min-width: 220px;">
                 <button type="submit" class="btn btn-primary">Rechercher</button>
             </form>
             <div class="d-flex flex-wrap gap-2" role="group">
-                <a href="{{ route('front.environnement.index') }}" class="btn btn-outline-secondary {{ !request('eco_score') ? 'active' : '' }}">Tous</a>
-                <a href="{{ route('front.environnement.index', ['eco_score' => 'A']) }}" class="btn btn-outline-success {{ request('eco_score') === 'A' ? 'active' : '' }}">Score A</a>
-                <a href="{{ route('front.environnement.index', ['eco_score' => 'B']) }}" class="btn btn-outline-info {{ request('eco_score') === 'B' ? 'active' : '' }}">Score B</a>
-                <a href="{{ route('front.environnement.index', ['eco_score' => 'C']) }}" class="btn btn-outline-warning {{ request('eco_score') === 'C' ? 'active' : '' }}">Score C</a>
-                <a href="{{ route('front.environnement.index', ['eco_score' => 'D']) }}" class="btn btn-outline-danger {{ request('eco_score') === 'D' ? 'active' : '' }}">Score D/E</a>
+                <a href="{{ route('front.environnement.index', array_filter(['q' => request('q'), 'circuit' => request('circuit')])) }}" class="btn btn-outline-secondary {{ !request('eco_score') ? 'active' : '' }}">Tous</a>
+                <a href="{{ route('front.environnement.index', array_filter(['eco_score' => 'A', 'q' => request('q'), 'circuit' => request('circuit')])) }}" class="btn btn-outline-success {{ request('eco_score') === 'A' ? 'active' : '' }}">Score A</a>
+                <a href="{{ route('front.environnement.index', array_filter(['eco_score' => 'B', 'q' => request('q'), 'circuit' => request('circuit')])) }}" class="btn btn-outline-info {{ request('eco_score') === 'B' ? 'active' : '' }}">Score B</a>
+                <a href="{{ route('front.environnement.index', array_filter(['eco_score' => 'C', 'q' => request('q'), 'circuit' => request('circuit')])) }}" class="btn btn-outline-warning {{ request('eco_score') === 'C' ? 'active' : '' }}">Score C</a>
+                <a href="{{ route('front.environnement.index', array_filter(['eco_score' => 'D', 'q' => request('q'), 'circuit' => request('circuit')])) }}" class="btn btn-outline-danger {{ request('eco_score') === 'D' ? 'active' : '' }}">Score D/E</a>
+                <a href="{{ route('front.environnement.index', array_filter(['eco_score' => request('eco_score'), 'q' => request('q'), 'circuit' => request('circuit') ? null : 1])) }}" class="btn btn-outline-success {{ request('circuit') ? 'active' : '' }}">Circuit court</a>
+                <a href="{{ route('front.environnement.comparer') }}" class="btn btn-primary">Comparer deux produits</a>
             </div>
         </div>
 
@@ -155,7 +161,7 @@
                     <div class="card h-100 shadow-sm border rounded-3 overflow-hidden">
                         <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center border-bottom">
                             <span class="badge {{ $bilan->ecoScoreBadgeClass() }} fs-6 px-3 py-1">
-                                Éco-Score {{ $bilan->eco_score }}
+                                #{{ $bilans->firstItem() + $loop->index }} · Éco-Score {{ $bilan->eco_score }}
                             </span>
                             <span class="text-muted small"><strong>{{ $bilan->score_numerique }}</strong>/100</span>
                         </div>
@@ -269,6 +275,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('simu-note').textContent = `Score : ${res.score_numerique} / 100`;
                 document.getElementById('simu-co2').textContent = res.co2_total;
                 document.getElementById('simu-alternative').textContent = res.alternative_locale;
+                const sources = {
+                    openai: 'Texte rédigé par ChatGPT (OpenAI). Le score et le CO₂ viennent des facteurs d\'émission.',
+                    bilan: 'Texte déjà enregistré pour ce produit. ChatGPT n\'a pas été rappelé.',
+                    openai_indisponible: 'ChatGPT n\'a pas répondu. La formule locale a été utilisée.'
+                };
+                document.getElementById('simu-source').textContent = sources[res.source_ia]
+                    || 'Formule locale : ajoutez OPENAI_API_KEY dans le fichier .env pour utiliser ChatGPT.';
             }
         } catch (err) {
             btn.disabled = false;

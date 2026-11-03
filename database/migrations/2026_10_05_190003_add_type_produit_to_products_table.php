@@ -13,16 +13,13 @@ return new class extends Migration
             $table->string('type_produit', 30)->default('matiere_premiere')->after('status')->index();
         });
 
-        if (DB::getDriverName() === 'sqlite') {
-            $transformateurIds = DB::table('users')
-                ->where('type_acteur', 'transformateur')
-                ->pluck('id');
-
-            DB::table('products')
-                ->whereIn('user_id', $transformateurIds)
-                ->update(['type_produit' => 'transforme']);
-        } else {
+        // « UPDATE … JOIN » est propre à MySQL ; SQLite (tests et CI) passe par une sous-requête équivalente
+        if (DB::getDriverName() === 'mysql') {
             DB::statement("UPDATE products p INNER JOIN users u ON u.id = p.user_id SET p.type_produit = 'transforme' WHERE u.type_acteur = 'transformateur'");
+        } else {
+            DB::table('products')
+                ->whereIn('user_id', DB::table('users')->where('type_acteur', 'transformateur')->select('id'))
+                ->update(['type_produit' => 'transforme']);
         }
     }
 

@@ -1,0 +1,81 @@
+/* Module Réclamations & Avis — styles partagés front et back (préfixe ra-) */
+:root {
+    --ra-vert: #81c408;
+    --ra-vert-fonce: #5f9005;
+    --ra-orange: #ffb524;
+    --ra-encre: #2b2f33;
+    --ra-gris: #6c757d;
+    --ra-ligne: #e9ecef;
+    --ra-fond: #f7faf2;
+    --ra-ia: #6f42c1;
+}
+
+/* ---------- Étoiles ---------- */
+.ra-etoiles { color: var(--ra-orange); letter-spacing: 1px; white-space: nowrap; }
+.ra-etoiles .vide { color: #d9dde1; }
+
+/* Sélecteur d'étoiles accessible (radios inversées : survol de droite à gauche) */
+.ra-choix-etoiles { display: inline-flex; flex-direction: row-reverse; gap: .15rem; }
+.ra-choix-etoiles input { position: absolute; opacity: 0; pointer-events: none; }
+.ra-choix-etoiles label { font-size: 1.9rem; line-height: 1; color: #d9dde1; cursor: pointer; transition: transform .12s, color .12s; }
+.ra-choix-etoiles label:hover,
+.ra-choix-etoiles label:hover ~ label,
+.ra-choix-etoiles input:checked ~ label { color: var(--ra-orange); }
+.ra-choix-etoiles label:hover { transform: scale(1.15); }
+.ra-choix-etoiles input:focus-visible + label { outline: 2px solid var(--ra-vert); outline-offset: 2px; border-radius: 4px; }
+
+/* ---------- Résumé des notes ---------- */
+.ra-note-geante { font-size: 3.4rem; font-weight: 800; line-height: 1; color: var(--ra-encre); }
+.ra-barre { height: .55rem; background: var(--ra-ligne); border-radius: 1rem; overflow: hidden; }
+.ra-barre > span { display: block; height: 100%; background: var(--ra-orange); border-radius: 1rem; }
+.ra-barre.verte > span { background: var(--ra-vert); }
+.ra-barre.rouge > span { background: #e55353; }
+
+/* ---------- Carte IA ---------- */
+.ra-carte-ia { border: 1px solid rgba(111, 66, 193, .25); background: linear-gradient(135deg, rgba(111, 66, 193, .06), rgba(129, 196, 8, .06)); border-radius: 1rem; }
+.ra-badge-ia { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ra-ia); background: rgba(111, 66, 193, .1); border-radius: 2rem; padding: .25rem .65rem; }
+.ra-puce-positive, .ra-puce-negative { display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; border-radius: 2rem; padding: .3rem .75rem; margin: 0 .35rem .35rem 0; }
+.ra-puce-positive { background: rgba(129, 196, 8, .14); color: var(--ra-vert-fonce); }
+.ra-puce-negative { background: rgba(229, 83, 83, .12); color: #b02a37; }
+
+/* ---------- Avis ---------- */
+.ra-avis { border: 1px solid var(--ra-ligne); border-radius: 1rem; padding: 1.25rem; background: #fff; transition: box-shadow .2s; }
+.ra-avis:hover { box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .06); }
+.ra-avatar { width: 46px; height: 46px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; background: var(--ra-vert); flex-shrink: 0; }
+.ra-verifie { font-size: .75rem; color: var(--ra-vert-fonce); background: rgba(129, 196, 8, .14); border-radius: 2rem; padding: .15rem .55rem; white-space: nowrap; }
+.ra-reponse-producteur { border-left: 3px solid var(--ra-vert); background: var(--ra-fond); border-radius: 0 .75rem .75rem 0; padding: .75rem 1rem; }
+.ra-aspect { font-size: .75rem; border: 1px solid var(--ra-ligne); border-radius: 2rem; padding: .15rem .6rem; color: var(--ra-gris); margin-right: .3rem; white-space: nowrap; }
+
+/* ---------- Bandeau « avis → réclamation » ---------- */
+.ra-bandeau-conversion { border: 1px dashed var(--ra-orange); background: #fff9ec; border-radius: 1rem; }
+
+/* ---------- Tuiles de compteurs ---------- */
+.ra-tuile { border: 1px solid var(--ra-ligne); border-radius: 1rem; padding: 1rem 1.25rem; background: #fff; height: 100%; }
+.ra-tuile .valeur { font-size: 1.8rem; font-weight: 800; color: var(--ra-encre); line-height: 1.1; }
+.ra-tuile .libelle { font-size: .85rem; color: var(--ra-gris); }
+
+/* ---------- Chronologie ---------- */
+.ra-chrono { list-style: none; padding: 0; margin: 0; position: relative; }
+.ra-chrono::before { content: ""; position: absolute; left: 15px; top: 6px; bottom: 6px; width: 2px; background: var(--ra-ligne); }
+.ra-chrono li { position: relative; padding: 0 0 1rem 2.75rem; }
+.ra-chrono li:last-child { padding-bottom: 0; }
+.ra-chrono .point { position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid var(--ra-ligne); font-size: .8rem; }
+.ra-chrono .point.primary { border-color: var(--ra-vert); color: var(--ra-vert-fonce); }
+.ra-chrono .point.info { border-color: #0dcaf0; color: #0aa2c0; }
+.ra-chrono .point.success { border-color: var(--ra-ia); color: var(--ra-ia); }
+.ra-chrono .point.warning { border-color: var(--ra-orange); color: #c98a00; }
+.ra-chrono .point.danger { border-color: #e55353; color: #e55353; }
+.ra-chrono .point.secondary { border-color: #adb5bd; color: var(--ra-gris); }
+
+/* ---------- Fil de discussion ---------- */
+.ra-fil { display: flex; flex-direction: column; gap: .9rem; }
+.ra-bulle { max-width: 85%; padding: .8rem 1rem; border-radius: 1rem; }
+.ra-bulle .corps { white-space: pre-line; }
+.ra-bulle.client { align-self: flex-end; background: rgba(129, 196, 8, .14); border-bottom-right-radius: .25rem; }
+.ra-bulle.equipe { align-self: flex-start; background: #f1f3f5; border-bottom-left-radius: .25rem; }
+.ra-bulle .entete { font-size: .78rem; color: var(--ra-gris); margin-bottom: .25rem; }
+
+/* ---------- Divers ---------- */
+.ra-reference { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; letter-spacing: .02em; }
+.ra-carte { border: 1px solid var(--ra-ligne); border-radius: 1rem; background: #fff; }
+.ra-sla { font-size: .78rem; }

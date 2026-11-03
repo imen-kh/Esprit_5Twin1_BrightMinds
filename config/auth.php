@@ -112,4 +112,9 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    // Durée de validité, en minutes, du lien de vérification de l'adresse email
+    'verification' => [
+        'expire' => 60,
+    ],
+
 ];

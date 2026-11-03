@@ -1,3 +1,11 @@
 @extends('layouts.front')
 @section('title','Certification')
-@section('content')<div class="container py-5"><div class="card p-4"><div class="d-flex justify-content-between"><h2>{{ $certification->product?->name ?? 'Certification' }}</h2><x-certification-badge :certification="$certification" /></div><p>Label : {{ $certification->label?->nom }}</p><p>Numéro : {{ $certification->numero }}</p><p>Expiration : {{ optional($certification->date_expiration)->format('d/m/Y') }}</p>@if($certification->fichier_pdf)<a href="{{ asset('storage/'.$certification->fichier_pdf) }}" target="_blank" class="btn btn-outline-primary">Voir le document</a>@endif</div></div>@endsection
+@section('content')
+<div class="container py-5"><div class="card p-4">
+    <div class="d-flex justify-content-between"><h2>{{ $certification->product?->name ?? 'Certification' }}</h2><x-certification-badge :certification="$certification" /></div>
+    <p>Label : {{ $certification->label?->nom }}</p><p>Numéro : {{ $certification->numero }}</p><p>Expiration : {{ optional($certification->date_expiration)->format('d/m/Y') }}</p>
+    @if($certification->fichier_pdf)<a href="{{ asset('storage/'.$certification->fichier_pdf) }}" target="_blank" class="btn btn-outline-primary">Voir le document</a>@endif
+    <form method="POST" action="{{ route('acteur.certifications.analyser', $certification) }}" class="mt-3">@csrf<button class="btn btn-outline-info">Analyser avec l’IA locale</button></form>
+    @if(session('analyse_ia')) @include('certifications._analysis', ['analyse' => session('analyse_ia')]) @endif
+</div></div>
+@endsection

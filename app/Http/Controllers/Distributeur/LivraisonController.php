@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateLivraisonRequest;
 use App\Models\Commande;
 use App\Models\HistoriqueLivraison;
 use App\Models\Livraison;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,8 @@ class LivraisonController extends Controller
             return $livraison;
         });
 
+        NotificationService::notifierLivraisonCreee($livraison);
+
         return redirect()->route('distributeur.livraisons.show', $livraison)
             ->with('success', 'Livraison créée.');
     }
@@ -141,6 +144,8 @@ class LivraisonController extends Controller
                 'commentaire' => null,
             ]);
         });
+
+        NotificationService::notifierChangementStatutLivraison($livraison->fresh(), $data['statut']);
 
         return back()->with('success', match ($data['statut']) {
             'expediee' => 'Livraison expédiée.',

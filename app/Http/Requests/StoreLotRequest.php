@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Lot;
+use App\Services\MatieresPremieresService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -41,6 +42,11 @@ class StoreLotRequest extends FormRequest
         if (! Lot::origineAutoriseePour($this->user())) {
             $this->merge(['lot_origine_id' => null]);
         }
+
+        // Le motif n'a de sens que pour un lot rappelé : il est effacé quand le rappel est levé
+        if ($this->input('statut') !== 'rappele') {
+            $this->merge(['motif_rappel' => null]);
+        }
     }
 
     /**
@@ -70,6 +76,8 @@ class StoreLotRequest extends FormRequest
             'quantite' => ['required', 'integer', 'min:1', 'max:1000000'],
             'unite' => ['required', Rule::in(Lot::UNITES)],
             'statut' => ['required', Rule::in(array_keys(Lot::STATUTS))],
+            // Rappel : le motif est affiché aux consommateurs sur la page publique
+            'motif_rappel' => ['nullable', 'required_if:statut,rappele', 'string', 'min:10', 'max:500'],
             'notes' => ['nullable', 'max:1000'],
         ];
     }
@@ -79,6 +87,8 @@ class StoreLotRequest extends FormRequest
      */
     public function withValidator(Validator $validator): void
     {
+        $validator->after(fn (Validator $validator) => $this->verifierLotExistant($validator));
+
         $validator->after(function (Validator $validator) {
             // Inutile d'aller plus loin si les champs concernés sont déjà invalides
             if ($validator->errors()->hasAny(['lot_origine_id', 'date_production']) || ! $this->filled('lot_origine_id')) {
@@ -88,6 +98,16 @@ class StoreLotRequest extends FormRequest
             $origine = Lot::find($this->input('lot_origine_id'));
 
             if (! $origine) {
+                return;
+            }
+
+            // Un transformateur ne transforme que les matières premières qu'il a commandées.
+            // En modification, l'origine déjà enregistrée reste acceptée.
+            $dejaEnregistree = $this->lotCourant()?->lot_origine_id === $origine->id;
+
+            if (! $dejaEnregistree && ! app(MatieresPremieresService::class)->lotAccessible($this->user(), $origine)) {
+                $validator->errors()->add('lot_origine_id', 'Ce lot d\'origine ne fait pas partie des matières premières que vous avez commandées.');
+
                 return;
             }
 
@@ -113,6 +133,48 @@ class StoreLotRequest extends FormRequest
                 }
             }
         });
+    }
+
+    /**
+     * En modification : le lot doit rester cohérent avec ce qui a déjà été enregistré dessus
+     * (ses étapes et les lots transformés qui en sont issus).
+     */
+    protected function verifierLotExistant(Validator $validator): void
+    {
+        $lot = $this->lotCourant();
+
+        if (! $lot || $validator->errors()->has('date_production')) {
+            return;
+        }
+
+        $production = $this->date('date_production');
+        $premiereEtape = $lot->etapes()->first();
+
+        // La production ne peut pas être datée après une étape déjà déclarée
+        if ($premiereEtape && $production->gt($premiereEtape->date_etape->copy()->startOfDay())) {
+            $validator->errors()->add(
+                'date_production',
+                'La date de production ne peut pas être postérieure à la première étape du lot ('
+                .$premiereEtape->date_etape->format('d/m/Y').').'
+            );
+        }
+
+        // Ni après la production d'un lot transformé issu de celui-ci
+        $premierDerive = $lot->lotsDerives()->orderBy('date_production')->first();
+
+        if ($premierDerive && $production->gt($premierDerive->date_production)) {
+            $validator->errors()->add(
+                'date_production',
+                'La date de production ne peut pas être postérieure à celle du lot '.$premierDerive->code
+                .', fabriqué à partir de ce lot ('.$premierDerive->date_production->format('d/m/Y').').'
+            );
+        }
+
+        // Un lot qui a déjà son étape de production est une matière première : il n'a pas de lot d'origine
+        if ($this->filled('lot_origine_id') && ! $validator->errors()->has('lot_origine_id')
+            && $lot->etapes()->where('type_etape', 'production')->exists()) {
+            $validator->errors()->add('lot_origine_id', 'Ce lot a déjà une étape de production : il ne peut pas être rattaché à un lot d\'origine.');
+        }
     }
 
     /**
@@ -143,6 +205,9 @@ class StoreLotRequest extends FormRequest
             'unite.required' => 'L\'unité est obligatoire.',
             'unite.in' => 'L\'unité choisie n\'est pas valide.',
             'statut.required' => 'Le statut est obligatoire.',
+            'motif_rappel.required_if' => 'Indiquez le motif du rappel : il sera affiché aux consommateurs.',
+            'motif_rappel.min' => 'Le motif du rappel doit contenir au moins :min caractères.',
+            'motif_rappel.max' => 'Le motif du rappel ne peut pas dépasser :max caractères.',
             'statut.in' => 'Le statut choisi n\'est pas valide.',
             'notes.max' => 'Les notes ne doivent pas dépasser :max caractères.',
         ];

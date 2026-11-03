@@ -10,7 +10,13 @@ class PublicLabelController extends Controller
 {
     public function index(Request $request): mixed
     {
-        $labels = Label::active()->with(['certifications' => fn ($query) => $query->verified()->with(['product', 'acteur'])])->paginate(12);
+        $query = Label::active()->withCount(['certifications as certifications_valides_count' => fn ($certifications) => $certifications->verified()])
+            ->with(['certifications' => fn ($query) => $query->verified()->with(['product', 'acteur'])]);
+        if ($request->filled('q')) {
+            $term = '%'.addcslashes((string) $request->input('q'), '%_').'%';
+            $query->where(fn ($query) => $query->where('nom', 'like', $term)->orWhere('organisme', 'like', $term));
+        }
+        $labels = $query->orderBy('nom')->paginate(12);
         return $request->expectsJson() ? response()->json($labels) : view('labels.index', compact('labels'));
     }
 

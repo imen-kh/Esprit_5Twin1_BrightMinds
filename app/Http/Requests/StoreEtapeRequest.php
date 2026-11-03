@@ -48,7 +48,8 @@ class StoreEtapeRequest extends FormRequest
             // Les coordonnées GPS vont par deux : l'une ne va pas sans l'autre
             'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
-            'temperature' => ['nullable', 'numeric', 'between:-30,60'],
+            // Jusqu'à 150 °C : une cuisson ou une pasteurisation dépasse largement la température ambiante
+            'temperature' => ['nullable', 'numeric', 'between:-30,150'],
             'description' => ['nullable', 'max:1000'],
             'date_etape' => ['required', 'date', 'before_or_equal:now'],
         ];

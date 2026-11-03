@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -8,8 +9,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
-            Schema::table('categories', function ($table): void {
+        if (Schema::hasColumn('categories', 'status')) {
+            return;
+        }
+
+        // SQLite (tests et CI) : même colonne via le Schema Builder, sans la contrainte CHECK propre à MySQL
+        if (DB::getDriverName() !== 'mysql') {
+            Schema::table('categories', function (Blueprint $table) {
                 $table->string('status', 20)->default('validee');
             });
 
@@ -22,8 +28,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
-            Schema::table('categories', function ($table): void {
+        if (DB::getDriverName() !== 'mysql') {
+            Schema::table('categories', function (Blueprint $table) {
                 $table->dropColumn('status');
             });
 

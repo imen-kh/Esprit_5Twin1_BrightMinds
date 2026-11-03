@@ -4,11 +4,19 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\EtapeTracabiliteController;
 use App\Http\Controllers\LotController;
+use App\Http\Controllers\Acteur\AgriWeatherController;
+use App\Http\Controllers\Acteur\HarvestController as ActeurHarvestController;
+use App\Http\Controllers\Acteur\StockController as ActeurStockController;
+use App\Http\Controllers\Admin\HarvestController as AdminHarvestController;
+use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Acteur\CategorySuggestionController;
+use App\Http\Controllers\Acteur\DashboardController as ActeurDashboardController;
 use App\Http\Controllers\Acteur\EspaceController;
 use App\Http\Controllers\Acteur\ProductController as ActeurProductController;
 use App\Http\Controllers\PanierController;
 use App\Http\Controllers\CommandeController;
+use App\Http\Controllers\DoubleAuthentificationController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -23,6 +31,7 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\Admin\CertificationController as AdminCertificationController;
 use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Acteur\CertificationController as ActeurCertificationController;
+use App\Http\Controllers\Acteur\ProductionForecastController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\Back\FacteurEmissionController;
 use App\Http\Controllers\Back\BilanEnvironnementalController;
@@ -30,6 +39,12 @@ use App\Http\Controllers\Front\EnvironnementController;
 use App\Http\Controllers\Front\ReclamationController as FrontReclamationController;
 use App\Http\Controllers\Back\ReclamationController as BackReclamationController;
 use App\Http\Controllers\ReponseReclamationController;
+use App\Http\Controllers\Front\AvisController as FrontAvisController;
+use App\Http\Controllers\Back\AvisController as BackAvisController;
+use App\Http\Controllers\Back\AlerteQualiteController;
+use App\Http\Controllers\Acteur\RetourClientController;
+use App\Http\Controllers\AssistantController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Front office (Fruitables) =====
@@ -61,12 +76,18 @@ Route::view('/404', 'errors.404')->name('page404');
 // Module Traçabilité : pages publiques (sans connexion), accessibles par QR code
 Route::get('/tracabilite', [TracabiliteController::class, 'index'])->name('tracabilite.index');
 Route::get('/tracabilite/{lot:code}', [TracabiliteController::class, 'show'])->name('tracabilite.show');
+Route::get('/tracabilite/{lot:code}/pdf', [TracabiliteController::class, 'pdf'])->name('tracabilite.pdf');
+// Assistant IA de la page publique : 10 questions par minute et par visiteur
+Route::post('/tracabilite/{lot:code}/assistant', [TracabiliteController::class, 'assistant'])
+    ->middleware('throttle:10,1')
+    ->name('tracabilite.assistant');
 // Module Environnement — front-office
 // Les segments fixes (simuler, create) sont déclarés avant /{bilan}.
 Route::get('/environnement', [EnvironnementController::class, 'index'])->name('front.environnement.index');
+Route::get('/environnement/comparer', [EnvironnementController::class, 'comparer'])->name('front.environnement.comparer');
 Route::post('/environnement/simuler', [EnvironnementController::class, 'simuler'])->name('front.environnement.simuler');
 
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/environnement/create', [EnvironnementController::class, 'create'])->name('front.environnement.create');
     Route::post('/environnement', [EnvironnementController::class, 'store'])->name('front.environnement.store');
     Route::get('/environnement/{bilan}/edit', [EnvironnementController::class, 'edit'])->name('front.environnement.edit');
@@ -84,16 +105,27 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 
-    // Mot de passe oublié : demande du lien par email, puis choix du nouveau mot de passe
-    Route::get('/mot-de-passe-oublie', [PasswordResetController::class, 'showForgot'])->name('password.request');
-    Route::post('/mot-de-passe-oublie', [PasswordResetController::class, 'sendLink'])->name('password.email');
-    Route::get('/reinitialiser-mot-de-passe/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
-    Route::post('/reinitialiser-mot-de-passe', [PasswordResetController::class, 'reset'])->name('password.update');
+    // Mot de passe oublié (broker natif de Laravel) : lien par email, puis choix du nouveau mot de passe
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgot'])->name('password.request');
+    // Limiteurs nommés « mot-de-passe », « deux-facteurs »… : voir AppServiceProvider
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:mot-de-passe')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:mot-de-passe')->name('password.update');
 
-    // Double authentification : saisie du code reçu par email, après le mot de passe
-    Route::get('/verification-connexion', [TwoFactorController::class, 'showChallenge'])->name('two-factor.challenge');
-    Route::post('/verification-connexion', [TwoFactorController::class, 'verify'])->name('two-factor.verify');
-    Route::post('/verification-connexion/renvoyer', [TwoFactorController::class, 'resend'])->name('two-factor.resend');
+    // Double authentification (TOTP) : code de l'application ou code de récupération, après le mot de passe
+    Route::get('/two-factor-challenge', [TwoFactorController::class, 'showChallenge'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorController::class, 'verify'])->middleware('throttle:deux-facteurs')->name('two-factor.verify');
+});
+
+// ===== Vérification de l'adresse email (utilisateur connecté, adresse non encore confirmée) =====
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:verification-email'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:verification-email')
+        ->name('verification.send');
 });
 
 // Déconnexion : le bouton envoie un POST ; le GET évite l'erreur 405 quand on saisit /logout
@@ -101,31 +133,91 @@ Route::middleware('guest')->group(function () {
 // simplement vers la page de connexion.
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ===== Mon profil (tous les rôles connectés) =====
-Route::middleware('auth')->group(function () {
+// ===== Mon profil (tous les rôles connectés, adresse email vérifiée) =====
+Route::middleware(['auth', 'verified'])->group(function () {
+    // ===== Module Réclamations & Avis (client, acteur vendeur, admin : droits dans les Policies) =====
     Route::resource('reclamations', FrontReclamationController::class);
     Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
+    Route::patch('reclamations/{reclamation}/cloturer', [FrontReclamationController::class, 'cloturer'])->name('reclamations.cloturer');
+    Route::post('reclamations/{reclamation}/evaluer', [FrontReclamationController::class, 'evaluer'])->name('reclamations.evaluer');
+    Route::post('reclamations/{reclamation}/relancer', [FrontReclamationController::class, 'relancer'])->name('reclamations.relancer');
+
+    Route::get('mes-avis', [FrontAvisController::class, 'index'])->name('avis.index');
+    Route::post('produits/{product}/avis', [FrontAvisController::class, 'store'])->middleware('throttle:10,1')->name('avis.store');
+    Route::get('avis/{avis}/modifier', [FrontAvisController::class, 'edit'])->name('avis.edit');
+    Route::put('avis/{avis}', [FrontAvisController::class, 'update'])->name('avis.update');
+    Route::delete('avis/{avis}', [FrontAvisController::class, 'destroy'])->name('avis.destroy');
+    Route::post('avis/{avis}/reagir', [FrontAvisController::class, 'reagir'])->middleware('throttle:30,1')->name('avis.reagir');
+    Route::post('avis/{avis}/reclamation', [FrontAvisController::class, 'convertir'])->name('avis.convertir');
+
+    // Agent Sahbi : 20 messages par minute et par utilisateur
+    Route::get('assistant', [AssistantController::class, 'etat'])->name('assistant.etat');
+    Route::post('assistant/message', [AssistantController::class, 'message'])->middleware('throttle:20,1')->name('assistant.message');
+    Route::post('assistant/messages/{message}/decision', [AssistantController::class, 'decider'])->middleware('throttle:20,1')->name('assistant.decider');
+    Route::delete('assistant', [AssistantController::class, 'reinitialiser'])->name('assistant.reinitialiser');
+
+    Route::get('notifications/{id}', [NotificationController::class, 'lire'])->name('notifications.redirect');
+    Route::post('notifications/tout-lire', [NotificationController::class, 'toutLire'])->name('notifications.tout-lire-redirect');
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profil.password');
-    Route::put('/profil/double-authentification', [ProfileController::class, 'toggleTwoFactor'])->name('profil.two-factor');
+    // Double authentification par application (TOTP)
+    Route::post('/profil/double-authentification', [DoubleAuthentificationController::class, 'activer'])->name('profil.two-factor.activer');
+    Route::post('/profil/double-authentification/confirmer', [DoubleAuthentificationController::class, 'confirmer'])->middleware('throttle:activation-deux-facteurs')->name('profil.two-factor.confirmer');
+    Route::post('/profil/double-authentification/codes', [DoubleAuthentificationController::class, 'regenererCodes'])->name('profil.two-factor.codes');
+    Route::delete('/profil/double-authentification/annuler', [DoubleAuthentificationController::class, 'annuler'])->name('profil.two-factor.annuler');
+    Route::delete('/profil/double-authentification', [DoubleAuthentificationController::class, 'desactiver'])->name('profil.two-factor.desactiver');
     Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profil.destroy');
     Route::get('/mes-commandes', [CommandeController::class, 'index'])->name('commandes.index');
     Route::get('/mes-commandes/create', [CommandeController::class, 'create'])->name('commandes.create');
     Route::get('/mes-commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
+
+    // ── Notifications (tous rôles connectés) ──────────────────────────────────
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/tout-lire', [NotificationController::class, 'toutMarquerLu'])->name('notifications.tout-lire');
+    Route::patch('/notifications/{id}/lire', [NotificationController::class, 'marquerLue'])->name('notifications.lire');
 });
 
-Route::middleware(['auth', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
+Route::middleware(['auth', 'verified', 'acteur'])->prefix('acteur')->name('acteur.')->group(function () {
     Route::get('/transformation', [EspaceController::class, 'transformation'])->name('transformation');
     Route::get('/distribution', [EspaceController::class, 'distribution'])->name('distribution');
+    Route::get('/production-planner', [ProductionForecastController::class, 'index'])->name('production-planner');
+    Route::post('/production-planner/prevoir', [ProductionForecastController::class, 'predict'])->name('production-planner.predict');
     Route::post('/categories/suggerer', [CategorySuggestionController::class, 'store'])->name('categories.suggerer');
+    Route::post('produits/generer-ia', [ActeurProductController::class, 'genererIa'])
+        ->middleware(['permission:gerer-produits', 'throttle:10,1'])
+        ->name('produits.generer-ia');
+    Route::post('produits/qualite-ia', [ActeurProductController::class, 'qualiteIa'])
+        ->middleware(['permission:gerer-produits', 'throttle:10,1'])
+        ->name('produits.qualite-ia');
+    Route::get('meteo', [AgriWeatherController::class, 'index'])
+        ->middleware('permission:gerer-produits')
+        ->name('meteo');
+    Route::middleware('permission:gerer-produits')->group(function () {
+        Route::get('tableau', [ActeurDashboardController::class, 'index'])->name('tableau');
+        Route::get('recoltes/evenements', [ActeurHarvestController::class, 'events'])->name('recoltes.evenements');
+        Route::resource('recoltes', ActeurHarvestController::class)->parameters(['recoltes' => 'harvest']);
+        Route::get('stocks', [ActeurStockController::class, 'index'])->name('stocks.index');
+        Route::get('stocks/creer', [ActeurStockController::class, 'create'])->name('stocks.create');
+        Route::post('stocks', [ActeurStockController::class, 'store'])->name('stocks.store');
+        Route::get('stocks/{stockItem}', [ActeurStockController::class, 'show'])->name('stocks.show');
+        Route::patch('stocks/{stockItem}', [ActeurStockController::class, 'update'])->name('stocks.update');
+        Route::post('stocks/{stockItem}/mouvements', [ActeurStockController::class, 'mouvement'])->name('stocks.mouvements.store');
+    });
     Route::resource('produits', ActeurProductController::class)->parameters(['produits' => 'product'])->except(['show']);
+    // Module Réclamations & Avis : retours des clients sur les produits de l'acteur
+    Route::get('retours/reclamations', [RetourClientController::class, 'reclamations'])->name('reclamations.index');
+    Route::get('retours/avis', [RetourClientController::class, 'avis'])->name('avis.index');
+    Route::post('retours/avis/{avis}/reponse', [RetourClientController::class, 'repondreAvis'])->middleware('permission:repondre-avis')->name('avis.repondre');
 });
 
 // ===== Module Traçabilité : gestion des lots et de leurs étapes (acteurs et administrateurs) =====
-Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->group(function () {
+Route::middleware(['auth', 'verified', 'acteur', 'permission:gerer-lots'])->prefix('gestion')->name('gestion.')->group(function () {
     Route::resource('lots', LotController::class);
+    // IA du module : histoire du produit (page publique) et analyse des anomalies
+    Route::post('lots/{lot}/histoire', [LotController::class, 'regenererHistoire'])->name('lots.histoire');
+    Route::post('lots/{lot}/analyser', [LotController::class, 'analyser'])->name('lots.analyser');
     Route::resource('etapes', EtapeTracabiliteController::class);
 });
 
@@ -133,7 +225,7 @@ Route::middleware(['auth', 'acteur'])->prefix('gestion')->name('gestion.')->grou
 Route::get('/labels', [PublicLabelController::class, 'index'])->name('labels.index');
 Route::get('/labels/{label}', [PublicLabelController::class, 'show'])->name('labels.show');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('labels/create', [AdminLabelController::class, 'create'])->name('labels.create');
     Route::get('labels/{label}/edit', [AdminLabelController::class, 'edit'])->name('labels.edit');
     Route::apiResource('labels', AdminLabelController::class)->except(['create', 'edit']);
@@ -141,20 +233,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('certifications', [AdminCertificationController::class, 'store'])->name('certifications.store');
     Route::get('certifications', [AdminCertificationController::class, 'index'])->name('certifications.index');
     Route::get('certifications/{certification}', [AdminCertificationController::class, 'show'])->name('certifications.show');
+    Route::post('certifications/{certification}/analyser', [AdminCertificationController::class, 'analyser'])->middleware('permission:valider-certifications')->name('certifications.analyser');
     Route::get('certifications-expiring', [AdminCertificationController::class, 'expiring'])->name('certifications.expiring');
-    Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->name('certifications.validate');
+    Route::patch('certifications/{certification}/validate', [AdminCertificationController::class, 'validate'])->middleware('permission:valider-certifications')->name('certifications.validate');
     Route::delete('certifications/{certification}', [AdminCertificationController::class, 'destroy'])->name('certifications.destroy');
 });
 
-Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'acteur'])->group(function () {
+Route::prefix('acteur')->name('acteur.')->middleware(['auth', 'verified', 'acteur'])->group(function () {
     Route::get('certifications/create', [ActeurCertificationController::class, 'create'])->name('certifications.create');
     Route::get('certifications-expiring', [ActeurCertificationController::class, 'expiring'])->name('certifications.expiring');
     Route::apiResource('certifications', ActeurCertificationController::class)->except(['create', 'edit']);
+    Route::post('certifications/{certification}/analyser', [ActeurCertificationController::class, 'analyser'])->name('certifications.analyser');
     Route::get('certifications/{certification}/edit', [ActeurCertificationController::class, 'edit'])->name('certifications.edit');
 });
 
 // ===== Module Commandes : espace du distributeur (commandes et livraisons) =====
-Route::middleware(['auth', 'distributeur'])->prefix('distributeur')->name('distributeur.')->group(function () {
+Route::middleware(['auth', 'verified', 'distributeur', 'permission:gerer-livraisons'])->prefix('distributeur')->name('distributeur.')->group(function () {
     Route::get('/', [DistributeurLivraisonController::class, 'dashboard'])->name('dashboard');
     Route::get('/commandes', [DistributeurCommandeController::class, 'index'])->name('commandes.index');
     Route::get('/commandes/{commande}', [DistributeurCommandeController::class, 'show'])->name('commandes.show');
@@ -173,7 +267,7 @@ Route::middleware(['auth', 'distributeur'])->prefix('distributeur')->name('distr
 });
 
 // ===== Back office (Sneat) : réservé aux administrateurs connectés =====
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::view('/auth-forgot-password-basic', 'back.auth-forgot-password-basic')->name('auth-forgot-password-basic');
     Route::view('/auth-login-basic', 'back.auth-login-basic')->name('auth-login-basic');
     Route::view('/auth-register-basic', 'back.auth-register-basic')->name('auth-register-basic');
@@ -186,6 +280,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/forms-input-groups', 'back.forms-input-groups')->name('forms-input-groups');
     Route::view('/icons-boxicons', 'back.icons-boxicons')->name('icons-boxicons');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('recoltes', [AdminHarvestController::class, 'index'])->name('recoltes.index');
+    Route::get('stocks', [AdminStockController::class, 'index'])->name('stocks.index');
     Route::view('/layouts-blank', 'back.layouts-blank')->name('layouts-blank');
     Route::view('/layouts-container', 'back.layouts-container')->name('layouts-container');
     Route::view('/layouts-fluid', 'back.layouts-fluid')->name('layouts-fluid');
@@ -216,11 +312,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::view('/ui-toasts', 'back.ui-toasts')->name('ui-toasts');
     Route::view('/ui-tooltips-popovers', 'back.ui-tooltips-popovers')->name('ui-tooltips-popovers');
     Route::view('/ui-typography', 'back.ui-typography')->name('ui-typography');
-    Route::resource('categories', CategoryController::class)->except(['show']);
-    Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->name('categories.valider');
-    Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->name('categories.refuser');
+    // Spatie : permissions en plus du middleware « admin » (voir RolePermissionSeeder)
+    Route::resource('categories', CategoryController::class)->except(['show'])->middleware('permission:gerer-categories');
+    Route::patch('/categories/{category}/valider', [CategoryController::class, 'approve'])->middleware('permission:gerer-categories')->name('categories.valider');
+    Route::delete('/categories/{category}/refuser', [CategoryController::class, 'reject'])->middleware('permission:gerer-categories')->name('categories.refuser');
     Route::get('/produits', [AdminProductController::class, 'index'])->name('produits.index');
-    Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
+    Route::middleware('permission:valider-produits')->group(function () {
+        Route::get('/produits/validation', [AdminProductController::class, 'validation'])->name('produits.validation');
+        Route::get('/produits/{product}/revue', [AdminProductController::class, 'revue'])->name('produits.revue');
+        Route::post('/produits/{product}/analyser', [AdminProductController::class, 'analyser'])->middleware('throttle:10,1')->name('produits.analyser');
+        Route::patch('/produits/{product}/approuver', [AdminProductController::class, 'approuver'])->name('produits.approuver');
+        Route::patch('/produits/{product}/refuser', [AdminProductController::class, 'refuser'])->name('produits.refuser');
+        Route::patch('/produits/{product}/modification', [AdminProductController::class, 'demanderModification'])->name('produits.modification');
+        Route::patch('/produits/{product}/statut', [AdminProductController::class, 'updateStatus'])->name('produits.statut');
+    });
     Route::get('/commandes', [AdminCommandeController::class, 'index'])->name('commandes.index');
     Route::get('/commandes/{commande}', [AdminCommandeController::class, 'show'])->name('commandes.show');
     Route::patch('/commandes/{commande}/confirmer', [AdminCommandeController::class, 'confirmer'])->name('commandes.confirmer');
@@ -239,9 +344,28 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         'bilans-environnementaux' => 'bilan',
     ]);
 
-    Route::resource('reclamations', BackReclamationController::class);
-    Route::patch('reclamations/{reclamation}/statut', [BackReclamationController::class, 'updateStatus'])->name('reclamations.statut');
-    Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
-    Route::put('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'update'])->name('reponses-reclamations.update');
-    Route::delete('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'destroy'])->name('reponses-reclamations.destroy');
+    // Module Réclamations & Avis : traitement, copilote IA, alertes qualité, modération
+    Route::middleware('permission:traiter-reclamations')->group(function () {
+        Route::resource('reclamations', BackReclamationController::class);
+        Route::patch('reclamations/{reclamation}/statut', [BackReclamationController::class, 'updateStatus'])->name('reclamations.statut');
+        Route::post('reclamations/{reclamation}/reponses', [ReponseReclamationController::class, 'store'])->name('reclamations.reponses.store');
+        Route::post('reclamations/{reclamation}/copilote', [BackReclamationController::class, 'copilote'])->middleware('throttle:15,1')->name('reclamations.copilote');
+        Route::post('reclamations/{reclamation}/responsabilite', [BackReclamationController::class, 'responsabilite'])->middleware('throttle:15,1')->name('reclamations.responsabilite');
+        Route::post('reclamations/{reclamation}/reanalyser', [BackReclamationController::class, 'reanalyser'])->middleware('throttle:15,1')->name('reclamations.reanalyser');
+        Route::get('reclamations/{reclamation}/pdf', [BackReclamationController::class, 'pdf'])->name('reclamations.pdf');
+        Route::put('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'update'])->name('reponses-reclamations.update');
+        Route::delete('reponses-reclamations/{reponse}', [ReponseReclamationController::class, 'destroy'])->name('reponses-reclamations.destroy');
+
+        Route::get('alertes-qualite', [AlerteQualiteController::class, 'index'])->name('alertes.index');
+        Route::post('alertes-qualite/{alerte}/analyser', [AlerteQualiteController::class, 'analyser'])->middleware('throttle:15,1')->name('alertes.analyser');
+        Route::post('alertes-qualite/{alerte}/rappel', [AlerteQualiteController::class, 'rappel'])->name('alertes.rappel');
+        Route::patch('alertes-qualite/{alerte}/classer', [AlerteQualiteController::class, 'classer'])->name('alertes.classer');
+    });
+
+    Route::middleware('permission:moderer-avis')->group(function () {
+        Route::get('avis', [BackAvisController::class, 'index'])->name('avis.index');
+        Route::patch('avis/{avis}/publier', [BackAvisController::class, 'publier'])->name('avis.publier');
+        Route::patch('avis/{avis}/masquer', [BackAvisController::class, 'masquer'])->name('avis.masquer');
+        Route::delete('avis/{avis}', [BackAvisController::class, 'destroy'])->name('avis.destroy');
+    });
 });

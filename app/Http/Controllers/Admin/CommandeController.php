@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Commande;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class CommandeController extends Controller
@@ -52,6 +53,8 @@ class CommandeController extends Controller
 
         $commande->update(['statut' => 'confirmee']);
 
+        NotificationService::notifierCommandeConfirmee($commande);
+
         return back()->with('success', 'Commande confirmée.');
     }
 
@@ -63,6 +66,8 @@ class CommandeController extends Controller
 
         $commande->update(['statut' => 'refusee']);
 
+        NotificationService::notifierCommandeRefusee($commande);
+
         return back()->with('success', 'Commande refusée.');
     }
 
@@ -73,6 +78,8 @@ class CommandeController extends Controller
         }
 
         $commande->update(['statut' => 'annulee']);
+
+        NotificationService::notifierCommandeAnnulee($commande);
 
         return back()->with('success', 'Commande annulée.');
     }
