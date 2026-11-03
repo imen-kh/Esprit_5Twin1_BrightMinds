@@ -276,12 +276,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('simu-co2').textContent = res.co2_total;
                 document.getElementById('simu-alternative').textContent = res.alternative_locale;
                 const sources = {
-                    openai: 'Texte rédigé par ChatGPT (OpenAI). Le score et le CO₂ viennent des facteurs d\'émission.',
-                    bilan: 'Texte déjà enregistré pour ce produit. ChatGPT n\'a pas été rappelé.',
-                    openai_indisponible: 'ChatGPT n\'a pas répondu. La formule locale a été utilisée.'
+                    anthropic: 'Texte rédigé par Claude (Anthropic). Le score et le CO₂ viennent des facteurs d\'émission.',
+                    bilan: 'Texte déjà enregistré pour ce produit. Claude n\'a pas été rappelé.',
+                    anthropic_indisponible: 'Claude n\'a pas répondu. La formule locale a été utilisée.'
                 };
                 document.getElementById('simu-source').textContent = sources[res.source_ia]
-                    || 'Formule locale : ajoutez OPENAI_API_KEY dans le fichier .env pour utiliser ChatGPT.';
+                    || 'Formule locale utilisée. Configurez ANTHROPIC_API_KEY dans le fichier .env pour activer Claude.';
             }
         } catch (err) {
             btn.disabled = false;

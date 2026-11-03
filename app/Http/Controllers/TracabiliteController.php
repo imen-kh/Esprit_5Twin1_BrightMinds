@@ -42,8 +42,10 @@ class TracabiliteController extends Controller
             'code' => $code,
             'introuvable' => $introuvable,
             'lotsRecents' => Lot::with('produit.category')
-                ->where('statut', 'disponible')
+                ->whereIn('statut', ['disponible', 'en_transit', 'rappele'])
+                ->has('etapes')
                 ->withCount('etapes')
+                ->orderByDesc('etapes_count')
                 ->orderByDesc('date_production')
                 ->take(6)
                 ->get(),
@@ -95,8 +97,8 @@ class TracabiliteController extends Controller
             'segments' => $segments,
             'points' => $points,
             'image' => $lot->produit->imageUrl(),
-            // QR code en SVG pointant vers cette page
-            'qrCode' => (string) QrCode::size(190)->margin(1)->generate(route('tracabilite.show', $lot)),
+            // QR code vers une adresse accessible depuis le téléphone (pas « localhost »)
+            'qrCode' => (string) QrCode::size(190)->margin(1)->generate($this->urlPourQr($lot)),
             'iaConfiguree' => $ia->estConfigure(),
         ]);
     }
@@ -115,7 +117,7 @@ class TracabiliteController extends Controller
             // L'histoire n'est reprise que si elle est déjà en cache : le PDF n'attend pas l'API
             'histoire' => $lot->histoireAJour() ? $lot->histoire_ia : null,
             // dompdf affiche le SVG via une image en base64
-            'qrCode' => base64_encode((string) QrCode::format('svg')->size(130)->margin(0)->generate(route('tracabilite.show', $lot))),
+            'qrCode' => base64_encode((string) QrCode::format('svg')->size(130)->margin(0)->generate($this->urlPourQr($lot))),
             'genereLe' => now()->format('d/m/Y à H:i'),
         ];
 
@@ -173,5 +175,16 @@ class TracabiliteController extends Controller
             'alertesFroid' => array_values(array_filter($anomalies, fn (array $a) => $a['type'] === 'temperature')),
             'alertePeremption' => $lot->alertePeremption(),
         ];
+    }
+
+    private function urlPourQr(Lot $lot): string
+    {
+        $base = trim((string) config('app.qr_public_url'));
+
+        if ($base === '') {
+            $base = request()->getSchemeAndHttpHost();
+        }
+
+        return rtrim($base, '/').route('tracabilite.show', $lot, false);
     }
 }

@@ -90,4 +90,5 @@ class CertificationController extends Controller
         $certification->delete();
         return response()->json(null, 204);
     }
+
 }

@@ -81,7 +81,7 @@
                             <p class="mb-1"><span class="badge bg-warning text-dark">{{ $reclamation->responsableLibelle() }}</span></p>
                             <p class="small mb-0">{{ $reclamation->responsable_explication }}</p>
                         @else
-                            <p class="small text-muted mb-0">DeepSeek croise la réclamation avec les étapes de traçabilité du lot (températures, délais, acteurs) pour désigner le maillon probablement en cause.</p>
+                            <p class="small text-muted mb-0">L’IA croise la réclamation avec les étapes de traçabilité du lot (températures, délais, acteurs) pour désigner le maillon probablement en cause.</p>
                         @endif
                     </div>
                     <form method="POST" action="{{ route('admin.reclamations.responsabilite', $reclamation) }}">
@@ -211,7 +211,7 @@
 
 @push('scripts')
 <script>
-// Copilote : demande un brouillon à DeepSeek et le place dans la zone de réponse, à relire avant l'envoi
+// Copilote : demande un brouillon à l'IA et le place dans la zone de réponse, à relire avant l'envoi
 (() => {
     const bloc = document.getElementById('copilote');
     if (!bloc) return;

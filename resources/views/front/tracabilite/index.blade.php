@@ -66,7 +66,15 @@
                 </div>
 
                 {{-- ===== Quelques lots récents, en exemple ===== --}}
-                <h3 class="mb-4">Lots récents à découvrir</h3>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="mb-1">Lots à découvrir</h3>
+                        <p class="text-muted mb-0">Cliquez sur une fiche pour consulter le parcours et tester l'assistant IA.</p>
+                    </div>
+                    <span class="badge bg-primary rounded-pill px-3 py-2">
+                        {{ $lotsRecents->count() }} lot(s) avec traçabilité
+                    </span>
+                </div>
                 <div class="row g-4">
                     @forelse ($lotsRecents as $lot)
                         <div class="col-md-6 col-lg-4">
@@ -82,6 +90,10 @@
                                     <span class="mx-1">·</span>
                                     <i class="fas fa-route text-primary me-1"></i>{{ $lot->etapes_count }} étape(s)
                                 </p>
+                                <span class="btn btn-sm btn-primary rounded-pill text-white mt-3">
+                                    Voir le parcours et tester l'IA
+                                    <i class="fas fa-arrow-right ms-1"></i>
+                                </span>
                             </a>
                         </div>
                     @empty

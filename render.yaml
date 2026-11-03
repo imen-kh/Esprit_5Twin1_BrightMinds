@@ -1,0 +1,83 @@
+services:
+  - type: web
+    name: nutritrace
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: APP_NAME
+        value: NutriTrace
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://nutritrace.onrender.com
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_STACK
+        value: single
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: nutritrace-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: nutritrace-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: nutritrace-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: nutritrace-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: nutritrace-db
+          property: password
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: FILESYSTEM_DISK
+        value: public
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: SEED_DATABASE
+        value: "false"
+      - key: QR_PUBLIC_URL
+        value: https://nutritrace.onrender.com
+      - key: CLOUDINARY_FALLBACK_LOCAL
+        value: "false"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: GEMINI_ENABLED
+        value: "false"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+
+databases:
+  - name: nutritrace-db
+    plan: free
+    databaseName: nutritrace
+    user: nutritrace

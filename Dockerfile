@@ -32,11 +32,11 @@ RUN composer dump-autoload --optimize --no-dev --no-scripts
 # ===== 3. Image finale : PHP 8.2 + Apache =====
 FROM php:8.2-apache
 
-# Extensions PHP nécessaires : MySQL, images (gd), archives (zip), calcul décimal (bcmath), i18n (intl)
+# Extensions PHP nécessaires : PostgreSQL/MySQL, images (gd), archives (zip), calcul décimal (bcmath), i18n (intl)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev libicu-dev unzip \
+    && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev libicu-dev libpq-dev unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" pdo_mysql gd zip bcmath intl opcache \
+    && docker-php-ext-install -j"$(nproc)" pdo_mysql pdo_pgsql gd zip bcmath intl opcache \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 

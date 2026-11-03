@@ -55,6 +55,12 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | URL accessible par un téléphone pour les QR codes de traçabilité.
+    | Exemple : http://192.168.1.25:8000
+    */
+    'qr_public_url' => env('QR_PUBLIC_URL'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

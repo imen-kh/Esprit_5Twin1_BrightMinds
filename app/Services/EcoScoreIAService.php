@@ -15,9 +15,9 @@ class EcoScoreIAService
     /**
      * Analyse et estime l'éco-score complet avec recommandation d'alternative locale.
      * Les chiffres (CO₂, score, lettre) viennent de la formule. Le texte est rédigé
-     * par ChatGPT quand OPENAI_API_KEY est renseignée, sinon par les règles locales.
+     * par Claude quand ANTHROPIC_API_KEY est renseignée, sinon par les règles locales.
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return array<string, mixed>
      */
     public function analyser(array $params, bool $avecApi = true): array
@@ -166,11 +166,11 @@ class EcoScoreIAService
 
             if ($enregistre !== null) {
                 $resultat = array_merge($resultat, $enregistre);
-            } elseif (filled(config('services.openai.key'))) {
-                $redige = $this->redigerAvecOpenAi($resultat);
+            } elseif (filled(config('services.anthropic.key'))) {
+                $redige = $this->redigerAvecAnthropic($resultat);
                 $resultat = $redige !== null
                     ? array_merge($resultat, $redige)
-                    : array_merge($resultat, ['source_ia' => 'openai_indisponible']);
+                    : array_merge($resultat, ['source_ia' => 'anthropic_indisponible']);
                 $this->memoriserTexte($nomProduit, $resultat);
             }
         }
@@ -179,15 +179,15 @@ class EcoScoreIAService
     }
 
     /**
-     * Demande à ChatGPT le texte d'alternative locale. Les chiffres déjà calculés
+     * Demande à Claude le texte d'alternative locale. Les chiffres déjà calculés
      * sont imposés au modèle. Null si la clé manque ou si l'appel échoue.
      *
      * @param  array<string, mixed>  $resultat
      * @return array<string, mixed>|null
      */
-    private function redigerAvecOpenAi(array $resultat): ?array
+    private function redigerAvecAnthropic(array $resultat): ?array
     {
-        if (! filled(config('services.openai.key'))) {
+        if (! filled(config('services.anthropic.key'))) {
             return null;
         }
 
@@ -198,17 +198,21 @@ class EcoScoreIAService
             .'Réponds uniquement en JSON avec les clés alternative_locale (une phrase), recommandation_ia (une ou deux phrases) et reduction_co2_pourcent (nombre entre 0 et 85).';
 
         try {
-            $reponse = Http::timeout((int) config('services.openai.timeout', 20))
+            $reponse = Http::timeout((int) config('services.anthropic.timeout', 20))
                 ->connectTimeout(5)
                 ->acceptJson()
-                ->withToken((string) config('services.openai.key'))
-                ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => config('services.openai.model', 'gpt-4o-mini'),
+                ->withHeaders([
+                    'x-api-key' => (string) config('services.anthropic.key'),
+                    'anthropic-version' => '2023-06-01',
+                ])
+                ->post('https://api.anthropic.com/v1/messages', [
+                    'model' => config('services.anthropic.model', 'claude-sonnet-4-5'),
+                    'max_tokens' => 500,
                     'temperature' => 0.4,
-                    'response_format' => ['type' => 'json_object'],
-                    'messages' => [
-                        ['role' => 'system', 'content' => $consigne],
-                        ['role' => 'user', 'content' => json_encode([
+                    'system' => $consigne,
+                    'messages' => [[
+                        'role' => 'user',
+                        'content' => json_encode([
                             'produit' => $resultat['nom_produit'],
                             'origine' => $resultat['origine_geographique'],
                             'distance_km' => $resultat['distance_km'],
@@ -218,17 +222,17 @@ class EcoScoreIAService
                             'co2_total' => $resultat['co2_total'],
                             'eco_score' => $resultat['eco_score'],
                             'score' => $resultat['score_numerique'],
-                        ], JSON_UNESCAPED_UNICODE)],
-                    ],
+                        ], JSON_UNESCAPED_UNICODE),
+                    ]],
                 ]);
         } catch (Throwable $e) {
-            Log::warning('Éco-score : appel OpenAI impossible.', ['erreur' => $e->getMessage()]);
+            Log::warning('Éco-score : appel Anthropic impossible.', ['erreur' => $e->getMessage()]);
 
             return null;
         }
 
         if (! $reponse->successful()) {
-            Log::warning('Éco-score : OpenAI a répondu en erreur.', [
+            Log::warning('Éco-score : Anthropic a répondu en erreur.', [
                 'statut' => $reponse->status(),
                 'corps' => Str::limit($reponse->body(), 300),
             ]);
@@ -236,18 +240,28 @@ class EcoScoreIAService
             return null;
         }
 
-        $json = json_decode((string) $reponse->json('choices.0.message.content'), true);
+        $contenu = trim((string) $reponse->json('content.0.text'));
+        $contenu = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', $contenu) ?? $contenu;
+        $json = json_decode(trim($contenu), true);
 
         if (! is_array($json) || blank($json['alternative_locale'] ?? null)) {
             return null;
         }
 
         return [
-            'alternative_locale' => Str::limit(trim((string) $json['alternative_locale']), 2000, ''),
-            'recommandation_ia' => Str::limit(trim((string) ($json['recommandation_ia'] ?? '')), 2000, ''),
+            'alternative_locale' => $this->nettoyerTexteIA((string) $json['alternative_locale']),
+            'recommandation_ia' => $this->nettoyerTexteIA((string) ($json['recommandation_ia'] ?? '')),
             'reduction_co2_estimee_pourcent' => max(0, min(85, (float) ($json['reduction_co2_pourcent'] ?? $resultat['reduction_co2_estimee_pourcent']))),
-            'source_ia' => 'openai',
+            'source_ia' => 'anthropic',
         ];
+    }
+
+    private function nettoyerTexteIA(string $texte): string
+    {
+        $texte = preg_replace('/^#{1,6}\s*/m', '', $texte) ?? $texte;
+        $texte = str_replace(['**', '__'], '', $texte);
+
+        return Str::limit(trim($texte), 2000, '');
     }
 
     /**
@@ -272,8 +286,8 @@ class EcoScoreIAService
 
         if ($bilan) {
             return [
-                'alternative_locale' => $bilan->alternative_locale,
-                'recommandation_ia' => $bilan->recommandation_ia,
+                'alternative_locale' => $this->nettoyerTexteIA((string) $bilan->alternative_locale),
+                'recommandation_ia' => $this->nettoyerTexteIA((string) $bilan->recommandation_ia),
                 'reduction_co2_estimee_pourcent' => $bilan->reduction_co2_estimee_pourcent,
                 'source_ia' => 'bilan',
             ];
@@ -293,7 +307,7 @@ class EcoScoreIAService
             return;
         }
 
-        $duree = ($resultat['source_ia'] ?? '') === 'openai' ? now()->addDays(30) : now()->addMinutes(10);
+        $duree = ($resultat['source_ia'] ?? '') === 'anthropic' ? now()->addDays(30) : now()->addMinutes(10);
 
         Cache::put($this->cleTexte($nom), [
             'alternative_locale' => $resultat['alternative_locale'],
@@ -324,7 +338,7 @@ class EcoScoreIAService
         string $modeCulture
     ): array {
         $estImporteOuLoin = ($distance > 150) || Str::contains(Str::lower($origine), [
-            'import', 'espagne', 'france', 'italie', 'turquie', 'maroc', 'chine', 'grece', 'egypte', 'europe', 'etranger'
+            'import', 'espagne', 'france', 'italie', 'turquie', 'maroc', 'chine', 'grece', 'egypte', 'europe', 'etranger',
         ]);
 
         $alternativeTexte = '';
@@ -369,8 +383,8 @@ class EcoScoreIAService
             $gainPourcent = $gain;
 
             $alternativeTexte = "🌱 Alternative locale recommandée : Privilégier une production issue du {$poleLocal['region']}. "
-                . "Cette alternative locale ({$poleLocal['explication']}) permet de ramener la distance de transport à environ {$poleLocal['km_moyen']} km "
-                . "et d'économiser environ {$gain}% de l'empreinte carbone globale du produit !";
+                ."Cette alternative locale ({$poleLocal['explication']}) permet de ramener la distance de transport à environ {$poleLocal['km_moyen']} km "
+                ."et d'économiser environ {$gain}% de l'empreinte carbone globale du produit !";
 
             $recommandationsList = [];
             $recommandationsList[] = "Remplacer l'approvisionnement distant ({$origine}, {$distance} km) par un partenariat direct avec les coopératives agricoles du {$poleLocal['region']}.";
@@ -386,10 +400,10 @@ class EcoScoreIAService
             // Produit déjà local !
             $gainPourcent = 15.0;
             $alternativeTexte = "✅ Excellent choix local : Ce produit provient déjà d'un circuit de proximité ({$origine}, distance estimée à {$distance} km). "
-                . "Pour optimiser davantage son impact, privilégiez l'achat en pleine saison et en vrac afin de conserver un Éco-score optimal (A/B).";
+                ."Pour optimiser davantage son impact, privilégiez l'achat en pleine saison et en vrac afin de conserver un Éco-score optimal (A/B).";
 
             $recommandation = "L'empreinte liée au transport est déjà maîtrisée grâce au circuit court. "
-                . ($emballage !== 'vrac' ? "Le principal axe d'amélioration reste l'optimisation de l'emballage vers le vrac ou le verre consigné." : "Maintenez la commercialisation en vrac sans plastique à usage unique.");
+                .($emballage !== 'vrac' ? "Le principal axe d'amélioration reste l'optimisation de l'emballage vers le vrac ou le verre consigné." : 'Maintenez la commercialisation en vrac sans plastique à usage unique.');
         }
 
         return [

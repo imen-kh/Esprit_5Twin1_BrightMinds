@@ -7,6 +7,6 @@
 <p>{{ $label->description }}</p><h3 class="mt-5">Certifications vérifiées</h3>
 <div class="row g-3">@forelse($label->certifications as $certification)<div class="col-md-6"><div class="card p-3">
 <div class="d-flex justify-content-between"><strong>{{ $certification->product?->nom ?? 'Produit' }}</strong><x-certification-badge :certification="$certification" /></div>
-<small>Numéro : {{ $certification->numero }} · Expire le {{ optional($certification->date_expiration)->format('d/m/Y') }}</small></div></div>
+<small>Numéro : {{ $certification->numero }} · Expire le {{ optional($certification->date_expiration)->format('d/m/Y') }}</small><a class="btn btn-sm btn-outline-primary mt-2" href="{{ route('certifications.public.show', $certification) }}">Vérifier la certification</a></div></div>
 @empty <p>Aucune certification vérifiée pour ce label.</p>@endforelse</div></div>
 @endsection

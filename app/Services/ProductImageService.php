@@ -23,6 +23,7 @@ class ProductImageService
     public function envoyer(UploadedFile $fichier): string
     {
         try {
+            $this->ensureConfigured();
             $resultat = $this->client()->uploadApi()->upload($fichier->getRealPath(), [
                 'folder' => self::DOSSIER,
                 'resource_type' => 'image',
@@ -30,6 +31,17 @@ class ProductImageService
 
             return $resultat['secure_url'];
         } catch (Throwable $e) {
+            if (config('services.cloudinary.fallback_local', true)) {
+                $path = $fichier->store(self::DOSSIER, 'public');
+
+                Log::warning('Cloudinary indisponible : image enregistrée localement.', [
+                    'erreur' => $e->getMessage(),
+                    'path' => $path,
+                ]);
+
+                return $path;
+            }
+
             Log::error('Envoi Cloudinary impossible : '.$e->getMessage());
 
             throw ValidationException::withMessages([
@@ -100,5 +112,14 @@ class ProductImageService
             ],
             'url' => ['secure' => true],
         ]);
+    }
+
+    private function ensureConfigured(): void
+    {
+        foreach (['cloud_name', 'api_key', 'api_secret'] as $setting) {
+            if (! filled(config('services.cloudinary.'.$setting))) {
+                throw new \RuntimeException('Configuration Cloudinary incomplète : '.$setting);
+            }
+        }
     }
 }

@@ -33,6 +33,7 @@ class TracabiliteIATest extends TestCase
             'services.gemini.key' => 'cle-de-test',
             'services.gemini.model' => 'gemini-test',
             'services.gemini.secours' => [],
+            'services.anthropic.key' => null,
         ]);
 
         $this->producteur = User::factory()->create(['role' => 'acteur', 'type_acteur' => 'producteur']);
@@ -134,6 +135,24 @@ class TracabiliteIATest extends TestCase
             ->assertSee('Rupture de la chaîne du froid');
     }
 
+    public function test_anthropic_prend_le_relais_quand_gemini_est_limite(): void
+    {
+        config([
+            'services.anthropic.key' => 'cle-anthropic-test',
+            'services.anthropic.model' => 'claude-test',
+        ]);
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response(['error' => 'quota'], 429),
+            'api.anthropic.com/*' => Http::response([
+                'content' => [['type' => 'text', 'text' => 'Réponse de secours Claude.']],
+            ]),
+        ]);
+
+        $this->postJson(route('tracabilite.assistant', $this->lot), ['question' => 'Quelle est la température du transport ?'])
+            ->assertOk()
+            ->assertJson(['reponse' => 'Réponse de secours Claude.', 'ia' => true]);
+    }
+
     public function test_l_assistant_repond_a_partir_des_donnees_du_lot(): void
     {
         Http::fake(['generativelanguage.googleapis.com/*' => Http::response($this->reponseGemini('Non, 14 °C pendant le transport.'))]);
@@ -158,7 +177,7 @@ class TracabiliteIATest extends TestCase
 
     public function test_sans_cle_gemini_aucun_appel_n_est_fait(): void
     {
-        config(['services.gemini.key' => null]);
+        config(['services.gemini.key' => null, 'services.anthropic.key' => null]);
         Http::fake();
 
         $this->get(route('tracabilite.show', $this->lot))->assertOk();

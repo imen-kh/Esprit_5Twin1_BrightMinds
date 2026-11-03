@@ -11,3 +11,29 @@
 .menu-vertical .menu-item.active > .menu-link:not(.menu-toggle) { background-color: rgba(129,196,8,.16) !important; color: #6aa106 !important; }
 .bg-menu-theme .menu-inner > .menu-item.active::before { background: #81c408 !important; }
 .form-control:focus, .form-select:focus { border-color: #81c408 !important; }
+
+.admin-orders-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.admin-orders-pagination .pagination {
+  margin-bottom: 0;
+  gap: .25rem;
+}
+
+.admin-orders-pagination .page-link {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .375rem .625rem;
+  line-height: 1.25;
+}
+
+.admin-orders-pagination .page-link svg {
+  width: 1rem;
+  height: 1rem;
+}

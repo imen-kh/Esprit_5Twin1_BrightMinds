@@ -35,7 +35,7 @@ class TracabiliteIAService
      */
     public function estConfigure(): bool
     {
-        return filled(config('services.gemini.key'));
+        return filled(config('services.gemini.key')) || filled(config('services.anthropic.key'));
     }
 
     /**
@@ -296,8 +296,34 @@ class TracabiliteIAService
             return null;
         }
 
-        // Modèle principal puis modèles de secours, essayés tant que l'erreur est passagère
-        $modeles = collect([config('services.gemini.model') ?: 'gemini-3.5-flash'])
+        if (filled(config('services.gemini.key'))) {
+            $texte = $this->appelerGemini($prompt, $configuration);
+
+            if ($texte !== null) {
+                return $texte;
+            }
+        }
+
+        // Gemini peut être limité par quota alors qu'Anthropic reste disponible.
+        if (filled(config('services.anthropic.key'))) {
+            $texte = $this->appelerAnthropic($prompt, $configuration);
+
+            if ($texte !== null) {
+                return $texte;
+            }
+        }
+
+        Cache::put(self::CLE_INDISPONIBLE, true, now()->addMinutes(2));
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $configuration
+     */
+    private function appelerGemini(string $prompt, array $configuration): ?string
+    {
+        $modeles = collect([config('services.gemini.model') ?: 'gemini-2.5-flash-lite'])
             ->merge(config('services.gemini.secours', []))
             ->filter()
             ->unique()
@@ -314,8 +340,7 @@ class TracabiliteIAService
                         'generationConfig' => $configuration,
                     ]);
             } catch (Throwable $e) {
-                // Délai dépassé ou réseau instable : on tente le modèle suivant
-                Log::error('Traçabilité IA : appel à Gemini impossible.', ['modele' => $modele, 'erreur' => $e->getMessage()]);
+                Log::warning('Traçabilité IA : appel à Gemini impossible.', ['modele' => $modele, 'erreur' => $e->getMessage()]);
 
                 continue;
             }
@@ -326,28 +351,56 @@ class TracabiliteIAService
                 if (trim($texte) !== '') {
                     return trim($texte);
                 }
-
-                Log::error('Traçabilité IA : réponse vide de Gemini.', ['modele' => $modele, 'raison' => $reponse->json('candidates.0.finishReason')]);
-
-                continue;
             }
 
-            Log::error('Traçabilité IA : réponse en erreur de Gemini.', [
+            Log::warning('Traçabilité IA : réponse en erreur de Gemini.', [
                 'modele' => $modele,
                 'statut' => $reponse->status(),
                 'corps' => Str::limit($reponse->body(), 500),
             ]);
-
-            // Modèle retiré (404), quota (429) ou surcharge (5xx) : on tente le modèle suivant ; sinon (clé invalide…) inutile
-            if (! in_array($reponse->status(), [404, 429], true) && ! $reponse->serverError()) {
-                break;
-            }
         }
 
-        // Aucun modèle n'a répondu : la page publique n'attendra plus l'API pendant 2 minutes
-        Cache::put(self::CLE_INDISPONIBLE, true, now()->addMinutes(2));
-
         return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $configuration
+     */
+    private function appelerAnthropic(string $prompt, array $configuration): ?string
+    {
+        try {
+            $reponse = Http::timeout((int) config('services.anthropic.timeout', 20))
+                ->connectTimeout(5)
+                ->acceptJson()
+                ->withHeaders([
+                    'x-api-key' => (string) config('services.anthropic.key'),
+                    'anthropic-version' => '2023-06-01',
+                ])
+                ->post('https://api.anthropic.com/v1/messages', [
+                    'model' => config('services.anthropic.model', 'claude-sonnet-4-5'),
+                    'max_tokens' => (int) ($configuration['maxOutputTokens'] ?? 700),
+                    'temperature' => (float) ($configuration['temperature'] ?? 0.2),
+                    'system' => 'Réponds uniquement à la demande et respecte strictement le format demandé.',
+                    'messages' => [['role' => 'user', 'content' => $prompt]],
+                ]);
+        } catch (Throwable $e) {
+            Log::warning('Traçabilité IA : appel à Anthropic impossible.', ['erreur' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if (! $reponse->successful()) {
+            Log::warning('Traçabilité IA : réponse en erreur d\'Anthropic.', [
+                'statut' => $reponse->status(),
+                'corps' => Str::limit($reponse->body(), 500),
+            ]);
+
+            return null;
+        }
+
+        $texte = trim((string) $reponse->json('content.0.text'));
+
+        return $texte !== '' ? $texte : null;
     }
 
     /**

@@ -24,7 +24,10 @@ class DeepSeekIATest extends TestCase
     {
         parent::setUp();
         $this->preparerModule();
-        config(['services.deepseek.key' => 'cle-de-test']);
+        config([
+            'services.deepseek.key' => 'cle-de-test',
+            'services.anthropic.key' => null,
+        ]);
     }
 
     public function test_sans_cle_aucun_appel_n_est_fait(): void
@@ -83,6 +86,29 @@ class DeepSeekIATest extends TestCase
         $this->assertSame('regles', $resultat['source']);
         $this->assertTrue(Cache::has('deepseek:pause'));
         $this->assertFalse(app(DeepSeekService::class)->estDisponible());
+    }
+
+    public function test_l_analyse_utilise_anthropic_si_deepseek_est_indisponible(): void
+    {
+        config(['services.anthropic.key' => 'cle-anthropic-test']);
+        Http::fake([
+            'api.deepseek.com/*' => Http::response('erreur', 503),
+            'api.anthropic.com/*' => Http::response([
+                'content' => [['type' => 'text', 'text' => json_encode([
+                    'sentiment' => 'negatif',
+                    'priorite' => 'haute',
+                    'categorie' => 'qualite',
+                    'langue' => 'fr',
+                    'resume' => 'Le client signale un problème de qualité.',
+                    'suggestion' => 'Nous allons vérifier le produit et vous proposer une solution.',
+                ])]],
+            ]),
+        ]);
+
+        $resultat = app(AiReclamationService::class)->analyserReclamation('Produit abîmé', 'Le produit est arrivé abîmé.', $this->produit);
+
+        $this->assertSame('anthropic', $resultat['source']);
+        $this->assertSame('Le client signale un problème de qualité.', $resultat['resume']);
     }
 
     public function test_le_copilote_utilise_deepseek(): void

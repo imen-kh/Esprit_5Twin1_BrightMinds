@@ -107,4 +107,5 @@ class CertificationController extends Controller
             ? response()->json(null, 204)
             : redirect()->route('admin.certifications.index')->with('success', 'Certification supprimée.');
     }
+
 }

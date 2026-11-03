@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\LabelFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class Label extends Model
 {
-    /** @use HasFactory<\Database\Factories\LabelFactory> */
+    /** @use HasFactory<LabelFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -43,8 +44,13 @@ class Label extends Model
      */
     public function getLogoUrlAttribute(): string
     {
-        if ($this->logo && Storage::disk('public')->exists($this->logo)) {
-            return asset('storage/'.$this->logo);
+        $path = ltrim((string) $this->logo, '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        if ($path !== '' && Storage::disk('public')->exists($path)) {
+            return '/storage/'.$path;
         }
 
         $fichier = 'front/img/labels/'.Str::slug((string) $this->nom).'.svg';

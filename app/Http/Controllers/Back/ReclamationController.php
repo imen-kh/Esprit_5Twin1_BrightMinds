@@ -153,7 +153,11 @@ class ReclamationController extends Controller
             'message' => $brouillon['message'],
             'solution' => $brouillon['solution'],
             'langue' => AiReclamationService::LANGUES[$brouillon['langue']] ?? 'Français',
-            'source' => $brouillon['source'] === 'ia' ? 'DeepSeek' : 'Modèle local',
+            'source' => match ($brouillon['source']) {
+                'ia' => 'DeepSeek',
+                'anthropic' => 'Anthropic',
+                default => 'Modèle local',
+            },
         ]);
     }
 
@@ -183,7 +187,12 @@ class ReclamationController extends Controller
             'suggestion_reponse' => $analyse['suggestion'],
             'resume_ia' => $analyse['resume'],
         ]);
-        $reclamation->journaliser('ia', ($analyse['source'] === 'ia' ? 'Nouvelle analyse DeepSeek' : 'Nouvelle analyse automatique').' : '.$reclamation->categorieLibelle(), $request->user());
+        $source = match ($analyse['source']) {
+            'ia' => 'DeepSeek',
+            'anthropic' => 'Anthropic',
+            default => 'automatique',
+        };
+        $reclamation->journaliser('ia', 'Nouvelle analyse '.$source.' : '.$reclamation->categorieLibelle(), $request->user());
 
         return redirect()->route('admin.reclamations.show', $reclamation)->with('success', 'Analyse mise à jour.');
     }

@@ -5,4 +5,5 @@
 <form method="POST" action="{{ route('admin.certifications.analyser',$certification) }}" class="mt-3">@csrf<button class="btn btn-outline-info">Analyser avec l’IA locale</button></form>
 @if(session('analyse_ia')) @include('certifications._analysis', ['analyse' => session('analyse_ia')]) @endif
 <form method="POST" action="{{ route('admin.certifications.destroy',$certification) }}" class="mt-3" onsubmit="return confirm('Supprimer cette certification ?');">@csrf @method('DELETE')<button class="btn btn-outline-danger">Supprimer</button></form>
+<div class="border rounded p-3 mt-4 text-center"><div class="small text-muted mb-2">QR code de vérification publique</div><img src="{{ route('certifications.public.qr', $certification) }}" width="180" height="180" alt="QR code de vérification"><div class="small text-muted mt-2">Le scan affiche les détails de cette certification.</div></div>
 </div></div>@endsection

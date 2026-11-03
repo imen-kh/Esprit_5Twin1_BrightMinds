@@ -32,13 +32,14 @@ return [
         'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
         'api_key' => env('CLOUDINARY_API_KEY'),
         'api_secret' => env('CLOUDINARY_API_SECRET'),
+        'fallback_local' => env('CLOUDINARY_FALLBACK_LOCAL', true),
     ],
 
-    // Module Environnement : rédaction de l'alternative locale par ChatGPT (API OpenAI)
-    'openai' => [
-        'key' => env('OPENAI_API_KEY'),
-        'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
-        'timeout' => 20,
+    // Module Environnement : rédaction de l'alternative locale par Claude (API Anthropic)
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-5'),
+        'timeout' => (int) env('ANTHROPIC_TIMEOUT', 20),
     ],
 
     // Module Traçabilité : histoire du produit et analyse des anomalies par IA (API Google Gemini)

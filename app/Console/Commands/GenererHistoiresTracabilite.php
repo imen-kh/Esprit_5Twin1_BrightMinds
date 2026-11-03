@@ -22,12 +22,12 @@ class GenererHistoiresTracabilite extends Command
     /**
      * @var string
      */
-    protected $description = 'Génère par IA (Gemini) l\'histoire des lots dont la chaîne a changé depuis la dernière génération';
+    protected $description = 'Génère par IA l\'histoire des lots dont la chaîne a changé depuis la dernière génération';
 
     public function handle(TracabiliteIAService $ia): int
     {
         if (! $ia->estConfigure()) {
-            $this->warn('GEMINI_API_KEY est vide dans .env : aucune histoire générée.');
+            $this->warn('ANTHROPIC_API_KEY et GEMINI_API_KEY sont vides dans .env : aucune histoire générée.');
 
             return self::SUCCESS;
         }

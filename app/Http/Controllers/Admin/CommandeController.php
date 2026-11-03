@@ -11,8 +11,26 @@ class CommandeController extends Controller
 {
     public function index(Request $request)
     {
+        $commandes = Commande::query()
+            ->with(['user', 'products', 'livraison'])
+            ->when($request->filled('statut'), fn ($q) => $q->where('statut', $request->string('statut')))
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $term = '%'.$request->string('q').'%';
+                $q->where(function ($subQuery) use ($term) {
+                    $subQuery->where('id', is_numeric(trim($term, '%')) ? (int) trim($term, '%') : 0)
+                        ->orWhere('email', 'like', $term)
+                        ->orWhere('nom', 'like', $term)
+                        ->orWhere('prenom', 'like', $term)
+                        ->orWhere('commentaire', 'like', $term)
+                        ->orWhereHas('user', fn ($user) => $user->where('name', 'like', $term));
+                });
+            })
+            ->latest('date_commande')
+            ->paginate(20, ['*'], 'commandes_page')
+            ->withQueryString();
+
         $filtres = function ($query, string $role, ?string $typeActeur = null) use ($request) {
-            $query->with(['user', 'livraison'])
+            $query->with(['user', 'products', 'livraison'])
                 ->whereHas('user', function ($userQuery) use ($role, $typeActeur) {
                     $userQuery->where('role', $role);
                     if ($typeActeur) {
@@ -36,7 +54,7 @@ class CommandeController extends Controller
         $commandesConsommateurs = $filtres(Commande::query(), 'consommateur')
             ->paginate(15, ['*'], 'consommateur_page')->withQueryString();
 
-        return view('admin.commandes.index', compact('commandesTransformateurs', 'commandesConsommateurs'));
+        return view('admin.commandes.index', compact('commandes', 'commandesTransformateurs', 'commandesConsommateurs'));
     }
 
     public function show(Commande $commande)

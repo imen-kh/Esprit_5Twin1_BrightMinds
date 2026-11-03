@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Acteur\CertificationController as ActeurCertificationController;
 use App\Http\Controllers\Acteur\ProductionForecastController;
 use App\Http\Controllers\PublicLabelController;
+use App\Http\Controllers\PublicCertificationController;
 use App\Http\Controllers\Back\FacteurEmissionController;
 use App\Http\Controllers\Back\BilanEnvironnementalController;
 use App\Http\Controllers\Front\EnvironnementController;
@@ -224,6 +225,8 @@ Route::middleware(['auth', 'verified', 'acteur', 'permission:gerer-lots'])->pref
 // ===== Labels et certifications =====
 Route::get('/labels', [PublicLabelController::class, 'index'])->name('labels.index');
 Route::get('/labels/{label}', [PublicLabelController::class, 'show'])->name('labels.show');
+Route::get('/certifications/{certification}', [PublicCertificationController::class, 'show'])->name('certifications.public.show');
+Route::get('/certifications/{certification}/qr', [PublicCertificationController::class, 'qr'])->name('certifications.public.qr');
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('labels/create', [AdminLabelController::class, 'create'])->name('labels.create');

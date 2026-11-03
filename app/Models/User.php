@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Notifications\ReinitialisationMotDePasse;
 use App\Notifications\VerificationAdresseEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Models\Role;
@@ -14,7 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
 
     /**
@@ -81,32 +83,32 @@ class User extends Authenticatable implements MustVerifyEmail
         'allergies',
     ];
 
-    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
-    public function harvests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function harvests(): HasMany
     {
         return $this->hasMany(Harvest::class);
     }
 
-    public function stockItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function stockItems(): HasMany
     {
         return $this->hasMany(StockItem::class);
     }
 
-    public function reclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function reclamations(): HasMany
     {
         return $this->hasMany(Reclamation::class);
     }
 
-    public function reponsesReclamations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function reponsesReclamations(): HasMany
     {
         return $this->hasMany(ReponseReclamation::class);
     }
 
-    public function avis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function avis(): HasMany
     {
         return $this->hasMany(Avis::class);
     }
@@ -114,7 +116,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Commandes livrées de l'utilisateur qui contiennent ce produit (achat vérifié, réclamation liée).
      */
-    public function commandesLivreesAvec(int $produitId): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function commandesLivreesAvec(int $produitId): HasMany
     {
         return $this->commandes()
             ->where('statut', 'livree')
@@ -126,6 +128,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'consommateur';
     }
+
     /**
      * Indique si l'utilisateur est un administrateur.
      */
@@ -183,9 +186,18 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected function avatarUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->avatar
-            ? asset('storage/'.$this->avatar)
-            : asset('back/assets/img/avatars/1.png'));
+        return Attribute::get(function () {
+            if (! $this->avatar) {
+                return asset('back/assets/img/avatars/1.png');
+            }
+
+            $path = ltrim($this->avatar, '/');
+            if (str_starts_with($path, 'storage/')) {
+                $path = substr($path, strlen('storage/'));
+            }
+
+            return '/storage/'.$path;
+        });
     }
 
     /**

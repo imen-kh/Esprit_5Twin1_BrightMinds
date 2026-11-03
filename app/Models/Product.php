@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    /** @use HasFactory<ProductFactory> */
     use HasFactory, Searchable;
 
     public const DRAFT = 'draft';
@@ -153,7 +154,15 @@ class Product extends Model
     public function imageUrl(): string
     {
         if ($this->aUnePhoto()) {
-            return str_starts_with($this->image, 'http') ? $this->image : asset('storage/'.$this->image);
+            if (str_starts_with($this->image, 'http')) {
+                return $this->image;
+            }
+
+            $path = ltrim($this->image, '/');
+
+            return '/storage/'.(str_starts_with($path, 'storage/')
+                ? substr($path, strlen('storage/'))
+                : $path);
         }
 
         $nom = mb_strtolower((string) $this->name);
@@ -177,11 +186,20 @@ class Product extends Model
             return false;
         }
 
-        return str_starts_with($this->image, 'http') || Storage::disk('public')->exists($this->image);
+        if (str_starts_with($this->image, 'http')) {
+            return true;
+        }
+
+        $path = ltrim($this->image, '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        return Storage::disk('public')->exists($path);
     }
 
     // ajouté par le module Traçabilité
-    public function lots(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function lots(): HasMany
     {
         return $this->hasMany(Lot::class, 'produit_id');
     }

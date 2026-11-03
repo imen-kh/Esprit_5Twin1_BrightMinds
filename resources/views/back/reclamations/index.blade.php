@@ -10,7 +10,7 @@
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <div>
         <h4 class="mb-1">Réclamations</h4>
-        <p class="text-muted mb-0">Tri automatique : dossiers en retard, puis urgents. Analyse et brouillons de réponse par DeepSeek.</p>
+        <p class="text-muted mb-0">Tri automatique : dossiers en retard, puis urgents. Analyse et brouillons de réponse assistés par IA.</p>
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('admin.alertes.index') }}" class="btn btn-outline-danger"><i class="bx bx-error me-1"></i>Alertes qualité</a>

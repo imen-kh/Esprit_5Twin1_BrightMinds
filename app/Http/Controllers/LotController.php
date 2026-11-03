@@ -158,7 +158,7 @@ class LotController extends Controller
         abort_unless($lot->estVisiblePar($request->user()), 403, 'Vous n\'avez pas accès à ce lot.');
 
         if (! $ia->estConfigure()) {
-            return back()->with('error', 'L\'IA n\'est pas configurée : renseignez GEMINI_API_KEY dans le fichier .env.');
+            return back()->with('error', 'L\'IA n\'est pas configurée : renseignez ANTHROPIC_API_KEY ou GEMINI_API_KEY dans le fichier .env.');
         }
 
         return $ia->histoire($lot, forcer: true) !== null

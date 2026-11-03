@@ -367,11 +367,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('preview-alternative-texte').textContent = d.alternative_locale;
 
         const sources = {
-          openai: 'Texte rédigé par ChatGPT (OpenAI). Le score et le CO₂ viennent des facteurs d\'émission.',
-          bilan: 'Texte déjà enregistré pour ce produit. ChatGPT n\'a pas été rappelé.',
-          openai_indisponible: 'ChatGPT n\'a pas répondu. La formule locale a été utilisée.'
+          anthropic: 'Texte rédigé par Claude (Anthropic). Le score et le CO₂ viennent des facteurs d\'émission.',
+          bilan: 'Texte déjà enregistré pour ce produit. Claude n\'a pas été rappelé.',
+          anthropic_indisponible: 'Claude n\'a pas répondu. La formule locale a été utilisée.'
         };
-        status.textContent = sources[d.source_ia] || 'Formule locale utilisée. Ajoutez OPENAI_API_KEY dans .env pour ChatGPT.';
+        status.textContent = sources[d.source_ia] || 'Formule locale utilisée. Configurez ANTHROPIC_API_KEY dans .env pour activer Claude.';
       } else {
         status.textContent = '❌ Erreur lors de l\'estimation IA.';
       }

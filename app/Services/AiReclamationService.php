@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Models\EtapeTracabilite;
 use App\Models\Product;
 use App\Models\Reclamation;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Intelligence du module Réclamations, via DeepSeek :
@@ -56,6 +60,12 @@ class AiReclamationService
 
         $contexte = 'Produit : '.($produit?->name ?? 'non précisé')."\nSujet : {$sujet}\nDescription : {$description}";
         $ia = $this->deepseek->json($systeme, $contexte);
+        $source = 'ia';
+
+        if (! $ia && filled(config('services.anthropic.key'))) {
+            $ia = $this->analyserAvecAnthropic($systeme, $contexte);
+            $source = $ia ? 'anthropic' : 'regles';
+        }
 
         if (! $ia) {
             return $local;
@@ -68,8 +78,48 @@ class AiReclamationService
             'langue' => $this->valeur($ia['langue'] ?? null, array_keys(self::LANGUES), $local['langue']),
             'resume' => $this->texte($ia['resume'] ?? null, 255) ?? $local['resume'],
             'suggestion' => $this->texte($ia['suggestion'] ?? null, 2000) ?? $local['suggestion'],
-            'source' => 'ia',
+            'source' => $source,
         ];
+    }
+
+    /**
+     * Repli de l'analyse initiale quand DeepSeek est temporairement indisponible.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function analyserAvecAnthropic(string $systeme, string $contexte): ?array
+    {
+        try {
+            $reponse = Http::timeout((int) config('services.anthropic.timeout', 20))
+                ->connectTimeout(5)
+                ->acceptJson()
+                ->withHeaders([
+                    'x-api-key' => (string) config('services.anthropic.key'),
+                    'anthropic-version' => '2023-06-01',
+                ])
+                ->post('https://api.anthropic.com/v1/messages', [
+                    'model' => config('services.anthropic.model', 'claude-sonnet-4-5'),
+                    'max_tokens' => 500,
+                    'temperature' => 0.2,
+                    'system' => $systeme,
+                    'messages' => [['role' => 'user', 'content' => $contexte]],
+                ]);
+        } catch (Throwable $e) {
+            Log::warning('Réclamation : fallback Anthropic impossible.', ['erreur' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if (! $reponse->successful()) {
+            Log::warning('Réclamation : fallback Anthropic en erreur.', [
+                'statut' => $reponse->status(),
+                'corps' => Str::limit($reponse->body(), 300),
+            ]);
+
+            return null;
+        }
+
+        return app(DeepSeekService::class)->lireJson($reponse->json('content.0.text'));
     }
 
     /**
