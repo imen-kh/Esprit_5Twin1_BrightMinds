@@ -24,7 +24,8 @@ class ReclamationFactory extends Factory
             'Question sur l\'origine',
         ]);
         $description = fake()->paragraph(2);
-        $analyse = app(AiReclamationService::class)->analyserReclamation($sujet, $description);
+        // Règles locales : une factory ne doit jamais appeler l'API DeepSeek
+        $analyse = app(AiReclamationService::class)->analyseLocale($sujet, $description);
 
         return [
             'user_id' => User::factory()->state(['role' => 'consommateur']),
@@ -37,6 +38,9 @@ class ReclamationFactory extends Factory
             'sentiment' => $analyse['sentiment'],
             'priorite_suggeree' => $analyse['priorite'],
             'suggestion_reponse' => $analyse['suggestion'],
+            'categorie' => $analyse['categorie'],
+            'langue' => $analyse['langue'],
+            'resume_ia' => $analyse['resume'],
         ];
     }
 }

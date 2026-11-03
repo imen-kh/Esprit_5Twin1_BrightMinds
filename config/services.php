@@ -51,6 +51,14 @@ return [
         'embedding_model' => env('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-001'),
     ],
 
+    // Module Réclamations & Avis : analyse, modération, alertes qualité et agent « Sahbi » (API DeepSeek, format OpenAI)
+    'deepseek' => [
+        'key' => env('DEEPSEEK_API_KEY'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'base_url' => rtrim((string) env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'), '/'),
+        'timeout' => (int) env('DEEPSEEK_TIMEOUT', 30),
+    ],
+
     'openmeteo' => [
         'forecast_url' => env('OPENMETEO_FORECAST_URL', 'https://api.open-meteo.com/v1/forecast'),
         'geocode_url' => env('OPENMETEO_GEOCODE_URL', 'https://geocoding-api.open-meteo.com/v1/search'),

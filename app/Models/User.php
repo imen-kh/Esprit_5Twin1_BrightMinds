@@ -106,6 +106,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ReponseReclamation::class);
     }
 
+    public function avis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Avis::class);
+    }
+
+    /**
+     * Commandes livrées de l'utilisateur qui contiennent ce produit (achat vérifié, réclamation liée).
+     */
+    public function commandesLivreesAvec(int $produitId): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->commandes()
+            ->where('statut', 'livree')
+            ->whereHas('products', fn ($q) => $q->whereKey($produitId))
+            ->latest('id');
+    }
+
     public function isConsommateur(): bool
     {
         return $this->role === 'consommateur';

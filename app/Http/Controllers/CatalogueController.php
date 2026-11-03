@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\AvisProduitService;
 use App\Services\RechercheIntelligenteService;
 use Illuminate\Http\Request;
 
@@ -72,7 +73,7 @@ class CatalogueController extends Controller
         return view('front.catalogue.index', compact('categories', 'products', 'criteres'));
     }
 
-    public function show(Product $product)
+    public function show(Request $request, Product $product, AvisProduitService $avisProduit)
     {
         abort_unless($product->status === 'published', 404);
 
@@ -92,6 +93,9 @@ class CatalogueController extends Controller
             ->latest()
             ->get();
 
-        return view('front.catalogue.show', compact('product', 'related', 'bilansPublics'));
+        // Module Réclamations & Avis : moyenne, synthèse IA et liste des avis
+        $avis = $avisProduit->section($product, $request->user(), (string) $request->query('tri', 'recents'));
+
+        return view('front.catalogue.show', compact('product', 'related', 'bilansPublics', 'avis'));
     }
 }

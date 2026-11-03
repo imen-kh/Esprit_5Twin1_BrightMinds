@@ -19,10 +19,11 @@ class RolePermissionSeeder extends Seeder
      * Permissions de chaque rôle. L'admin les reçoit toutes.
      */
     private const ROLES = [
-        'producteur' => ['gerer-produits', 'gerer-lots', 'declarer-etapes', 'gerer-certifications'],
-        'transformateur' => ['gerer-produits', 'gerer-lots', 'declarer-etapes', 'gerer-certifications', 'transformer-lots'],
+        'producteur' => ['gerer-produits', 'gerer-lots', 'declarer-etapes', 'gerer-certifications', 'repondre-avis'],
+        // Le transformateur achète des matières premières : il peut aussi réclamer et donner un avis
+        'transformateur' => ['gerer-produits', 'gerer-lots', 'declarer-etapes', 'gerer-certifications', 'transformer-lots', 'repondre-avis', 'deposer-reclamations', 'publier-avis'],
         'distributeur' => ['gerer-lots', 'declarer-etapes', 'gerer-livraisons', 'gerer-certifications'],
-        'consommateur' => ['passer-commandes', 'deposer-reclamations'],
+        'consommateur' => ['passer-commandes', 'deposer-reclamations', 'publier-avis'],
     ];
 
     /**
@@ -35,6 +36,7 @@ class RolePermissionSeeder extends Seeder
         'gerer-labels',
         'gerer-commandes',
         'traiter-reclamations',
+        'moderer-avis',
         'gerer-environnement',
     ];
 

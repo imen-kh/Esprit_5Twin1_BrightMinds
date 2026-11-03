@@ -125,5 +125,8 @@
     <script src="{{ asset('back/assets/js/main.js') }}"></script>
 
     @stack('scripts')
+
+    {{-- module Réclamations & Avis : agent Sahbi --}}
+    @include('partials.assistant.sahbi', ['contexte' => 'back'])
   </body>
 </html>
