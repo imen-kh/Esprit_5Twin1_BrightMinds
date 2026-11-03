@@ -14,15 +14,17 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->after('origin')->constrained()->nullOnDelete();
         });
 
-        if (DB::getDriverName() !== 'sqlite') {
+        // Contrainte CHECK propre à MySQL : ignorée sous SQLite (tests et CI)
+        if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE `categories` ADD CONSTRAINT `categories_origin_check` CHECK (`origin` IN ('admin', 'producteur'))");
         }
+
         DB::table('categories')->where('status', 'proposee')->update(['origin' => 'producteur']);
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement('ALTER TABLE `categories` DROP CHECK `categories_origin_check`');
         }
 

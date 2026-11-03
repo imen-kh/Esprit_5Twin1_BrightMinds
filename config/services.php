@@ -37,8 +37,10 @@ return [
     'gemini' => [
         'enabled' => env('GEMINI_ENABLED', false),
         'api_key' => env('GEMINI_API_KEY'),
+        'key' => env('GEMINI_API_KEY'),
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash-lite'),
-        'timeout' => (int) env('GEMINI_TIMEOUT', 8),
+        'secours' => array_filter(array_map('trim', explode(',', (string) env('GEMINI_MODELES_SECOURS', 'gemini-3.7-flash,gemini-flash-lite-latest')))),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 20),
     ],
 
     'forecast' => [

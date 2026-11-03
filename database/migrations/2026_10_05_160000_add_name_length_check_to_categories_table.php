@@ -7,9 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // SQLite does not support adding a table constraint after creation.
-        // The application validation still enforces the minimum length there.
-        if (DB::getDriverName() === 'sqlite') {
+        // Syntaxe propre à MySQL : ignorée sous SQLite (base en mémoire des tests et de la CI),
+        // où la longueur minimale reste contrôlée par la validation du formulaire
+        if (DB::getDriverName() !== 'mysql') {
             return;
         }
 
@@ -20,7 +20,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
+        if (DB::getDriverName() !== 'mysql') {
             return;
         }
 

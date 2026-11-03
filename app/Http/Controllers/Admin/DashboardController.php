@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\EtapeTracabilite;
 use App\Models\Lot;
 use App\Models\Product;
+use App\Models\Reclamation;
 use App\Models\User;
 use Illuminate\View\View;
 
@@ -50,6 +51,9 @@ class DashboardController extends Controller
             'parTypeActeur' => $parTypeActeur,
             'lotsRappeles' => Lot::with('produit')->where('statut', 'rappele')->orderByDesc('date_production')->get(),
             'dernieresEtapes' => EtapeTracabilite::with(['lot.produit', 'acteur'])->orderByDesc('date_etape')->take(6)->get(),
+            // Module Réclamations : nombre par statut et dernières réclamations reçues
+            'reclamationsParStatut' => Reclamation::query()->selectRaw('statut, count(*) as total')->groupBy('statut')->pluck('total', 'statut'),
+            'dernieresReclamations' => Reclamation::with(['user', 'produit'])->latest()->take(5)->get(),
         ]);
     }
 }

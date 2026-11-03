@@ -392,37 +392,15 @@
                         <div class="bg-light rounded p-4 mb-4 profil-section" id="double-authentification">
                             <h4 class="text-primary mb-3">
                                 Double authentification
-                                @if ($user->two_factor_enabled)
+                                @if ($user->aDoubleAuthentification())
                                     <span class="badge bg-primary rounded-pill fs-6 ms-2">Activée</span>
+                                @elseif ($user->doubleAuthentificationEnAttente())
+                                    <span class="badge bg-warning rounded-pill fs-6 ms-2">En cours d'activation</span>
                                 @else
                                     <span class="badge bg-secondary rounded-pill fs-6 ms-2">Désactivée</span>
                                 @endif
                             </h4>
-                            <p class="mb-4">
-                                Lorsqu'elle est activée, un code à 6 chiffres est envoyé à <strong>{{ $user->email }}</strong> à chaque connexion, en plus de votre mot de passe.
-                            </p>
-                            <form method="POST" action="{{ route('profil.two-factor') }}" novalidate>
-                                @csrf
-                                @method('PUT')
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <label for="two_factor_password" class="form-label">Confirmez avec votre mot de passe<sup>*</sup></label>
-                                        <input
-                                            type="password"
-                                            class="form-control py-3 @error('password', 'deuxFacteurs') is-invalid @else border-0 @enderror"
-                                            id="two_factor_password"
-                                            name="password">
-                                        @error('password', 'deuxFacteurs')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                @if ($user->two_factor_enabled)
-                                    <button class="btn btn-danger rounded-pill px-5 py-3 mt-4" type="submit">Désactiver la double authentification</button>
-                                @else
-                                    <button class="btn btn-primary rounded-pill text-white px-5 py-3 mt-4" type="submit">Activer la double authentification</button>
-                                @endif
-                            </form>
+                            @include('partials.double-authentification', ['theme' => 'front'])
                         </div>
 
                         {{-- ===== e) Supprimer mon compte (erreurs dans le sac « suppression ») ===== --}}

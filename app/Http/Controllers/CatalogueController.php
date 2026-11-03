@@ -40,7 +40,7 @@ class CatalogueController extends Controller
             return [
                 'name' => $product->name,
                 'category' => $product->category->name,
-                'price' => number_format((float) $product->price, 3, ',', ' ').' DT',
+                'price' => $product->formattedPrice().' DT',
                 'url' => route('produit.detail', $product),
             ];
         }));

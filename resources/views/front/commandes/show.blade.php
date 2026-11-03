@@ -13,9 +13,9 @@
     <div class="card mb-4"><div class="card-body">
         <h5>Produits</h5>
         <div class="table-responsive"><table class="table"><thead><tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th><th>Sous-total</th></tr></thead><tbody>
-        @foreach($commande->products as $product)<tr><td>{{ $product->name }}</td><td>{{ $product->pivot->quantite }}</td><td>{{ number_format($product->pivot->prix_unitaire, 3, ',', ' ') }} DT</td><td>{{ number_format($product->pivot->sous_total, 3, ',', ' ') }} DT</td></tr>@endforeach
+        @foreach($commande->products as $product)<tr><td>{{ $product->name }}</td><td>{{ $product->pivot->quantite }}</td><td>{{ \App\Models\Product::formatAmount($product->pivot->prix_unitaire) }} DT</td><td>{{ \App\Models\Product::formatAmount($product->pivot->sous_total) }} DT</td></tr>@endforeach
         </tbody></table></div>
-        <div class="text-end fw-bold">Total : {{ number_format($commande->total, 3, ',', ' ') }} DT</div>
+        <div class="text-end fw-bold">Total : {{ \App\Models\Product::formatAmount($commande->total) }} DT</div>
     </div></div>
     <div class="card"><div class="card-body"><h5>Livraison</h5>
         @if(!$commande->livraison)<p class="mb-0">Livraison en attente.</p>@else

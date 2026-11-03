@@ -82,7 +82,10 @@ class EtapeTracabiliteController extends Controller
 
         $etape = new EtapeTracabilite([
             'lot_id' => $lots->contains('id', (int) $request->query('lot_id')) ? (int) $request->query('lot_id') : null,
-            'type_etape' => count($types) === 1 ? array_key_first($types) : null,
+            // Type demandé dans l'URL (ex. après la création d'un lot transformé), s'il est autorisé pour l'acteur
+            'type_etape' => is_string($request->query('type_etape')) && isset($types[$request->query('type_etape')])
+                ? $request->query('type_etape')
+                : (count($types) === 1 ? array_key_first($types) : null),
             'lieu' => $user->ville,
             'latitude' => $user->latitude,
             'longitude' => $user->longitude,
@@ -100,6 +103,7 @@ class EtapeTracabiliteController extends Controller
         $etape = new EtapeTracabilite($request->validated());
         $etape->user_id = $request->user()->id;
         $etape->save();
+        $etape->lot->synchroniserStatut();
 
         return redirect()
             ->route('gestion.lots.show', $etape->lot_id)
@@ -150,7 +154,14 @@ class EtapeTracabiliteController extends Controller
     {
         abort_unless($etape->estModifiablePar($request->user()), 403, 'Seul l\'auteur de l\'étape peut la modifier.');
 
+        $ancienLot = $etape->lot;
         $etape->update($request->validated());
+        $etape->lot->synchroniserStatut();
+
+        // L'étape a changé de lot : l'ancien lot retrouve le statut de sa dernière étape restante
+        if ($ancienLot && $ancienLot->id !== $etape->lot_id) {
+            $ancienLot->synchroniserStatut();
+        }
 
         return redirect()
             ->route('gestion.lots.show', $etape->lot_id)
@@ -169,6 +180,7 @@ class EtapeTracabiliteController extends Controller
         $lot = $etape->lot;
         $titre = $etape->titre;
         $etape->delete();
+        $lot?->synchroniserStatut();
 
         // Retour au lot s'il reste visible (un distributeur peut perdre l'accès en supprimant sa seule étape)
         $retour = $lot && $lot->estVisiblePar($user)

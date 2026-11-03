@@ -231,7 +231,7 @@
                                     <p class="mb-0 mt-4">{{ $product->name }}</p>
                                 </td>
                                 <td>
-                                    <p class="mb-0 mt-4">{{ number_format($product->price, 3, ',', ' ') }} DT</p>
+                                    <p class="mb-0 mt-4">{{ $product->formattedPrice() }} DT</p>
                                 </td>
                                 <td>
                                     <form action="{{ route('panier.update', $product->id) }}" method="POST" class="d-flex align-items-center mt-4">
@@ -253,7 +253,7 @@
                                     </form>
                                 </td>
                                 <td>
-                                    <p class="mb-0 mt-4">{{ number_format($total_produit, 3, ',', ' ') }} DT</p>
+                                    <p class="mb-0 mt-4">{{ \App\Models\Product::formatAmount($total_produit) }} DT</p>
                                 </td>
                                 <td>
                                     <form action="{{ route('panier.remove', $product->id) }}" method="POST">
@@ -278,7 +278,7 @@
                         <h1 class="display-6 mb-4">Panier <span class="fw-normal">Total</span></h1>
                         <div class="d-flex justify-content-between mb-4">
                             <h5 class="mb-0 me-4">Sous-total :</h5>
-                            <p class="mb-0">{{ number_format($sous_total, 3, ',', ' ') }} DT</p>
+                            <p class="mb-0">{{ \App\Models\Product::formatAmount($sous_total) }} DT</p>
                         </div>
                         <div class="d-flex justify-content-between">
                             <h5 class="mb-0 me-4">Livraison</h5>
@@ -290,7 +290,7 @@
                     </div>
                     <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
                         <h5 class="mb-0 ps-4 me-4">Total</h5>
-                        <p class="mb-0 pe-4">{{ number_format($sous_total + ($sous_total > 0 ? 3 : 0), 3, ',', ' ') }} DT</p>
+                        <p class="mb-0 pe-4">{{ \App\Models\Product::formatAmount($sous_total + ($sous_total > 0 ? 3 : 0)) }} DT</p>
                     </div>
                     @if($sous_total > 0)
                         <a href="{{ route('commande') }}" class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4">Passer la commande</a>

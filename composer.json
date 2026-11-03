@@ -8,9 +8,14 @@
     "require": {
         "php": "^8.2",
         "aiven/aiven-laravel": "^1.0",
+        "bacon/bacon-qr-code": "^2.0",
+        "barryvdh/laravel-dompdf": "^3.1",
+        "cloudinary/cloudinary_php": "^3.1",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "simplesoftwareio/simple-qrcode": "^4.2"
+        "pragmarx/google2fa-laravel": "^3.0",
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "spatie/laravel-permission": "^6.25"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -52,7 +57,9 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
-        ]
+        ],
+        "lint": "pint --test tests app/Services/TracabiliteIAService.php app/Services/DoubleAuthentificationService.php app/Http/Controllers/LotController.php app/Http/Controllers/TracabiliteController.php app/Http/Controllers/DoubleAuthentificationController.php app/Http/Controllers/EmailVerificationController.php app/Http/Controllers/TwoFactorController.php app/Http/Requests/TwoFactorCodeRequest.php app/Http/Requests/TwoFactorConfirmRequest.php app/Notifications/VerificationAdresseEmail.php app/Console/Commands/GenererHistoiresTracabilite.php app/Providers/AppServiceProvider.php config/tracabilite.php database/seeders/RolePermissionSeeder.php",
+        "lint:fix": "pint tests app/Services/TracabiliteIAService.php app/Services/DoubleAuthentificationService.php app/Http/Controllers/LotController.php app/Http/Controllers/TracabiliteController.php app/Http/Controllers/DoubleAuthentificationController.php app/Http/Controllers/EmailVerificationController.php app/Http/Controllers/TwoFactorController.php app/Http/Requests/TwoFactorCodeRequest.php app/Http/Requests/TwoFactorConfirmRequest.php app/Notifications/VerificationAdresseEmail.php app/Console/Commands/GenererHistoiresTracabilite.php app/Providers/AppServiceProvider.php config/tracabilite.php database/seeders/RolePermissionSeeder.php"
     },
     "extra": {
         "branch-alias": {

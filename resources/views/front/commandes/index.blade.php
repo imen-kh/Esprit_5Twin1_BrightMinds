@@ -47,7 +47,7 @@
                                 <p class="mb-0 mt-4">{{ $commande->products->sum('pivot.quantite') }}</p>
                             </td>
                             <td>
-                                <p class="mb-0 mt-4">{{ number_format($commande->total, 3, ',', ' ') }} DT</p>
+                                <p class="mb-0 mt-4">{{ \App\Models\Product::formatAmount($commande->total) }} DT</p>
                             </td>
                             <td>
                                 @php

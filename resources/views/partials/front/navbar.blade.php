@@ -26,6 +26,7 @@
                             {{-- module Traçabilité : page publique de suivi des lots --}}
                             <a href="{{ route('tracabilite.index') }}" class="nav-item nav-link {{ request()->routeIs('tracabilite.*') ? 'active' : '' }}">Traçabilité</a>
                             <a href="{{ route('labels.index') }}" class="nav-item nav-link {{ request()->routeIs('labels.*') ? 'active' : '' }}">Labels</a>
+                            <a href="{{ route('front.environnement.index') }}" class="nav-item nav-link {{ request()->routeIs('front.environnement.*') ? 'active' : '' }}">Éco-Score</a>
                             @auth
                                 @if (auth()->user()->isProducteur())
                                     <a href="{{ route('acteur.produits.index') }}" class="nav-item nav-link {{ request()->routeIs('acteur.produits.*') ? 'active' : '' }}">Ajouter un produit</a>
@@ -51,11 +52,11 @@
                                     @auth
                                         @if (auth()->user()->isTransformateur())
                                             <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
-                                            <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
+                                    <a href="{{ route('acteur.produits.index') }}" class="dropdown-item">Mes produits transformés</a>
                                         @elseif (auth()->user()->role === 'consommateur')
                                             <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
                                         @elseif (auth()->user()->isDistributeur())
-                                            <a href="{{ route('distributeur.dashboard') }}" class="dropdown-item">Dashboard distributeur</a>
+                                            <a href="{{ route('distributeur.dashboard') }}" class="dropdown-item">Tableau de bord</a>
                                             <a href="{{ route('distributeur.commandes.index') }}" class="dropdown-item">Commandes à traiter</a>
                                             <a href="{{ route('distributeur.livraisons.index') }}" class="dropdown-item">Mes livraisons</a>
                                         @endif
@@ -64,7 +65,6 @@
                                     <a href="{{ route('page404') }}" class="dropdown-item">Page 404</a>
                                 </div>
                             </div>
-                            <a href="{{ route('front.environnement.index') }}" class="nav-item nav-link {{ request()->routeIs('front.environnement.*') ? 'active' : '' }}">Éco-Score & IA</a>
                             <a href="{{ route('contact') }}" class="nav-item nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
                         </div>
                         <div class="d-flex m-3 me-0">
@@ -148,16 +148,8 @@
                                     </a>
                                     <div class="dropdown-menu m-0 bg-secondary rounded-0" style="left: auto; right: 0;">
                                         <a href="{{ route('profil.edit') }}" class="dropdown-item">Mon profil</a>
-                                        @if (auth()->user()->role === 'consommateur' || auth()->user()->isTransformateur())
-                                            <a href="{{ route('commandes.index') }}" class="dropdown-item">Mes commandes</a>
-                                        @elseif (auth()->user()->isDistributeur())
-                                            <a href="{{ route('distributeur.commandes.index') }}" class="dropdown-item">Commandes à traiter</a>
-                                            <a href="{{ route('distributeur.livraisons.index') }}" class="dropdown-item">Mes livraisons</a>
-                                        @endif
-                                        <a href="{{ route('reclamations.index') }}" class="dropdown-item">Mes réclamations</a>
                                         @if (auth()->user()->isAdmin())
                                             <a href="{{ route('admin.dashboard') }}" class="dropdown-item">Back office</a>
-                                            <a href="{{ route('admin.reclamations.index') }}" class="dropdown-item">Gérer les réclamations</a>
                                         @endif
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf

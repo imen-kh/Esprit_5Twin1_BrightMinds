@@ -1,0 +1,86 @@
+# Environnement complet NutriTrace en conteneurs :
+#   application  http://localhost:8000
+#   phpMyAdmin   http://localhost:8080
+#   Mailpit      http://localhost:8025 (emails de vérification, mot de passe oublié…)
+#
+# Démarrage : docker compose up -d --build
+# APP_KEY et GEMINI_API_KEY sont lus dans l'environnement du shell ou dans le fichier .env local
+# (uniquement pour remplacer ${...} ici : le .env n'est jamais copié dans l'image).
+
+services:
+  app:
+    build: .
+    image: nutritrace:local
+    ports:
+      - "8000:80"
+    environment:
+      APP_NAME: NutriTrace
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      APP_KEY: ${APP_KEY:?Définissez APP_KEY (php artisan key:generate --show)}
+      APP_LOCALE: fr
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: nutritrace
+      DB_USERNAME: nutritrace
+      DB_PASSWORD: nutritrace
+      MYSQL_ATTR_SSL_CA: ""
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM_ADDRESS: no-reply@nutritrace.tn
+      MAIL_FROM_NAME: NutriTrace
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      RUN_MIGRATIONS: "true"
+      SEED_DATABASE: ${SEED_DATABASE:-false}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    volumes:
+      - storage:/var/www/html/storage/app
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: nutritrace
+      MYSQL_USER: nutritrace
+      MYSQL_PASSWORD: nutritrace
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  mysql-data:
+  storage:

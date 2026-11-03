@@ -2,19 +2,58 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Notifications\CodeDoubleAuthentification;
 use App\Notifications\ReinitialisationMotDePasse;
+use App\Notifications\VerificationAdresseEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
+
+    /**
+     * Rôle Spatie aligné sur les colonnes role / type_acteur, qui restent la référence des modules.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            if ($user->wasRecentlyCreated || $user->wasChanged(['role', 'type_acteur'])) {
+                $user->synchroniserRole();
+            }
+        });
+    }
+
+    /**
+     * Nom du rôle Spatie correspondant : admin, consommateur, ou le type d'acteur (producteur…).
+     */
+    public function roleSpatie(): ?string
+    {
+        return match ($this->role) {
+            'admin', 'consommateur' => $this->role,
+            'acteur' => $this->type_acteur,
+            default => null,
+        };
+    }
+
+    /**
+     * Donne à l'utilisateur son rôle Spatie (sans effet tant que RolePermissionSeeder n'a pas créé les rôles).
+     */
+    public function synchroniserRole(): void
+    {
+        $role = $this->roleSpatie();
+
+        if ($role && Role::where('name', $role)->where('guard_name', 'web')->exists()) {
+            $this->syncRoles([$role]);
+        } elseif (! $role) {
+            $this->syncRoles([]);
+        }
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -134,51 +173,58 @@ class User extends Authenticatable
     }
 
     /**
-     * Durée de validité, en minutes, d'un code de double authentification.
+     * Envoie l'email de vérification de l'adresse (version française NutriTrace).
      */
-    public const DUREE_CODE_DOUBLE_AUTH = 10;
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerificationAdresseEmail);
+    }
 
     /**
-     * Génère un code à 6 chiffres, l'enregistre haché avec sa date d'expiration et l'envoie par email.
+     * La double authentification est-elle active ? (clé scannée ET premier code validé)
      */
-    public function envoyerCodeDoubleAuth(): void
+    public function aDoubleAuthentification(): bool
     {
-        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
 
+    /**
+     * Une activation est-elle en cours ? (clé générée, en attente du premier code)
+     */
+    public function doubleAuthentificationEnAttente(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at === null;
+    }
+
+    /**
+     * Utilise un code de récupération : valable une seule fois, il est retiré de la liste.
+     */
+    public function utiliserCodeRecuperation(string $code): bool
+    {
+        $code = strtoupper(trim($code));
+        $codes = $this->two_factor_recovery_codes ?? [];
+
+        foreach ($codes as $index => $valide) {
+            if (hash_equals($valide, $code)) {
+                unset($codes[$index]);
+                $this->forceFill(['two_factor_recovery_codes' => array_values($codes)])->save();
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Désactive complètement la double authentification.
+     */
+    public function desactiverDoubleAuthentification(): void
+    {
         $this->forceFill([
-            'two_factor_code' => Hash::make($code),
-            'two_factor_expires_at' => now()->addMinutes(self::DUREE_CODE_DOUBLE_AUTH),
-        ])->save();
-
-        $this->notify(new CodeDoubleAuthentification($code, self::DUREE_CODE_DOUBLE_AUTH));
-    }
-
-    /**
-     * Indique si le code de double authentification en cours a expiré (ou n'existe pas).
-     */
-    public function codeDoubleAuthExpire(): bool
-    {
-        return ! $this->two_factor_expires_at || $this->two_factor_expires_at->isPast();
-    }
-
-    /**
-     * Vérifie le code saisi : il doit correspondre au code haché et ne pas avoir expiré.
-     */
-    public function codeDoubleAuthValide(string $code): bool
-    {
-        return $this->two_factor_code
-            && ! $this->codeDoubleAuthExpire()
-            && Hash::check($code, $this->two_factor_code);
-    }
-
-    /**
-     * Efface le code en cours (après usage ou après trop de tentatives).
-     */
-    public function effacerCodeDoubleAuth(): void
-    {
-        $this->forceFill([
-            'two_factor_code' => null,
-            'two_factor_expires_at' => null,
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
         ])->save();
     }
 
@@ -190,7 +236,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_code',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -204,8 +251,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'preferences' => 'array',
-            'two_factor_enabled' => 'boolean',
-            'two_factor_expires_at' => 'datetime',
+            // Double authentification : clé et codes chiffrés en base avec APP_KEY
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 

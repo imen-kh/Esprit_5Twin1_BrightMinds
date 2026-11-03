@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -33,9 +34,75 @@ class Product extends Model
 
     public function formattedPrice(): string
     {
-        $formatted = number_format((float) $this->price, 3, ',', ' ');
+        return self::formatAmount($this->price);
+    }
+
+    /**
+     * Montant en dinars : espace pour les milliers, virgule pour les millimes,
+     * et pas de « ,000 » quand le montant est rond (24 et non 24,000).
+     */
+    public static function formatAmount(float|int|string|null $amount): string
+    {
+        $formatted = number_format((float) $amount, 3, ',', ' ');
 
         return str_ends_with($formatted, ',000') ? substr($formatted, 0, -4) : $formatted;
+    }
+
+    /**
+     * Photos du template utilisées quand le produit n'a pas de photo, choisies par mot-clé du nom.
+     * L'ordre compte : « pomme de terre » est testé avant « pomme ».
+     */
+    private const IMAGES_PAR_DEFAUT = [
+        'fraise' => 'fruite-item-2.jpg',
+        'framboise' => 'fruite-item-2.jpg',
+        'confiture' => 'fruite-item-2.jpg',
+        'orange' => 'fruite-item-1.jpg',
+        'citron' => 'fruite-item-1.jpg',
+        'agrume' => 'fruite-item-1.jpg',
+        'banane' => 'fruite-item-3.jpg',
+        'abricot' => 'fruite-item-4.jpg',
+        'raisin' => 'fruite-item-5.jpg',
+        'pomme de terre' => 'vegetable-item-5.jpg',
+        'pomme' => 'fruite-item-6.jpg',
+        'tomate' => 'vegetable-item-1.jpg',
+        'harissa' => 'vegetable-item-4.jpg',
+        'piment' => 'vegetable-item-4.jpg',
+        'poivron' => 'vegetable-item-4.jpg',
+        'persil' => 'vegetable-item-6.jpg',
+    ];
+
+    /**
+     * URL de la photo, toujours renseignée : URL Cloudinary telle quelle, ancien fichier du
+     * stockage local s'il est présent sur cette machine, sinon une photo par défaut.
+     */
+    public function imageUrl(): string
+    {
+        if ($this->aUnePhoto()) {
+            return str_starts_with($this->image, 'http') ? $this->image : asset('storage/'.$this->image);
+        }
+
+        $nom = mb_strtolower((string) $this->name);
+
+        foreach (self::IMAGES_PAR_DEFAUT as $motCle => $fichier) {
+            if (str_contains($nom, $motCle)) {
+                return asset('front/img/'.$fichier);
+            }
+        }
+
+        return asset('front/img/banner-fruits.jpg');
+    }
+
+    /**
+     * Le produit a-t-il une photo réellement affichable ? Une ancienne photo locale ne compte
+     * que si son fichier existe ici (le dossier storage/ n'est pas partagé par Git).
+     */
+    public function aUnePhoto(): bool
+    {
+        if (! $this->image) {
+            return false;
+        }
+
+        return str_starts_with($this->image, 'http') || Storage::disk('public')->exists($this->image);
     }
 
     // ajouté par le module Traçabilité
