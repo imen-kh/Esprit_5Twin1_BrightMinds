@@ -102,7 +102,7 @@
                             <strong>{{ $deClient ? ($reponse->user?->name ?? 'Client') : ($reponse->user?->isAdmin() ? 'Service client NutriTrace' : ($reponse->user?->name ?? 'Producteur').' (producteur)') }}</strong>
                             · {{ $reponse->created_at?->format('d/m/Y H:i') }}
                         </div>
-                        {{ $reponse->message }}
+                        <div class="corps">{{ $reponse->message }}</div>
                     </div>
                 @empty
                     <p class="text-muted">Aucune réponse pour le moment. Notre équipe vous répondra {{ $reclamation->echeance_at ? 'avant le '.$reclamation->echeance_at->format('d/m à H\hi') : 'rapidement' }}.</p>

@@ -70,9 +70,9 @@
                 </select>
             </div>
             <div class="col-md-1">
-                <div class="form-check">
+                <div class="form-check text-nowrap">
                     <input class="form-check-input" type="checkbox" name="retard" value="1" id="retard" @checked(request()->boolean('retard'))>
-                    <label class="form-check-label" for="retard">En retard</label>
+                    <label class="form-check-label" for="retard">Retard</label>
                 </div>
             </div>
             <div class="col-md-2 d-flex gap-2">
@@ -101,7 +101,7 @@
             <tbody>
                 @forelse ($reclamations as $reclamation)
                     <tr class="{{ $reclamation->estEnRetard() ? 'table-danger' : '' }}">
-                        <td>
+                        <td style="min-width: 260px;">
                             <a href="{{ route('admin.reclamations.show', $reclamation) }}" class="fw-semibold">{{ $reclamation->sujet }}</a>
                             <div class="small text-muted"><span class="ra-reference">{{ $reclamation->reference }}</span> · {{ $reclamation->created_at?->format('d/m/Y') }}@if ($reclamation->source !== 'formulaire') · <i class="bx {{ $reclamation->source === 'assistant' ? 'bx-bot' : 'bx-star' }}"></i> {{ $reclamation->sourceLibelle() }}@endif</div>
                         </td>
@@ -112,12 +112,12 @@
                         <td><span class="badge {{ $reclamation->prioriteBadge() }}">{{ $reclamation->prioriteLibelle() }}</span></td>
                         <td><span class="badge {{ $reclamation->slaBadge() }}">{{ $reclamation->slaLibelle() }}</span></td>
                         <td class="text-end text-nowrap">
-                            <a href="{{ route('admin.reclamations.show', $reclamation) }}" class="btn btn-sm btn-outline-info">Voir</a>
-                            <a href="{{ route('admin.reclamations.edit', $reclamation) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                            <a href="{{ route('admin.reclamations.show', $reclamation) }}" class="btn btn-sm btn-icon btn-outline-info" title="Voir" aria-label="Voir"><i class="bx bx-show"></i></a>
+                            <a href="{{ route('admin.reclamations.edit', $reclamation) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Modifier" aria-label="Modifier"><i class="bx bx-edit"></i></a>
                             <form action="{{ route('admin.reclamations.destroy', $reclamation) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Supprimer" aria-label="Supprimer"><i class="bx bx-trash"></i></button>
                             </form>
                         </td>
                     </tr>

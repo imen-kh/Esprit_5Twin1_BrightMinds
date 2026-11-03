@@ -104,7 +104,7 @@
                                 <span><strong>{{ $reponse->user?->name ?? 'Utilisateur' }}</strong>{{ $deClient ? ' (client)' : ($reponse->user?->isAdmin() ? ' (service client)' : ' (producteur)') }}</span>
                                 <span>{{ $reponse->created_at?->format('d/m/Y H:i') }}</span>
                             </div>
-                            {{ $reponse->message }}
+                            <div class="corps">{{ $reponse->message }}</div>
                             @if ($reponse->user_id === auth()->id())
                                 <details class="mt-2 small">
                                     <summary class="text-muted">Modifier / supprimer</summary>
@@ -137,7 +137,7 @@
                                     <option value="{{ $valeur }}">{{ $libelle }}</option>
                                 @endforeach
                             </select>
-                            <button type="button" class="btn btn-sm btn-primary" id="copilote-generer"><i class="bx bx-magic-wand me-1"></i>Générer</button>
+                            <button type="button" class="btn btn-sm btn-primary" id="copilote-generer"><i class="bx bx-edit-alt me-1"></i>Générer</button>
                         </div>
                         <div class="small mt-2 d-none" id="copilote-info"></div>
                     </div>
@@ -240,7 +240,7 @@
             info.classList.remove('d-none');
         } finally {
             bouton.disabled = false;
-            bouton.innerHTML = '<i class="bx bx-magic-wand me-1"></i>Générer';
+            bouton.innerHTML = '<i class="bx bx-edit-alt me-1"></i>Générer';
         }
     });
 })();
