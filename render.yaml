@@ -16,7 +16,7 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_URL
-        value: https://nutritrace.onrender.com
+        value: https://nutritrace-ezxb.onrender.com
       - key: LOG_CHANNEL
         value: stack
       - key: LOG_STACK
@@ -58,7 +58,7 @@ services:
       - key: SEED_DATABASE
         value: "false"
       - key: QR_PUBLIC_URL
-        value: https://nutritrace.onrender.com
+        value: https://nutritrace-ezxb.onrender.com
       - key: CLOUDINARY_FALLBACK_LOCAL
         value: "false"
       - key: CLOUDINARY_CLOUD_NAME
