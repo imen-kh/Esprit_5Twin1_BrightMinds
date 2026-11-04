@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Render termine TLS sur son proxy et transmet le schéma HTTPS d'origine.
+        $middleware->trustProxies(at: '*');
+
         // Alias des middlewares de rôle : 'admin' (admin seul) et 'acteur' (acteur ou admin)
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
