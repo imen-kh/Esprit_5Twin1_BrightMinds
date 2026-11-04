@@ -56,7 +56,7 @@ services:
       - key: RUN_MIGRATIONS
         value: "true"
       - key: SEED_DATABASE
-        value: "false"
+        value: "true"
       - key: QR_PUBLIC_URL
         value: https://nutritrace-ezxb.onrender.com
       - key: CLOUDINARY_FALLBACK_LOCAL
