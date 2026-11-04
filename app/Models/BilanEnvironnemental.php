@@ -38,6 +38,7 @@ class BilanEnvironnemental extends Model
         'alternative_locale',
         'recommandation_ia',
         'reduction_co2_estimee_pourcent',
+        'source_ia',
         'statut',
         'commentaires',
     ];
